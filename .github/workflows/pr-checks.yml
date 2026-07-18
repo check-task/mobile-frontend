@@ -1,0 +1,94 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck
+
+      - name: Expo Doctor
+        id: expo_doctor
+        continue-on-error: true
+        run: npx expo-doctor
+
+      - name: Comment PR result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = [
+              { name: 'Lint', outcome: '${{ steps.lint.outcome }}' },
+              { name: 'Typecheck', outcome: '${{ steps.typecheck.outcome }}' },
+              { name: 'Expo Doctor', outcome: '${{ steps.expo_doctor.outcome }}' },
+            ];
+
+            const icon = (outcome) => (outcome === 'success' ? '✅' : '❌');
+            const rows = results.map((r) => `| ${r.name} | ${icon(r.outcome)} |`).join('\n');
+            const body = [
+              '### 🤖 PR Checks 결과',
+              '',
+              '| 체크 항목 | 결과 |',
+              '| --- | --- |',
+              rows,
+              '',
+              `[워크플로우 로그 보기](${context.payload.repository.html_url}/actions/runs/${context.runId})`,
+            ].join('\n');
+
+            const marker = '### 🤖 PR Checks 결과';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((c) => c.body.startsWith(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail if any check failed
+        if: |
+          steps.lint.outcome == 'failure' ||
+          steps.typecheck.outcome == 'failure' ||
+          steps.expo_doctor.outcome == 'failure'
+        run: exit 1
