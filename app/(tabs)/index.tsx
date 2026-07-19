@@ -1,13 +1,12 @@
 import { Text, View } from "react-native";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/button";
 
 export default function HomeScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className={cn("text-lg font-bold text-red-500", "underline")}>
-        NativeWind test
-      </Text>
+    <View className="flex-1 items-center justify-center gap-4 bg-bg dark:bg-bg-dark">
+      <Text className="text-gray-900 text-h-04">비밀번호 찾기</Text>
+      <Button label="Button" />
     </View>
   );
 }

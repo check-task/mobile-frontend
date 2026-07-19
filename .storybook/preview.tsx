@@ -1,6 +1,7 @@
 import type { Preview } from "@storybook/react-native-web-vite";
 
 import "../global.css";
+import "./inter-fonts.css";
 
 const preview: Preview = {
   parameters: {

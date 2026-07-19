@@ -1,0 +1,15 @@
+@font-face {
+  font-family: "Inter_400Regular";
+  src: url("../node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf")
+    format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter_500Medium";
+  src: url("../node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf")
+    format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
