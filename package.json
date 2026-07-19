@@ -12,7 +12,10 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -51,7 +54,11 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@gorhom/bottom-sheet": "^5.2.14",
+    "@storybook/addon-docs": "^10.5.2",
+    "@storybook/react-native-web-vite": "^10.5.2",
     "@types/react": "~19.1.0",
+    "autoprefixer": "^10.5.4",
     "babel-preset-expo": "^54.0.11",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
@@ -59,7 +66,9 @@
     "lint-staged": "^17.1.0",
     "prettier": "^3.9.5",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "typescript": "~5.9.2"
+    "storybook": "^10.5.2",
+    "typescript": "~5.9.2",
+    "vite": "^7.3.6"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
