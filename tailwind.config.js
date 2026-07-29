@@ -11,112 +11,86 @@ module.exports = {
       colors: {
         bg: {
           DEFAULT: "rgb(var(--color-bg) / <alpha-value>)",
-          dark: "#081221",
         },
         primary: {
           DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
-          dark: "#317AE4",
         },
         "primary-button-text": {
           DEFAULT: "rgb(var(--color-primary-button-text) / <alpha-value>)",
-          dark: "#FFFFFF",
         },
         blue: {
           50: {
             DEFAULT: "rgb(var(--color-blue-50) / <alpha-value>)",
-            dark: "#293747",
           },
           100: {
             DEFAULT: "rgb(var(--color-blue-100) / <alpha-value>)",
-            dark: "#325279",
           },
           200: {
             DEFAULT: "rgb(var(--color-blue-200) / <alpha-value>)",
-            dark: "#317AE4",
           },
           300: {
             DEFAULT: "rgb(var(--color-blue-300) / <alpha-value>)",
-            dark: "#74A4ED",
           },
           500: {
             DEFAULT: "rgb(var(--color-blue-500) / <alpha-value>)",
-            dark: "#B7D0F6",
           },
           600: {
             DEFAULT: "rgb(var(--color-blue-600) / <alpha-value>)",
-            dark: "#E2ECFB",
           },
           700: {
             DEFAULT: "rgb(var(--color-blue-700) / <alpha-value>)",
-            dark: "#F3F6FC",
           },
         },
         sub: {
           "01": {
             DEFAULT: "rgb(var(--color-sub-01) / <alpha-value>)",
-            dark: "#F55757",
           },
           "02": {
             DEFAULT: "rgb(var(--color-sub-02) / <alpha-value>)",
-            dark: "#FFC93F",
           },
           "03": {
             DEFAULT: "rgb(var(--color-sub-03) / <alpha-value>)",
-            dark: "#6EC77B",
           },
           "04": {
             DEFAULT: "rgb(var(--color-sub-04) / <alpha-value>)",
-            dark: "#A177E2",
           },
           "05": {
             DEFAULT: "rgb(var(--color-sub-05) / <alpha-value>)",
-            dark: "#B5BAC4",
           },
           null: {
             DEFAULT: "rgb(var(--color-sub-null) / <alpha-value>)",
-            dark: "#818892",
           },
         },
         gray: {
           0: {
             DEFAULT: "rgb(var(--color-gray-0) / <alpha-value>)",
-            dark: "#1F2935",
           },
           100: {
             DEFAULT: "rgb(var(--color-gray-100) / <alpha-value>)",
-            dark: "#212327",
           },
           200: {
             DEFAULT: "rgb(var(--color-gray-200) / <alpha-value>)",
-            dark: "#383C42",
           },
           300: {
             DEFAULT: "rgb(var(--color-gray-300) / <alpha-value>)",
-            dark: "#50555E",
           },
           400: {
             DEFAULT: "rgb(var(--color-gray-400) / <alpha-value>)",
-            dark: "#808893",
           },
           500: {
             DEFAULT: "rgb(var(--color-gray-500) / <alpha-value>)",
-            dark: "#9CA2AB",
           },
           600: {
             DEFAULT: "rgb(var(--color-gray-600) / <alpha-value>)",
-            dark: "#B7BCC2",
           },
           700: {
             DEFAULT: "rgb(var(--color-gray-700) / <alpha-value>)",
-            dark: "#D3D6D9",
           },
           800: {
             DEFAULT: "rgb(var(--color-gray-800) / <alpha-value>)",
-            dark: "#EEEFF1",
           },
           900: {
             DEFAULT: "rgb(var(--color-gray-900) / <alpha-value>)",
-            dark: "#FFFFFF",
           },
         },
       },
