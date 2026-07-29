@@ -9,43 +9,121 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: { DEFAULT: "#FCFCFD", dark: "#081221" },
-        primary: { DEFAULT: "#317AE4", dark: "#317AE4" },
-        "primary-button-text": { DEFAULT: "#FFFFFF", dark: "#FFFFFF" },
+        bg: {
+          DEFAULT: "rgb(var(--color-bg) / <alpha-value>)",
+          dark: "#081221",
+        },
+        primary: {
+          DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+          dark: "#317AE4",
+        },
+        "primary-button-text": {
+          DEFAULT: "rgb(var(--color-primary-button-text) / <alpha-value>)",
+          dark: "#FFFFFF",
+        },
         blue: {
-          50: { DEFAULT: "#F3F6FC", dark: "#293747" },
-          100: { DEFAULT: "#E2ECFB", dark: "#325279" },
-          200: { DEFAULT: "#B7D0F6", dark: "#317AE4" },
-          300: { DEFAULT: "#74A4ED", dark: "#74A4ED" },
-          500: { DEFAULT: "#317AE4", dark: "#B7D0F6" },
-          600: { DEFAULT: "#325279", dark: "#E2ECFB" },
-          700: { DEFAULT: "#293747", dark: "#F3F6FC" },
+          50: {
+            DEFAULT: "rgb(var(--color-blue-50) / <alpha-value>)",
+            dark: "#293747",
+          },
+          100: {
+            DEFAULT: "rgb(var(--color-blue-100) / <alpha-value>)",
+            dark: "#325279",
+          },
+          200: {
+            DEFAULT: "rgb(var(--color-blue-200) / <alpha-value>)",
+            dark: "#317AE4",
+          },
+          300: {
+            DEFAULT: "rgb(var(--color-blue-300) / <alpha-value>)",
+            dark: "#74A4ED",
+          },
+          500: {
+            DEFAULT: "rgb(var(--color-blue-500) / <alpha-value>)",
+            dark: "#B7D0F6",
+          },
+          600: {
+            DEFAULT: "rgb(var(--color-blue-600) / <alpha-value>)",
+            dark: "#E2ECFB",
+          },
+          700: {
+            DEFAULT: "rgb(var(--color-blue-700) / <alpha-value>)",
+            dark: "#F3F6FC",
+          },
         },
         sub: {
-          "01": { DEFAULT: "#F55757", dark: "#F55757" },
-          "02": { DEFAULT: "#FFC93F", dark: "#FFC93F" },
-          "03": { DEFAULT: "#6EC77B", dark: "#6EC77B" },
-          "04": { DEFAULT: "#A177E2", dark: "#A177E2" },
-          "05": { DEFAULT: "#081221", dark: "#B5BAC4" },
-          null: { DEFAULT: "#818892", dark: "#818892" },
+          "01": {
+            DEFAULT: "rgb(var(--color-sub-01) / <alpha-value>)",
+            dark: "#F55757",
+          },
+          "02": {
+            DEFAULT: "rgb(var(--color-sub-02) / <alpha-value>)",
+            dark: "#FFC93F",
+          },
+          "03": {
+            DEFAULT: "rgb(var(--color-sub-03) / <alpha-value>)",
+            dark: "#6EC77B",
+          },
+          "04": {
+            DEFAULT: "rgb(var(--color-sub-04) / <alpha-value>)",
+            dark: "#A177E2",
+          },
+          "05": {
+            DEFAULT: "rgb(var(--color-sub-05) / <alpha-value>)",
+            dark: "#B5BAC4",
+          },
+          null: {
+            DEFAULT: "rgb(var(--color-sub-null) / <alpha-value>)",
+            dark: "#818892",
+          },
         },
         gray: {
-          0: { DEFAULT: "#FFFFFF", dark: "#1F2935" },
-          100: { DEFAULT: "#EEEFF1", dark: "#212327" },
-          200: { DEFAULT: "#D3D6D9", dark: "#383C42" },
-          300: { DEFAULT: "#B7BCC2", dark: "#50555E" },
-          400: { DEFAULT: "#9CA2AB", dark: "#808893" },
-          500: { DEFAULT: "#808893", dark: "#9CA2AB" },
-          600: { DEFAULT: "#50555E", dark: "#B7BCC2" },
-          700: { DEFAULT: "#383C42", dark: "#D3D6D9" },
-          800: { DEFAULT: "#212327", dark: "#EEEFF1" },
-          900: { DEFAULT: "#090A0B", dark: "#FFFFFF" },
+          0: {
+            DEFAULT: "rgb(var(--color-gray-0) / <alpha-value>)",
+            dark: "#1F2935",
+          },
+          100: {
+            DEFAULT: "rgb(var(--color-gray-100) / <alpha-value>)",
+            dark: "#212327",
+          },
+          200: {
+            DEFAULT: "rgb(var(--color-gray-200) / <alpha-value>)",
+            dark: "#383C42",
+          },
+          300: {
+            DEFAULT: "rgb(var(--color-gray-300) / <alpha-value>)",
+            dark: "#50555E",
+          },
+          400: {
+            DEFAULT: "rgb(var(--color-gray-400) / <alpha-value>)",
+            dark: "#808893",
+          },
+          500: {
+            DEFAULT: "rgb(var(--color-gray-500) / <alpha-value>)",
+            dark: "#9CA2AB",
+          },
+          600: {
+            DEFAULT: "rgb(var(--color-gray-600) / <alpha-value>)",
+            dark: "#B7BCC2",
+          },
+          700: {
+            DEFAULT: "rgb(var(--color-gray-700) / <alpha-value>)",
+            dark: "#D3D6D9",
+          },
+          800: {
+            DEFAULT: "rgb(var(--color-gray-800) / <alpha-value>)",
+            dark: "#EEEFF1",
+          },
+          900: {
+            DEFAULT: "rgb(var(--color-gray-900) / <alpha-value>)",
+            dark: "#FFFFFF",
+          },
         },
       },
     },
   },
   plugins: [
-    require("tailwindcss/plugin")(function ({ addUtilities }) {
+    require("tailwindcss/plugin")(function ({ addBase, addUtilities }) {
       const FONT_FAMILY_BY_WEIGHT = {
         400: "Inter_400Regular",
         500: "Inter_500Medium",
@@ -70,6 +148,37 @@ module.exports = {
         "calendar-2": ["7px", "9.8px", "-0.14px", 400],
         btn: ["16px", "22.4px", "-0.32px", 500],
       };
+
+      addBase({
+        ":root": {
+          "--color-bg": "252 252 253",
+          "--color-primary": "49 122 228",
+          "--color-primary-button-text": "255 255 255",
+          "--color-blue-50": "243 246 252",
+          "--color-blue-100": "226 236 251",
+          "--color-blue-200": "183 208 246",
+          "--color-blue-300": "116 164 237",
+          "--color-blue-500": "49 122 228",
+          "--color-blue-600": "50 82 121",
+          "--color-blue-700": "41 55 71",
+          "--color-sub-01": "245 87 87",
+          "--color-sub-02": "255 201 63",
+          "--color-sub-03": "110 199 123",
+          "--color-sub-04": "161 119 226",
+          "--color-sub-05": "8 18 33",
+          "--color-sub-null": "129 136 146",
+          "--color-gray-0": "255 255 255",
+          "--color-gray-100": "238 239 241",
+          "--color-gray-200": "211 214 217",
+          "--color-gray-300": "183 188 194",
+          "--color-gray-400": "156 162 171",
+          "--color-gray-500": "128 136 147",
+          "--color-gray-600": "80 85 94",
+          "--color-gray-700": "56 60 66",
+          "--color-gray-800": "33 35 39",
+          "--color-gray-900": "9 10 11",
+        },
+      });
 
       addUtilities(
         Object.fromEntries(
