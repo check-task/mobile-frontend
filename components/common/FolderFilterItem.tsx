@@ -2,19 +2,9 @@ import { Pressable, Text, View } from "react-native";
 
 import { CheckCircle, Task } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import type { FolderColor } from "@/types/folder.types";
 
-/** 폴더 색상. Figma `sub` 컬러 토큰과 1:1로 대응한다. */
-export type FolderColor =
-  "sub-01" | "sub-02" | "sub-03" | "sub-04" | "sub-05" | "sub-null";
-
-const FOLDER_COLOR_CLASS: Record<FolderColor, string> = {
-  "sub-01": "bg-sub-01",
-  "sub-02": "bg-sub-02",
-  "sub-03": "bg-sub-03",
-  "sub-04": "bg-sub-04",
-  "sub-05": "bg-sub-05",
-  "sub-null": "bg-sub-null",
-};
+import { FolderColorDot } from "./FolderColorDot";
 
 /** `all` 항목의 라벨. Figma에 고정 문구로 박혀 있어 prop으로 열지 않는다. */
 const ALL_LABEL = "모든 과제";
@@ -61,13 +51,8 @@ export function FolderFilterItem(props: FolderFilterItemProps) {
     props.type === "all" ? (
       <Task variant="xs" />
     ) : (
-      <View
-        className={cn(
-          // Figma 폴더 색상 점: 12px 원
-          "h-3 w-3 rounded-full",
-          FOLDER_COLOR_CLASS[props.color ?? "sub-null"]
-        )}
-      />
+      // Figma 폴더 필터의 색상 점은 12px
+      <FolderColorDot color={props.color} size="xs" />
     );
 
   return (
