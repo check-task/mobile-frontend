@@ -49,4 +49,3 @@ build-storybook.log
 # AI
 .omc/
 .claude/
-AGENTS.md

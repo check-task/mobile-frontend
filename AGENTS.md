@@ -23,8 +23,9 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 ├── app/            # 앱 라우터
 ├── assets/         # 이미지, 폰트 등 정적 리소스
 ├── components/     # 재사용 가능한 공통 UI 컴포넌트
-│   ├── common/
-│   ├──
+│   ├── common/     # 공통 컴포넌트
+│   ├──icons/       # 아이콘 컴포넌트
+│   ├──ui/          # UI 컴포넌트
 ├── screens/        # 페이지 단위 컴포넌트
 ├── hooks/          # 커스텀 훅
 ├── navigation/     # 라우팅 관련 설정
