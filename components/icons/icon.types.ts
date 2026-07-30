@@ -3,8 +3,10 @@ import type { SvgProps } from "react-native-svg";
 /**
  * 아이콘 크기 variant.
  * Figma 아이콘 컴포넌트의 원본 크기는 24px이며, `md`(20px)가 기본값이다.
+ * `xs`(12px)는 Figma `(mobile) 폴더필터링`처럼 caption(10px) 옆에 붙는 아이콘용이다.
  */
 export const ICON_SIZES = {
+  xs: 12,
   sm: 16,
   md: 20,
   lg: 24,

@@ -55,10 +55,11 @@ export const CancelIcon: Story = {
   render: (args) => <Cancel {...args} />,
 };
 
-/** variant로 크기를 바꾼다. sm=16, md=20, lg=24 */
+/** variant로 크기를 바꾼다. xs=12, sm=16, md=20, lg=24 */
 export const Variants: Story = {
   render: () => (
     <View className="flex-row items-center gap-4">
+      <AlarmDefault variant="xs" />
       <AlarmDefault variant="sm" />
       <AlarmDefault variant="md" />
       <AlarmDefault variant="lg" />
