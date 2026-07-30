@@ -45,3 +45,7 @@ app-example
 # Storybook
 storybook-static/
 build-storybook.log
+
+# AI
+.omc/
+.claude/
