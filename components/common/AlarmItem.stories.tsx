@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-native-web-vite";
 import { View } from "react-native";
 
-import { AlarmItem } from "./alarm-item";
+import { AlarmItem } from "./AlarmItem";
 
 const meta = {
   title: "Common/AlarmItem",

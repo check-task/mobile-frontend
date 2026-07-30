@@ -1,2 +1,2 @@
-export { AlarmItem } from "./alarm-item";
-export type { AlarmItemProps, AlarmItemStatus } from "./alarm-item";
+export { AlarmItem } from "./AlarmItem";
+export type { AlarmItemProps, AlarmItemStatus } from "./AlarmItem";
