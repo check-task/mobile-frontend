@@ -17,6 +17,7 @@ export { CancelFill } from "./cancel-fill";
 export { Check } from "./check";
 export { CheckBox } from "./check-box";
 export { CheckCircle } from "./check-circle";
+export { CheckCircleFill } from "./check-circle-fill";
 export { Clock } from "./clock";
 export { ClockClose } from "./clock-close";
 export { Comment } from "./comment";
