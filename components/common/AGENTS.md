@@ -19,22 +19,22 @@
 
 ## 1. 파일 구성
 
-컴포넌트 하나당 파일 2종 + barrel 갱신.
+컴포넌트 하나당 파일 2종.
 
-| 파일                      | 역할                             |
-| ------------------------- | -------------------------------- |
-| `<Component>.tsx`         | 컴포넌트 본체 + 타입             |
-| `<Component>.stories.tsx` | 스토리북 스토리                  |
-| `index.ts`                | barrel export (기존 파일에 추가) |
+| 파일                      | 역할                 |
+| ------------------------- | -------------------- |
+| `<Component>.tsx`         | 컴포넌트 본체 + 타입 |
+| `<Component>.stories.tsx` | 스토리북 스토리      |
 
 - 파일명은 **PascalCase**이고 export하는 컴포넌트 이름과 정확히 같다. (`TaskCard.tsx` → `TaskCard`)
 - 타입은 별도 `.types.ts`로 빼지 않고 **컴포넌트 파일 안에 같이 두고 export**한다. 두 개 이상의 컴포넌트가 공유하게 된 시점에 `types/`로 분리한다.
-- `index.ts`에는 값과 타입을 각각 한 줄씩 export한다. **타입은 반드시 `export type`으로** 내보낸다(`isolatedModules`).
+- **`components/common`에는 barrel(`index.ts`)을 두지 않는다.** 컴포넌트는 파일 경로로 직접 가져온다.
 
-  ```ts
-  export { TaskCard } from "./TaskCard";
-  export type { TaskCardProps, TaskCardStatus } from "./TaskCard";
+  ```tsx
+  import { TaskCard } from "@/components/common/TaskCard";
   ```
+
+  Metro는 tree-shaking을 하지 않아 barrel 하나를 import하면 거기서 re-export하는 모든 컴포넌트 모듈이 함께 로드된다. 형제 컴포넌트끼리 참조할 때 순환 참조가 생기는 문제도 있다. (아이콘은 한 번에 여러 개를 쓰고 파일 단위가 작아 `@/components/icons` barrel을 유지한다.)
 
 - 한 파일에 컴포넌트 하나가 원칙. 밖에서 못 쓰는 보조 컴포넌트만 같은 파일에 두되 export하지 않는다.
 
@@ -324,5 +324,4 @@ npm run lint
 - [ ] 탭 요소에 role, 아이콘 버튼에 한국어 label + `hitSlop`
 - [ ] 컴포넌트/prop/타입에 한국어 JSDoc, Figma 근거 주석
 - [ ] `.stories.tsx` 작성 (기본/variant/생략/List), `satisfies Meta`
-- [ ] `index.ts`에 값·타입 export 추가 (`export type`)
 - [ ] `npm run typecheck` / `npm run lint` 통과
