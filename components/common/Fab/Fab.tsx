@@ -43,7 +43,7 @@ export function Fab({
               style={FAB_SECONDARY_SHADOW}
               className="size-[60px] items-center justify-center rounded-full bg-gray-100"
             >
-              <TaskGenerate variant="xl" className="text-gray-800" />
+              <TaskGenerate variant="2xl" className="text-gray-800" />
             </Pressable>
           </View>
           <View className="flex-row items-center gap-4">
@@ -55,7 +55,7 @@ export function Fab({
               style={FAB_SECONDARY_SHADOW}
               className="size-[60px] items-center justify-center rounded-full bg-gray-100"
             >
-              <TaskJoin variant="xl" className="text-gray-800" />
+              <TaskJoin variant="2xl" className="text-gray-800" />
             </Pressable>
           </View>
         </>
@@ -69,9 +69,9 @@ export function Fab({
         className="size-[60px] items-center justify-center rounded-full bg-blue-500"
       >
         {isOpen ? (
-          <Cancel variant="xl" className="text-primary-button-text" />
+          <Cancel variant="2xl" className="text-primary-button-text" />
         ) : (
-          <Add variant="xl" className="text-primary-button-text" />
+          <Add variant="2xl" className="text-primary-button-text" />
         )}
       </Pressable>
     </View>
