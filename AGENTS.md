@@ -99,8 +99,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 
 3. **테마 변수는 앱 루트(`app/_layout.tsx` 근처)의 `ThemeVariablesProvider`에서 한 번만 주입한다.** `useColorScheme()`으로 현재 스킴을 읽어 `style={colorScheme === 'dark' ? darkTheme : lightTheme}`을 최상위 `View`에 적용하고, 하위 화면/컴포넌트는 이 provider로 감싸져 있다고 가정한다.
 
-4. **화면/컴포넌트에서는 `dark:` variant를 쓰지 않는다.** semantic token 클래스만 사용한다: `bg-bg`, `text-text`, `border-border`, `bg-surface`, `text-muted`, `bg-primary` 등. 새 색상이 필요하면 먼저 semantic token을 추가할지 검토하고, 화면 코드에 직접 hex/rgb 값이나 `dark:bg-...` 조합을 새로 만들지 않는다.
-
+4. **화면/컴포넌트에서는 `dark:` variant를 쓰지 않는다.** semantic token 클래스만 사용한다: `bg-bg`, `text-text`, `border-border`, `bg-surface`, `text-muted`, `bg-primary` 등. 새 색상이 필요하면 먼저 semantic token을 추가할지 검토하고, 필요에 따라서 화면 코드에 직접 hex/rgb 값을 추가하도록 한다.
 5. **React Navigation 등 JS prop으로 색상을 넘겨야 하는 곳** (`tabBarActiveTintColor` 등)은 className으로 처리할 수 없으므로, 같은 semantic 값을 상수(JS 값)로도 노출해 별도 매핑한다. Tailwind 클래스와 JS 상수의 값이 어긋나지 않도록 동일한 소스(`theme-vars`)에서 파생시킨다.
 
 6. **기존 `gray.900`, `gray.900-dark` 같은 팔레트 중심 네이밍은 새로 추가하지 않는다.** 이미 존재하는 팔레트 토큰을 지우라는 뜻은 아니지만, 신규 스타일링은 semantic token 기준으로 작성한다.
