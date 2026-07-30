@@ -4,7 +4,7 @@ import { CARD_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
 import type { FolderColor } from "@/types/folder.types";
 
-import { FolderColorDot } from "./FolderColorDot";
+import { FolderColorDot } from "../FolderColorDot/FolderColorDot";
 
 /** 과제 카드 종류. Figma `(mobile) assignment`의 `Property 1` variant와 대응한다. */
 export type TaskCardType = "ing" | "history";

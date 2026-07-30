@@ -4,7 +4,7 @@ import { CheckCircle, Task } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { FolderColor } from "@/types/folder.types";
 
-import { FolderColorDot } from "./FolderColorDot";
+import { FolderColorDot } from "../FolderColorDot/FolderColorDot";
 
 /** `all` 항목의 라벨. Figma에 고정 문구로 박혀 있어 prop으로 열지 않는다. */
 const ALL_LABEL = "모든 과제";

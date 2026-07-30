@@ -19,19 +19,25 @@
 
 ## 1. 파일 구성
 
-컴포넌트 하나당 파일 2종.
+**컴포넌트 하나당 폴더 하나**를 만들고, 그 안에 파일 2종을 둔다.
 
-| 파일                      | 역할                 |
-| ------------------------- | -------------------- |
-| `<Component>.tsx`         | 컴포넌트 본체 + 타입 |
-| `<Component>.stories.tsx` | 스토리북 스토리      |
+```
+components/common/
+├── TaskCard/
+│   ├── TaskCard.tsx           # 컴포넌트 본체 + 타입
+│   └── TaskCard.stories.tsx   # 스토리북 스토리
+└── Toast/
+    ├── Toast.tsx
+    └── Toast.stories.tsx
+```
 
-- 파일명은 **PascalCase**이고 export하는 컴포넌트 이름과 정확히 같다. (`TaskCard.tsx` → `TaskCard`)
+- 폴더명·파일명 모두 **PascalCase**이고 export하는 컴포넌트 이름과 정확히 같다. (`TaskCard/TaskCard.tsx` → `TaskCard`)
+- 컴포넌트 전용 하위 컴포넌트·훅·상수가 생기면 **그 컴포넌트 폴더 안에** 둔다. 두 개 이상의 컴포넌트가 쓰게 되면 `components/common` 바로 아래로 올린다.
 - 타입은 별도 `.types.ts`로 빼지 않고 **컴포넌트 파일 안에 같이 두고 export**한다. 두 개 이상의 컴포넌트가 공유하게 된 시점에 `types/`로 분리한다.
-- **`components/common`에는 barrel(`index.ts`)을 두지 않는다.** 컴포넌트는 파일 경로로 직접 가져온다.
+- **`components/common`에는 barrel(`index.ts`)을 두지 않는다.** 폴더별 `index.ts`도 만들지 않고, 컴포넌트는 파일 경로로 직접 가져온다.
 
   ```tsx
-  import { TaskCard } from "@/components/common/TaskCard";
+  import { TaskCard } from "@/components/common/TaskCard/TaskCard";
   ```
 
   Metro는 tree-shaking을 하지 않아 barrel 하나를 import하면 거기서 re-export하는 모든 컴포넌트 모듈이 함께 로드된다. 형제 컴포넌트끼리 참조할 때 순환 참조가 생기는 문제도 있다. (아이콘은 한 번에 여러 개를 쓰고 파일 단위가 작아 `@/components/icons` barrel을 유지한다.)
@@ -51,7 +57,7 @@ import { CARD_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
 ```
 
-- 프로젝트 내부 모듈은 `@/` 별칭. **같은 폴더 안**(`./TaskCard`)만 상대경로.
+- 프로젝트 내부 모듈은 `@/` 별칭. 상대경로는 **같은 컴포넌트 폴더 안**(`./TaskCardBadge`)과 **형제 공용 컴포넌트**(`../FolderColorDot/FolderColorDot`)까지만 쓴다.
 - 아이콘은 개별 파일이 아니라 `@/components/icons` barrel에서 가져온다.
 - 타입만 쓰는 import는 **`import type`**으로 분리한다.
 
@@ -310,7 +316,7 @@ npm run lint
 
 ## 체크리스트
 
-- [ ] PascalCase 파일명 = export 컴포넌트명, `export default` 없음
+- [ ] `<Component>/` 폴더 안에 PascalCase 파일명 = export 컴포넌트명, `export default` 없음
 - [ ] `<Component>Props` **type**, 마지막 prop이 `className`
 - [ ] `any` / `as` / `!` / `@ts-ignore` 없음
 - [ ] variant는 문자열 유니온, 매핑은 `Record<Variant, …>`로 누락 방지
