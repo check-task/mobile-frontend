@@ -16,6 +16,7 @@ import { View } from "react-native";
 import "react-native-reanimated";
 import "@/global.css";
 
+import { ModalProvider } from "@/components/ModalProvider";
 import { themeVars } from "@/constants/theme-vars";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -53,6 +54,7 @@ export default function RootLayout() {
             options={{ presentation: "modal", title: "Modal" }}
           />
         </Stack>
+        <ModalProvider />
         <StatusBar style="auto" />
       </View>
     </ThemeProvider>
