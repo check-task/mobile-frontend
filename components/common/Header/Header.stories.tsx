@@ -39,3 +39,14 @@ export const CloseHeaderStory: StoryObj<typeof CloseHeader> = {
   name: "CloseHeader",
   render: () => <CloseHeader />,
 };
+
+export const All: StoryObj<typeof BackHeader> = {
+  render: () => (
+    <View className="gap-3">
+      <BackHeader />
+      <BackHeader label="label" />
+      <LogoHeader />
+      <CloseHeader />
+    </View>
+  ),
+};
