@@ -21,7 +21,7 @@ const VARIANT_TEXT_CLASS: Record<ButtonStyle, string> = {
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
-  tiny: "rounded-full px-3 py-1.5",
+  tiny: "w-auto rounded-full px-3 py-1.5",
   sm: "w-[84px] rounded py-2",
   modal: "h-11 rounded-lg p-2.5",
   lg: "h-12 rounded-lg p-2.5",
@@ -60,7 +60,7 @@ export function Button({
       disabled={disabled}
       onPress={onPress}
       className={cn(
-        "items-center justify-center",
+        "w-full items-center justify-center",
         SIZE_CLASS[size],
         disabled ? "bg-gray-200" : VARIANT_CLASS[variant],
         className
