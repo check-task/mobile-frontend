@@ -24,7 +24,7 @@ export function IconButton({
       accessibilityRole="button"
       onPress={onPress}
       className={cn(
-        "h-10 flex-row items-center gap-1 rounded-lg border border-gray-100 bg-gray-0 px-3 py-2.5",
+        "h-10 w-full flex-row items-center gap-1 rounded-lg border border-gray-100 bg-gray-0 px-3 py-2.5",
         className
       )}
     >
