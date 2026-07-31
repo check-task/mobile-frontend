@@ -21,7 +21,7 @@ export function IconButton({
 }: IconButtonProps) {
   return (
     <Pressable
-      accessibilityRole="button"
+      accessibilityRole={onPress ? "button" : undefined}
       onPress={onPress}
       className={cn(
         "h-10 w-full flex-row items-center gap-1 rounded-lg border border-gray-100 bg-gray-0 px-3 py-2.5",

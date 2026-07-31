@@ -55,7 +55,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <Pressable
-      accessibilityRole="button"
+      accessibilityRole={onPress ? "button" : undefined}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
