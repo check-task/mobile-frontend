@@ -39,6 +39,7 @@ export { Notice } from "./notice";
 export { Pencil } from "./pencil";
 export { Re } from "./re";
 export { Right } from "./right";
+export { Send } from "./send";
 export { Share } from "./share";
 export { Slide } from "./slide";
 export { Swap } from "./swap";
