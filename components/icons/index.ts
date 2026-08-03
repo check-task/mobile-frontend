@@ -15,7 +15,7 @@ export { Camera } from "./camera";
 export { Cancel } from "./cancel";
 export { CancelFill } from "./cancel-fill";
 export { Check } from "./check";
-export { CheckBox } from "./check-box";
+export { CheckBox, CheckBoxMark } from "./check-box";
 export { CheckCircle } from "./check-circle";
 export { CheckCircleFill } from "./check-circle-fill";
 export { Clock } from "./clock";
