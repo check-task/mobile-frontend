@@ -13,7 +13,7 @@ const meta = {
       control: "inline-radio",
       options: ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05", "sub-null"],
     },
-    size: { control: "inline-radio", options: ["xs", "sm"] },
+    size: { control: "inline-radio", options: ["2xs", "xs", "sm"] },
   },
   args: {
     color: "sub-01",
@@ -30,6 +30,11 @@ export const Default: Story = {};
 /** 폴더 필터에서 쓰는 12px(`xs`). */
 export const ExtraSmall: Story = {
   args: { size: "xs" },
+};
+
+/** `(mobile) chip`에서 쓰는 10px(`2xs`). */
+export const ExtraExtraSmall: Story = {
+  args: { size: "2xs" },
 };
 
 /** `color`를 생략하면 `sub-null`(회색). */
