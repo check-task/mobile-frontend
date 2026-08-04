@@ -7,30 +7,34 @@ import { IconBase } from "./IconBase";
 import { ICON_SIZES, type IconVariant } from "./icon.types";
 
 /**
- * 원형 배경 + 화살표로 된 전송 아이콘.
- * `IconBase`는 아이콘 전체에 색을 하나만 입힐 수 있어(currentColor 하나), 배경과 화살표가
- * 함께 바뀌는 댓글 입력의 전송 버튼(비활성=회색 배경/회색 화살표, 활성=파란 배경/흰 화살표)을 위해
- * `IconBase`를 두 겹 겹쳐 배경 색과 화살표 색을 독립적으로 지정한다.
+ * 댓글 입력 등 전송 버튼에 쓰는 원형 화살표 아이콘.
+ * `Up`은 배경색만 바꿀 수 있고 화살표가 흰색으로 고정돼 있어(`IconBase`가 색을 하나만 입힘),
+ * 배경·화살표가 함께 바뀌어야 하는 전송 버튼 전용으로 따로 둔다.
+ *
+ * - `disabled=false`(기본): 파란 배경 + 흰 화살표
+ * - `disabled=true`: 회색 배경 + 회색 화살표
  */
 export type SendProps = {
-  /** 원형 배경 색. (기본값: `text-gray-200`) */
-  className?: string;
-  /** 화살표 색. (기본값: `text-gray-0`=흰색) */
-  arrowClassName?: string;
+  /** 비활성 여부. (기본값: `false`) */
+  disabled?: boolean;
   /** 아이콘 크기 variant (기본값: `md` = 20px) */
   variant?: IconVariant;
+  /** 바깥 여백 등 레이아웃 보정용. */
+  className?: string;
 };
 
 export function Send({
-  className = "text-gray-200",
-  arrowClassName = "text-gray-0",
+  disabled = false,
   variant = "md",
+  className,
 }: SendProps) {
   const size = ICON_SIZES[variant];
+  const bgClassName = disabled ? "text-gray-200" : "text-primary";
+  const arrowClassName = disabled ? "text-gray-400" : "text-gray-0";
 
   return (
-    <View style={{ width: size, height: size }}>
-      <IconBase variant={variant} className={cn("absolute", className)}>
+    <View style={{ width: size, height: size }} className={className}>
+      <IconBase variant={variant} className={cn("absolute", bgClassName)}>
         <Circle cx={12} cy={12} r={12} fill="currentColor" />
       </IconBase>
       <IconBase variant={variant} className={cn("absolute", arrowClassName)}>

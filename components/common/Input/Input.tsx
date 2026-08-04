@@ -182,11 +182,7 @@ export function Input({
           hitSlop={8}
           onPress={onSend}
         >
-          <Send
-            variant="md"
-            className={hasValue ? "text-primary" : "text-gray-200"}
-            arrowClassName={hasValue ? "text-gray-0" : "text-gray-400"}
-          />
+          <Send variant="md" disabled={!hasValue} />
         </Pressable>
       ) : null}
     </View>
