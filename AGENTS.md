@@ -61,7 +61,9 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 ### 의존성 방향
 
 ```text
-app -> features -> components/common + lib
+app -> features
+app -> providers
+features -> components/common + lib
 providers -> store + components/common + lib
 ```
 

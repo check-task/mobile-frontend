@@ -133,7 +133,8 @@ reviews:
     - 절대경로 import(@/) 사용을 권장합니다
     - 코드 스타일(포매팅)은 Prettier가 담당하므로 리뷰하지 않아도 됩니다
     - src와 별도 screens 폴더를 제안하지 않습니다
-    - 의존성 방향은 app -> features -> components/common + lib를 따릅니다
+    - app은 features와 providers에 의존합니다
+    - features는 components/common과 lib에 의존합니다
     - providers는 store, components/common, lib에만 의존합니다
     - features는 app을 import하지 않고 components/common은 app, features, store, Expo Router를 import하지 않습니다
     - feature 간 직접 import와 순환 참조가 없는지 확인합니다
