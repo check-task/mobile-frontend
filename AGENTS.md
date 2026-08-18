@@ -7,6 +7,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 | 대상          | 컨벤션                   | 예시                              |
 | ------------- | ------------------------ | --------------------------------- |
 | 컴포넌트 파일 | PascalCase               | `UserCard.tsx`                    |
+| 화면 컴포넌트 | PascalCase + `Screen`    | `PersonalTaskDetailScreen.tsx`    |
 | 라우트 파일   | kebab-case               | `user-profile.tsx`                |
 | 동적 라우트   | 대괄호                   | `[userId].tsx`                    |
 | 훅 파일       | camelCase + `use` 접두사 | `useAuthStore.ts`                 |
@@ -19,22 +20,72 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 
 ## 폴더 구조 (확정 🙋🏻‍♀️)
 
+```text
+├── app/                  # Expo Router route와 layout
+├── assets/               # 이미지, 폰트 등 정적 리소스
+├── components/           # 여러 feature가 공유하는 공용 UI
+│   ├── common/
+│   └── icons/
+├── features/             # 기능 단위 코드
+│   └── <feature>/
+│       ├── components/   # 해당 feature 전용 Screen과 UI
+│       └── hooks/        # 해당 feature 전용 hook
+├── providers/            # 앱 전역 Provider와 UI Host
+├── hooks/                # 여러 feature가 공유하는 공용 hook
+├── lib/                  # 여러 기능이 공유하는 기반 및 범용 코드
+├── store/                # 전역 클라이언트/UI Zustand 상태
+├── constants/            # 전역 상수와 디자인 값
+└── types/                # 여러 feature가 공유하는 type
 ```
-├── app/            # 앱 라우터
-├── assets/         # 이미지, 폰트 등 정적 리소스
-├── components/     # 재사용 가능한 공통 UI 컴포넌트
-│   ├── common/     # 공통 컴포넌트
-│   ├──icons/       # 아이콘 컴포넌트
-│   ├──ui/          # UI 컴포넌트
-├── screens/        # 페이지 단위 컴포넌트
-├── hooks/          # 커스텀 훅
-├── navigation/     # 라우팅 관련 설정
-├── apis/           # API 호출, 외부 라이브러리 연동
-├── store/          # 상태 관리 (Zustand, Redux 등)
-├── utils/          # 유틸 함수
-├── constants/      # 색상, 여백, 공통 스타일 값
-└── types/          # 타입스크립트 타입 정의
+
+`<feature>`는 실제 폴더명이 아니라 기능별 배치 규칙을 보여주는 자리표시자다. 합의된 빈 디렉터리를 먼저 만들 때는 `.gitkeep`을 두고, 실제 파일이 추가되면 제거한다.
+
+### 폴더 책임
+
+1. **`src`와 별도 `screens` 폴더는 사용하지 않는다.** 애플리케이션 코드는 프로젝트 루트 구조를 유지한다.
+2. **`app`은 route와 layout만 담당한다.** route param/search param 처리, 접근 제어, navigation option, Screen 연결 외의 화면 UI와 비즈니스 로직은 넣지 않는다.
+3. **실제 화면도 React 컴포넌트다.** `features/<feature>/components`에 두고 route와 연결되는 최상위 화면은 `*Screen.tsx`로 구분한다.
+4. **기능 전용 컴포넌트는 `features/<feature>/components`에 둔다.** Screen과 해당 기능에서만 사용하는 UI 컴포넌트를 함께 관리한다.
+5. **기능 전용 hook은 `features/<feature>/hooks`에 둔다.** 루트 `hooks`에는 여러 feature가 공유하는 도메인 비종속 hook만 둔다.
+6. **현재 feature 하위에는 `components`와 `hooks`만 둔다.** 다른 하위 폴더는 필요성과 배치 기준을 팀에서 합의한 뒤 추가한다.
+7. **`components/common`은 도메인 비종속 표현 UI만 둔다.** `app`, `features`, `store`, Router를 import하지 않는다.
+8. **`providers`는 앱 최상단에 한 번 마운트되는 Provider와 Host를 둔다.** 기능별 화면 로직은 넣지 않는다.
+9. **`lib`은 여러 기능이 공유하는 기반 코드와 범용 코드를 둔다.** 특정 feature의 비즈니스 로직은 넣지 않는다.
+10. **합의된 기본 디렉터리는 `.gitkeep`으로 추적할 수 있다.** 실제 구현 파일이 추가되면 해당 폴더의 `.gitkeep`은 제거한다.
+
+| 사용 범위                    | 컴포넌트 위치                   | hook 위치                  |
+| ---------------------------- | ------------------------------- | -------------------------- |
+| 특정 feature에서만 사용      | `features/<feature>/components` | `features/<feature>/hooks` |
+| 여러 feature가 공통으로 사용 | `components/common`             | 루트 `hooks`               |
+
+### 의존성 방향
+
+```text
+app -> features
+app -> providers
+features -> components/common + lib
+providers -> store + components/common + lib
 ```
+
+- `features`는 `app`을 import하지 않는다.
+- `components/common`은 `features`, `app`, `store`를 import하지 않는다.
+- feature 간 직접 import가 필요하면 공통 책임으로 승격할 코드인지 먼저 검토한다.
+- 순환 참조를 만들지 않는다.
+
+### 과제 라우팅
+
+개인 과제와 팀 과제는 같은 `tasks` 도메인에 두되, 상세 UI와 실시간 책임이 다르므로 route와 Screen을 분리한다. 수정 UI는 공통으로 관리한다.
+
+| 경로                       | 연결 화면                  | 책임                      |
+| -------------------------- | -------------------------- | ------------------------- |
+| `/tasks/create`            | `TaskCreateScreen`         | 과제 생성                 |
+| `/tasks/[taskId]/edit`     | `TaskEditScreen`           | 개인/팀 공통 과제 수정    |
+| `/tasks/personal/[taskId]` | `PersonalTaskDetailScreen` | 개인 과제 상세            |
+| `/tasks/team/[taskId]`     | `TeamTaskDetailScreen`     | 팀 과제 상세 및 실시간 UI |
+
+- `taskId`는 수정할 리소스의 식별자이므로 query string이 아니라 path param으로 받는다.
+- 수정 화면은 query string의 과제 타입을 신뢰하지 않고 해당 과제 정보의 실제 타입을 사용한다.
+- 개인/팀 공통 UI는 `features/tasks/components`에서 공유하고 전용 UI는 `personal`, `team` 하위로 분리한다.
 
 ## 커밋 메시지 컨벤션
 

@@ -16,15 +16,11 @@ import { View } from "react-native";
 import "react-native-reanimated";
 import "@/global.css";
 
-import { ModalProvider } from "@/components/ModalProvider";
 import { themeVars } from "@/constants/theme-vars";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { ModalProvider } from "@/providers/ModalProvider";
 
 SplashScreen.preventAutoHideAsync();
-
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -47,13 +43,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <View className="flex-1 bg-bg" style={themeVars[scheme]}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
         <ModalProvider />
         <StatusBar style="auto" />
       </View>
