@@ -3,8 +3,6 @@
 `components/common`은 기능(`features`)·라우트(`app`)에 종속되지 않는 **재사용 UI**를 둔다.
 루트 [AGENTS.md](../../AGENTS.md)의 네이밍/컬러 규칙이 상위 규칙이고, 이 문서는 그 위에 얹는 컴포넌트 전용 규칙이다.
 
-전제 스택: **React 19.1 / React Native 0.81 / Expo 54 / NativeWind 4.2 / TypeScript 5.9(`strict: true`)**.
-
 ## 0. 여기에 둘 것 / 두지 말 것
 
 | 둔다                                              | 두지 않는다                                                |
@@ -66,17 +64,12 @@ import { cn } from "@/lib/utils";
 ## 3. props 설계
 
 ```tsx
-/** 카드 상태. Figma variant와 1:1로 대응한다. */
 export type TaskCardStatus = "todo" | "doing" | "done";
 
 export type TaskCardProps = {
-  /** 카드 제목 */
   title: string;
-  /** 진행 상태 (기본값: `todo`) */
   status?: TaskCardStatus;
-  /** 카드를 탭했을 때 */
   onPress?: () => void;
-  /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
 ```
@@ -162,7 +155,6 @@ export type TaskCardProps = Omit<
 
 ```tsx
 export type ChipListProps<T> = {
-  /** 렌더링할 항목. 컴포넌트가 배열을 변형하지 않음을 타입으로 보장한다. */
   items: readonly T[];
   getKey: (item: T) => string;
   getLabel: (item: T) => string;
@@ -250,86 +242,4 @@ export function ChipList<T>({ items, getKey, ... }: ChipListProps<T>) { ... }
 
 - 모든 텍스트는 `<Text>` 안에 넣는다. `<View>` 직속 문자열 금지.
 
-## 10. 주석 / JSDoc
-
-- 컴포넌트와 모든 public prop에 **한국어 JSDoc**을 단다. prop 주석에는 기대값 예시와 기본값을 함께 적는다.
-
-  ```tsx
-  /** 진행 상태. `done`이면 전체가 흐리게 표시된다. (기본값: `todo`) */
-  status?: TaskCardStatus;
-  ```
-
-- 컴포넌트 JSDoc에는 **한 줄 요약 + 사용 시 주의사항**(너비는 부모가 정한다 등)을 적는다.
-- Figma에서 온 값(variant 이름, 고정 폭, 이펙트)은 근거를 주석으로 남긴다.
-- 타입 alias에도 JSDoc을 단다. 스토리북 autodocs와 에디터 자동완성에 그대로 노출된다.
-
-## 11. 스토리 작성
-
-```tsx
-import type { Meta, StoryObj } from "@storybook/react-native-web-vite";
-import { View } from "react-native";
-
-import { TaskCard } from "./TaskCard";
-
-const meta = {
-  title: "Common/TaskCard",
-  component: TaskCard,
-  parameters: { layout: "centered" },
-  tags: ["autodocs"],
-  argTypes: {
-    status: { control: "inline-radio", options: ["todo", "doing", "done"] },
-  },
-  args: {
-    // Figma에 적힌 실제 문구를 그대로
-  },
-  decorators: [
-    (Story) => (
-      <View className="w-[358px]">
-        <Story />
-      </View>
-    ),
-  ],
-} satisfies Meta<typeof TaskCard>;
-
-export default meta;
-
-type Story = StoryObj<typeof meta>;
-
-/** 기본 상태. */
-export const Default: Story = {};
-```
-
-- `title`은 `Common/<ComponentName>`. 폴더가 바뀌면 접두사도 바뀐다(`Icons/…`).
-- **`satisfies Meta<typeof X>` + `StoryObj<typeof meta>`** 조합을 쓴다. `as Meta` 캐스팅 금지 — `satisfies`를 써야 `args`의 오타·누락이 잡힌다.
-- 유니온 prop은 `argTypes`에 `inline-radio` 컨트롤을 달아준다.
-- 컴포넌트가 너비를 안 정하므로 **decorator에서 실제 화면 폭(`w-[358px]`)을 재현**한다.
-- 스토리는 최소 이 4종을 덮는다: **기본 상태 / 각 variant / optional prop 생략 / 여러 개 나열(List)**.
-- 각 story에 한 줄 JSDoc을 달면 autodocs에 설명으로 노출된다.
-- 더미 텍스트는 Figma 문구를 그대로 쓴다.
-
-## 12. 커밋 전 확인
-
-```bash
-npm run typecheck   # tsc --noEmit
-npm run lint
-```
-
-새 컴포넌트를 추가한 커밋은 `ui:` 또는 `feat:` 태그를 쓴다(루트 규칙).
-
-## 체크리스트
-
-- [ ] `<Component>/` 폴더 안에 PascalCase 파일명 = export 컴포넌트명, `export default` 없음
-- [ ] `<Component>Props` **type**, 마지막 prop이 `className`
-- [ ] `any` / `as` / `!` / `@ts-ignore` 없음
-- [ ] variant는 문자열 유니온, 매핑은 `Record<Variant, …>`로 누락 방지
-- [ ] 불가능한 props 조합은 discriminated union으로 차단
-- [ ] RN 컴포넌트 래핑 시 `ComponentProps<typeof X>` + `Omit`으로 파생
-- [ ] 배열 prop은 `readonly`, 도메인 타입 대신 제네릭
-- [ ] 자기 너비/바깥 여백을 지정하지 않음
-- [ ] 모든 클래스가 `cn()`을 통과, 순서는 base → 조건부 → `className`
-- [ ] 색상/타이포 전부 토큰 클래스, hex·`dark:` 없음
-- [ ] 아이콘은 `variant` + `className`
-- [ ] 탭 요소에 role, 아이콘 버튼에 한국어 label + `hitSlop`
-- [ ] 컴포넌트/prop/타입에 한국어 JSDoc, Figma 근거 주석
-- [ ] `.stories.tsx` 작성 (기본/variant/생략/List), `satisfies Meta`
-- [ ] `npm run typecheck` / `npm run lint` 통과
+스토리 파일(`*.stories.tsx`) 작성은 `write-story` 스킬을 따른다.
