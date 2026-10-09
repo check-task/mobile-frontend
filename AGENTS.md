@@ -1,6 +1,18 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+
+## 작업별 문서
+
+다음 작업을 하기 전에 해당 문서를 반드시 먼저 읽는다.
+
+| 작업                                      | 문서                          |
+| ----------------------------------------- | ----------------------------- |
+| `app/`에 라우트 추가·수정                 | `docs/conventions/routing.md` |
+| 테마 토큰, `tailwind.config.js` 관련 작업 | `docs/conventions/theme.md`   |
+| `components/common/` 컴포넌트 작성·수정   | `components/common/AGENTS.md` |
+
+커밋·PR·이슈·스토리 작성은 `.agents/skills/`의 스킬을 따른다.
 
 ## 파일 네이밍 컨벤션
 
@@ -18,7 +30,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 | barrel export | `index.ts`               | `components/ui/index.ts`          |
 | 아이콘        | 소문자 + `-` 조합        | `eye-close`                       |
 
-## 폴더 구조 (확정 🙋🏻‍♀️)
+## 폴더 구조
 
 ```text
 ├── app/                  # Expo Router route와 layout
@@ -72,91 +84,24 @@ providers -> store + components/common + lib
 - feature 간 직접 import가 필요하면 공통 책임으로 승격할 코드인지 먼저 검토한다.
 - 순환 참조를 만들지 않는다.
 
-### 과제 라우팅
+### 네비게이션 import
 
-개인 과제와 팀 과제는 같은 `tasks` 도메인에 두되, 상세 UI와 실시간 책임이 다르므로 route와 Screen을 분리한다. 수정 UI는 공통으로 관리한다.
+Expo Router(SDK 56+)에서는 앱 코드가 `@react-navigation/*`를 직접 import하면 번들링이 실패한다. 같은 API를 `expo-router` 경로에서 가져온다.
 
-| 경로                       | 연결 화면                  | 책임                      |
-| -------------------------- | -------------------------- | ------------------------- |
-| `/tasks/create`            | `TaskCreateScreen`         | 과제 생성                 |
-| `/tasks/[taskId]/edit`     | `TaskEditScreen`           | 개인/팀 공통 과제 수정    |
-| `/tasks/personal/[taskId]` | `PersonalTaskDetailScreen` | 개인 과제 상세            |
-| `/tasks/team/[taskId]`     | `TeamTaskDetailScreen`     | 팀 과제 상세 및 실시간 UI |
+| 기존                            | 변경                           |
+| ------------------------------- | ------------------------------ |
+| `@react-navigation/native`      | `expo-router/react-navigation` |
+| `@react-navigation/elements`    | `expo-router/react-navigation` |
+| `@react-navigation/bottom-tabs` | `expo-router/js-tabs`          |
 
-- `taskId`는 수정할 리소스의 식별자이므로 query string이 아니라 path param으로 받는다.
-- 수정 화면은 query string의 과제 타입을 신뢰하지 않고 해당 과제 정보의 실제 타입을 사용한다.
-- 개인/팀 공통 UI는 `features/tasks/components`에서 공유하고 전용 UI는 `personal`, `team` 하위로 분리한다.
+(참고: [Expo Router SDK 55 → 56 마이그레이션](https://docs.expo.dev/router/migrate/sdk-55-to-56/))
 
-## 커밋 메시지 컨벤션
+## 스타일 핵심 규칙
 
-형식: `태그: 커밋 내용` — 태그와 내용 모두 소문자로 작성.
+- 색상은 `tailwind.config.js`에 정의된 토큰 클래스만 쓴다 (`bg-bg`, `bg-primary`, `text-gray-900` 등). 모든 토큰은 CSS 변수라 다크모드에서 자동으로 바뀐다.
+- 화면/컴포넌트 코드에 hex·rgb를 직접 쓰지 않고, `dark:` variant도 쓰지 않는다.
+- 새 색상 토큰은 추가하지 않는다. 맞는 토큰이 없으면 임의로 비슷한 토큰을 고르거나 추가하지 말고 사용자에게 확인한다.
 
-| 커밋 유형 | 의미                     |
-| --------- | ------------------------ |
-| feat      | 새로운 기능 추가         |
-| fix       | 버그 수정                |
-| ui        | UI 컴포넌트 추가/수정    |
-| design    | 스타일링 변경            |
-| docs      | 문서 수정                |
-| refactor  | 코드 리팩토링            |
-| test      | 테스트 코드              |
-| chore     | 패키지 매니저, 기타 잡일 |
-| setting   | 환경설정, config 수정    |
-| build     | 빌드 관련                |
-| asset     | 리소스 추가/교체         |
-| comment   | 주석 작업                |
-| rename    | 파일/폴더명 변경         |
-| remove    | 파일 삭제                |
-| hotfix    | 긴급 버그 수정           |
-| release   | 릴리즈                   |
+## 커밋 메시지
 
-## 컬러/테마 컨벤션 (NativeWind semantic tokens)
-
-이 프로젝트는 NativeWind 4.2.6 + Tailwind 3.4.19를 사용하며, 색상은 고정 hex/팔레트 이름이 아니라 **CSS 변수 기반 semantic token**으로 관리합니다.
-(참고: [NativeWind Themes](https://www.nativewind.dev/docs/guides/themes), [vars() API](https://www.nativewind.dev/docs/api/vars))
-
-### 컬러 규칙
-
-1. **`tailwind.config.js`에 색상을 직접 hex로 넣지 않는다.** 반드시 `rgb(var(--color-x) / <alpha-value>)` 형태의 semantic token으로 정의한다.
-
-   ```js
-   colors: {
-     bg: 'rgb(var(--color-bg) / <alpha-value>)',
-     surface: 'rgb(var(--color-surface) / <alpha-value>)',
-     text: 'rgb(var(--color-text) / <alpha-value>)',
-     muted: 'rgb(var(--color-muted) / <alpha-value>)',
-     border: 'rgb(var(--color-border) / <alpha-value>)',
-     primary: 'rgb(var(--color-primary) / <alpha-value>)',
-   }
-   ```
-
-2. **라이트/다크 값은 `nativewind`의 `vars()`로 `constants/theme-vars.ts`(가칭)에 따로 정의한다.** 값은 `#FCFCFD`가 아니라 `252 252 253`처럼 공백 구분 RGB 숫자로 쓴다 (alpha 합성을 위해 필수).
-
-   ```ts
-   import { vars } from "nativewind";
-
-   export const lightTheme = vars({
-     "--color-bg": "252 252 253",
-     "--color-text": "9 10 11",
-     // ...
-   });
-
-   export const darkTheme = vars({
-     "--color-bg": "8 18 33",
-     "--color-text": "255 255 255",
-     // ...
-   });
-   ```
-
-3. **테마 변수는 앱 루트(`app/_layout.tsx` 근처)의 `ThemeVariablesProvider`에서 한 번만 주입한다.** `useColorScheme()`으로 현재 스킴을 읽어 `style={colorScheme === 'dark' ? darkTheme : lightTheme}`을 최상위 `View`에 적용하고, 하위 화면/컴포넌트는 이 provider로 감싸져 있다고 가정한다.
-
-4. **화면/컴포넌트에서는 `dark:` variant를 쓰지 않는다.** semantic token 클래스만 사용한다: `bg-bg`, `text-text`, `border-border`, `bg-surface`, `text-muted`, `bg-primary` 등. 새 색상이 필요하면 먼저 semantic token을 추가할지 검토하고, 필요에 따라서 화면 코드에 직접 hex/rgb 값을 추가하도록 한다.
-5. **React Navigation 등 JS prop으로 색상을 넘겨야 하는 곳** (`tabBarActiveTintColor` 등)은 className으로 처리할 수 없으므로, 같은 semantic 값을 상수(JS 값)로도 노출해 별도 매핑한다. Tailwind 클래스와 JS 상수의 값이 어긋나지 않도록 동일한 소스(`theme-vars`)에서 파생시킨다.
-
-6. **기존 `gray.900`, `gray.900-dark` 같은 팔레트 중심 네이밍은 새로 추가하지 않는다.** 이미 존재하는 팔레트 토큰을 지우라는 뜻은 아니지만, 신규 스타일링은 semantic token 기준으로 작성한다.
-
-### 왜 이렇게 하는가
-
-- 화면마다 `dark:` 반복을 줄이고, 색상 정책을 한 곳(`theme-vars`)에 모으기 위함.
-- 다크모드뿐 아니라 추후 브랜드 테마 추가를 쉽게 하기 위함.
-- `bg-bg`, `text-text`, `border-border`처럼 의미 기반 스타일 작성을 강제하기 위함.
+형식은 `태그: 내용`. 태그는 영문 소문자, 내용은 한국어로 쓴다 (예: `docs: 의존성 방향 명확화`). 태그 목록과 작성 절차는 `write-commit` 스킬을 따른다.
