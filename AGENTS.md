@@ -102,6 +102,20 @@ Expo Router(SDK 56+)에서는 앱 코드가 `@react-navigation/*`를 직접 impo
 - 화면/컴포넌트 코드에 hex·rgb를 직접 쓰지 않고, `dark:` variant도 쓰지 않는다.
 - 새 색상 토큰은 추가하지 않는다. 맞는 토큰이 없으면 임의로 비슷한 토큰을 고르거나 추가하지 말고 사용자에게 확인한다.
 
+## 작업 완료 전 검증
+
+`.ts`/`.tsx` 파일을 바꿨다면 작업을 마치기 전에 실행한다. 문서만 바꿨으면 생략한다.
+
+1. `npm run typecheck`
+2. `npm run lint`
+
+`package.json`, lockfile, `app.json`, `babel.config.js`, `metro.config.js`, `tailwind.config.js`를 바꿨다면 번들도 확인한다.
+
+3. `npx expo export --platform ios --output-dir /tmp/check-task-export-ios`
+4. `npx expo export --platform web --output-dir /tmp/check-task-export-web`
+
+실패하면 고친 뒤 다시 실행하고, 실행하지 않은 항목은 실행하지 않았다고 보고한다.
+
 ## 커밋 메시지
 
 형식은 `태그: 내용`. 태그는 영문 소문자, 내용은 한국어로 쓴다 (예: `docs: 의존성 방향 명확화`). 태그 목록과 작성 절차는 `write-commit` 스킬을 따른다.
