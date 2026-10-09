@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Pressable, View } from "react-native";
 
 import { CheckBoxMark } from "@/components/icons";
@@ -29,7 +29,7 @@ export function Checkbox({
   accessibilityLabel,
   className,
 }: CheckboxProps) {
-  const checkedOpacity = useRef(new Animated.Value(checked ? 1 : 0)).current;
+  const [checkedOpacity] = useState(() => new Animated.Value(checked ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(checkedOpacity, {
