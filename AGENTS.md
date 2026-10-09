@@ -6,11 +6,11 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 
 다음 작업을 하기 전에 해당 문서를 반드시 먼저 읽는다.
 
-| 작업                                      | 문서                          |
-| ----------------------------------------- | ----------------------------- |
-| `app/`에 라우트 추가·수정                 | `docs/conventions/routing.md` |
-| 테마 토큰, `tailwind.config.js` 관련 작업 | `docs/conventions/theme.md`   |
-| `components/common/` 컴포넌트 작성·수정   | `components/common/AGENTS.md` |
+| 작업                                      | 문서                                    |
+| ----------------------------------------- | --------------------------------------- |
+| `app/`에 라우트 추가·수정                 | `docs/conventions/routing.md`           |
+| 테마 토큰, `tailwind.config.js` 관련 작업 | `docs/conventions/theme.md`             |
+| `components/common/` 컴포넌트 작성·수정   | `docs/conventions/common-components.md` |
 
 커밋·PR·이슈·스토리 작성은 `.agents/skills/`의 스킬을 따른다.
 
