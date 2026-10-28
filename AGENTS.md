@@ -1,6 +1,6 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v58.0.0/ before writing any code.
 
 ## 작업별 문서
 
@@ -95,6 +95,8 @@ Expo Router(SDK 56+)에서는 앱 코드가 `@react-navigation/*`를 직접 impo
 | `@react-navigation/bottom-tabs` | `expo-router/js-tabs`          |
 
 (참고: [Expo Router SDK 55 → 56 마이그레이션](https://docs.expo.dev/router/migrate/sdk-55-to-56/))
+
+SDK 58에서 `expo-router/react-navigation`의 일부 API가 제거됐다. `NavigationContainer`, `BaseNavigationContainer`, `NavigationIndependentTree`, `useNavigationIndependentTree`, `Link`, `useLinkProps` 등 제거된 API는 위 표의 경로로 바꾸지 말고, [SDK 57 → 58 마이그레이션](https://docs.expo.dev/router/migrate/sdk-57-to-58/#review-removed-expo-routerreact-navigation-exports)에 적힌 대체 방법을 따른다.
 
 ## 스타일 핵심 규칙
 
