@@ -149,7 +149,7 @@ export type TaskCardProps = Omit<
 
 - 손으로 다시 적지 않는다. `ComponentProps<typeof X>`로 뽑고, **우리가 통제하는 prop만 `Omit`** 한다.
 - 전부 pass-through 하지 말고 필요한 것만 연다. `{...rest}`를 무분별하게 퍼뜨리면 `style`이 뒷문으로 들어온다.
-- ref가 필요하면 React 19이므로 `forwardRef` 없이 **`ref?: Ref<View>`를 그냥 prop으로** 받는다.
+- ref가 필요하면 React 19이므로 `forwardRef` 없이 **`ref?: Ref<ViewInstance>`를 그냥 prop으로** 받는다. ref 타입은 `ViewInstance`, `TextInputInstance`처럼 `react-native`의 인스턴스 타입을 쓴다.
 
 ### 4-5. 리스트/제네릭
 

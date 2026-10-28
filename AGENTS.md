@@ -96,6 +96,8 @@ Expo Router(SDK 56+)에서는 앱 코드가 `@react-navigation/*`를 직접 impo
 
 (참고: [Expo Router SDK 55 → 56 마이그레이션](https://docs.expo.dev/router/migrate/sdk-55-to-56/))
 
+SDK 58에서 `expo-router/react-navigation`의 일부 API가 제거됐다. 사용 전 [SDK 57 → 58 마이그레이션](https://docs.expo.dev/router/migrate/sdk-57-to-58/#review-removed-expo-routerreact-navigation-exports)을 확인한다.
+
 ## 스타일 핵심 규칙
 
 - 색상은 `tailwind.config.js`에 정의된 토큰 클래스만 쓴다 (`bg-bg`, `bg-primary`, `text-gray-900` 등). 모든 토큰은 CSS 변수라 다크모드에서 자동으로 바뀐다.
