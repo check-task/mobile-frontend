@@ -59,7 +59,7 @@ export function OnboardingScreen() {
   };
 
   const finishOnboarding = () => {
-    router.replace("/");
+    router.replace("/login");
   };
 
   const handleNext = () => {
