@@ -40,6 +40,11 @@ export function VerificationCodeStep({
   const canSubmit =
     trimmedCode.length > 0 && status !== "mismatch" && !countdown.isExpired;
 
+  const handleSubmit = () => {
+    if (countdown.checkExpired()) return;
+    onSubmit(trimmedCode);
+  };
+
   const handleResend = () => {
     countdown.restart();
     onResend?.();
@@ -59,7 +64,7 @@ export function VerificationCodeStep({
           <Button
             label={submitLabel}
             disabled={!canSubmit}
-            onPress={() => onSubmit(trimmedCode)}
+            onPress={handleSubmit}
           />
         </>
       }

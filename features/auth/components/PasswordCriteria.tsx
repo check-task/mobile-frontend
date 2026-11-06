@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 20;
-const SPECIAL_CHARACTER_PATTERN = /[^A-Za-z0-9\s]/;
+//ASCII 특수문자(!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~)만 인정
+const SPECIAL_CHARACTER_PATTERN = /[!-/:-@[-`{-~]/;
 
 export function getPasswordChecks(password: string) {
   return {
