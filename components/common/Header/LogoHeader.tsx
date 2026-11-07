@@ -22,14 +22,16 @@ export function LogoHeader({ onMenuPress, className }: LogoHeaderProps) {
           contentFit="contain"
           accessibilityLabel="CheckTask"
         />
-        <Pressable
-          accessibilityRole={onMenuPress ? "button" : undefined}
-          accessibilityLabel="메뉴 열기"
-          onPress={onMenuPress}
-          hitSlop={8}
-        >
-          <Hamburger variant="xl" className="text-gray-800" />
-        </Pressable>
+        {onMenuPress ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="메뉴 열기"
+            onPress={onMenuPress}
+            hitSlop={8}
+          >
+            <Hamburger variant="xl" className="text-gray-800" />
+          </Pressable>
+        ) : null}
       </View>
     </HeaderContainer>
   );

@@ -32,7 +32,7 @@ export const BackHeaderWithLabel: StoryObj<typeof BackHeader> = {
 
 export const LogoHeaderStory: StoryObj<typeof LogoHeader> = {
   name: "LogoHeader",
-  render: () => <LogoHeader />,
+  render: () => <LogoHeader onMenuPress={() => {}} />,
 };
 
 export const CloseHeaderStory: StoryObj<typeof CloseHeader> = {
@@ -45,7 +45,7 @@ export const All: StoryObj<typeof BackHeader> = {
     <View className="gap-3">
       <BackHeader />
       <BackHeader label="label" />
-      <LogoHeader />
+      <LogoHeader onMenuPress={() => {}} />
       <CloseHeader />
     </View>
   ),

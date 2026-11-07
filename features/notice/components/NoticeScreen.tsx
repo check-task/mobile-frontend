@@ -15,7 +15,7 @@ export function NoticeScreen() {
 
   return (
     <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
-      {/*메뉴 화면이 추가되면 onMenuPress 연결하기*/}
+      {/*메뉴 화면이 추가되면 onMenuPress 연결하기 (연결 전에는 메뉴 아이콘이 보이지 않음)*/}
       <LogoHeader />
       <ScrollView
         contentContainerClassName="gap-5 px-4 pt-5"
