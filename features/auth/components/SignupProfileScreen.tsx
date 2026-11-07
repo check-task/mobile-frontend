@@ -1,3 +1,4 @@
+import { launchImageLibraryAsync } from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -13,6 +14,8 @@ import {
 import { ProfilePhotoField } from "./ProfilePhotoField";
 
 const PHONE_NUMBER_MAX_DIGITS = 11;
+// 업로드 용량을 줄이기 위한 이미지 압축 품질 (0~1)
+const PHOTO_QUALITY = 0.8;
 
 // 숫자만 남기고 010-0000-0000 형태
 function formatPhoneNumber(text: string) {
@@ -27,6 +30,18 @@ export function SignupProfileScreen() {
   const [nickname, setNickname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // 라이브러리에서 사진 골라 정사각형으로 크롭 (따로 권한 요청 안 해도 됨)
+  const pickPhoto = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: PHOTO_QUALITY,
+    });
+    const asset = result.canceled ? undefined : result.assets[0];
+    if (asset) setPhotoUri(asset.uri);
+  };
 
   const handleSubmit = () => {
     router.dismissTo("/login");
@@ -73,6 +88,8 @@ export function SignupProfileScreen() {
         <AuthFormField label="프로필 사진">
           <ProfilePhotoField
             photoUri={photoUri}
+            onUpload={pickPhoto}
+            onChange={pickPhoto}
             onRemove={() => setPhotoUri(null)}
           />
         </AuthFormField>
