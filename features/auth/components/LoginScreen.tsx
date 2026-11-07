@@ -1,4 +1,5 @@
 import { Image, type ImageStyle } from "expo-image";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,6 +24,7 @@ const LEGAL_DOCUMENTS = {
 type LegalDocumentKey = keyof typeof LEGAL_DOCUMENTS;
 
 export function LoginScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,10 +83,18 @@ export function LoginScreen() {
             />
           </View>
           <View className="flex-row justify-between">
-            <Pressable accessibilityRole="button" hitSlop={8}>
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => router.push("/signup")}
+            >
               <Text className="text-gray-400 text-b-04-r">회원가입</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" hitSlop={8}>
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => router.push("/find-password")}
+            >
               <Text className="text-gray-400 text-b-04-r">비밀번호 찾기</Text>
             </Pressable>
           </View>
