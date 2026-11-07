@@ -28,7 +28,7 @@ export function LogoHeader({ onMenuPress, className }: LogoHeaderProps) {
           onPress={onMenuPress}
           hitSlop={8}
         >
-          <Hamburger variant="lg" className="text-gray-800" />
+          <Hamburger variant="xl" className="text-gray-800" />
         </Pressable>
       </View>
     </HeaderContainer>
