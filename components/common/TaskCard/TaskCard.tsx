@@ -9,6 +9,16 @@ import { FolderColorDot } from "../FolderColorDot/FolderColorDot";
 /** 과제 카드 종류. Figma `(mobile) assignment`의 `Property 1` variant와 대응한다. */
 export type TaskCardType = "ing" | "history";
 
+/** D-day 글자색 (폴더 색이랑 동일) */
+const DDAY_TEXT_CLASS: Record<FolderColor, string> = {
+  "sub-01": "text-sub-01",
+  "sub-02": "text-sub-02",
+  "sub-03": "text-sub-03",
+  "sub-04": "text-sub-04",
+  "sub-05": "text-sub-05",
+  "sub-null": "text-sub-null",
+};
+
 type TaskCardBase = {
   /** 과제가 속한 폴더 이름 (예: `폴더명`) */
   folderName: string;
@@ -48,13 +58,21 @@ export type TaskCardProps = TaskCardBase &
  * 너비는 지정하지 않으므로(Figma 358px = 화면 좌우 20px 여백) 부모에서 제어한다.
  */
 export function TaskCard(props: TaskCardProps) {
-  const { folderName, folderColor, title, onPress, className } = props;
+  const {
+    folderName,
+    folderColor = "sub-null",
+    title,
+    onPress,
+    className,
+  } = props;
 
   const trailing =
     props.type === "ing" ? (
       // Figma D-day 배지. 카드와 같은 gray-0 배경이지만 variant 정의를 그대로 따른다.
       <View className="rounded bg-gray-0 px-2 py-1">
-        <Text className="text-sub-01 text-b-03-m">{props.dday}</Text>
+        <Text className={cn("text-b-03-m", DDAY_TEXT_CLASS[folderColor])}>
+          {props.dday}
+        </Text>
       </View>
     ) : (
       <Text className="text-gray-400 text-b-04-r">{props.date}</Text>
