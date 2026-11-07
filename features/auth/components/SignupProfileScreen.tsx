@@ -1,11 +1,11 @@
 import { launchImageLibraryAsync } from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/common/Button/Button";
 
-import { AuthFormField, AuthInput } from "./AuthFormField";
+import { AuthFormField, AuthInput, FieldMessage } from "./AuthFormField";
 import {
   AuthStepDivider,
   AuthStepHeading,
@@ -30,17 +30,33 @@ export function SignupProfileScreen() {
   const [nickname, setNickname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState(false);
+  // 연속 클릭 작업 꼬임 방지 (늦게 끝난 이전 요청 무시)
+  const latestPhotoRequestRef = useRef(0);
 
   // 라이브러리에서 사진 골라 정사각형으로 크롭 (따로 권한 요청 안 해도 됨)
   const pickPhoto = async () => {
-    const result = await launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: PHOTO_QUALITY,
-    });
-    const asset = result.canceled ? undefined : result.assets[0];
-    if (asset) setPhotoUri(asset.uri);
+    const requestId = ++latestPhotoRequestRef.current;
+    setPhotoError(false);
+    try {
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: PHOTO_QUALITY,
+      });
+      if (requestId !== latestPhotoRequestRef.current) return;
+      const asset = result.canceled ? undefined : result.assets[0];
+      if (asset) setPhotoUri(asset.uri);
+    } catch {
+      if (requestId === latestPhotoRequestRef.current) setPhotoError(true);
+    }
+  };
+
+  const removePhoto = () => {
+    latestPhotoRequestRef.current += 1;
+    setPhotoError(false);
+    setPhotoUri(null);
   };
 
   const handleSubmit = () => {
@@ -85,12 +101,21 @@ export function SignupProfileScreen() {
             autoComplete="tel"
           />
         </AuthFormField>
-        <AuthFormField label="프로필 사진">
+        <AuthFormField
+          label="프로필 사진"
+          message={
+            photoError ? (
+              <FieldMessage tone="error">
+                사진을 불러오지 못했습니다. 다시 시도해 주세요.
+              </FieldMessage>
+            ) : null
+          }
+        >
           <ProfilePhotoField
             photoUri={photoUri}
             onUpload={pickPhoto}
             onChange={pickPhoto}
-            onRemove={() => setPhotoUri(null)}
+            onRemove={removePhoto}
           />
         </AuthFormField>
       </View>
