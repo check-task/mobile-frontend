@@ -8,6 +8,14 @@ export const CARD_SHADOW = {
   elevation: 2,
 } satisfies ViewStyle;
 
+export const DROPDOWN_SHADOW = {
+  shadowColor: "#D3D6D9",
+  shadowOffset: { width: -4, height: 4 },
+  shadowOpacity: 0.5,
+  shadowRadius: 50,
+  elevation: 8,
+} satisfies ViewStyle;
+
 export const FAB_PRIMARY_SHADOW = {
   shadowColor: "#317AE4",
   shadowOffset: { width: 0, height: 6 },
