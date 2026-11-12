@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
 import { Add } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,8 @@ export type ResourceSectionProps = {
   onDelete?: (id: string) => void;
   /** `자료추가`를 눌렀을 때 */
   onAddPress?: () => void;
+  /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
+  collapsedCount?: number;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -29,14 +33,20 @@ export function ResourceSection({
   onEdit,
   onDelete,
   onAddPress,
+  collapsedCount,
   className,
 }: ResourceSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+  const isCollapsed =
+    collapsedCount !== undefined && !expanded && items.length > collapsedCount;
+  const visibleItems = isCollapsed ? items.slice(0, collapsedCount) : items;
+
   return (
     <View className={cn("gap-4", className)}>
       <Text className="text-gray-900 text-b-02-m">자료 모음집</Text>
       <View className="gap-4">
         <View className="gap-3">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <ResourceItem
               key={item.id}
               title={item.title}
@@ -45,6 +55,9 @@ export function ResourceSection({
               onDelete={() => onDelete?.(item.id)}
             />
           ))}
+          {isCollapsed ? (
+            <ExpandButton onPress={() => setExpanded(true)} />
+          ) : null}
         </View>
         <Pressable
           accessibilityRole={onAddPress ? "button" : undefined}

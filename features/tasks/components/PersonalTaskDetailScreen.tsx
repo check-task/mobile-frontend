@@ -54,15 +54,25 @@ const INITIAL_SUB_TASKS: readonly SubTask[] = [
     done: false,
     alarm: true,
   },
+  {
+    id: "7",
+    title: "선행 연구 조사",
+    dueDate: "25.10.22",
+    done: false,
+    alarm: true,
+  },
 ];
 
 const RESOURCES: readonly Resource[] = [
   { id: "1", title: "자료명", link: "경로" },
   { id: "2", title: "자료명", link: "파일명" },
+  { id: "3", title: "자료명", link: "경로" },
 ];
 
 const SCROLL_BOTTOM_GAP = 32;
 const ADD_FORM_DUE_DATE = "25.10.19";
+const SUB_TASK_COLLAPSED_COUNT = 6;
+const RESOURCE_COLLAPSED_COUNT = 2;
 
 export function PersonalTaskDetailScreen() {
   const router = useRouter();
@@ -134,6 +144,7 @@ export function PersonalTaskDetailScreen() {
         <View className="gap-7">
           <SubTaskList
             items={subTasks}
+            collapsedCount={SUB_TASK_COLLAPSED_COUNT}
             onToggle={toggleDone}
             onAlarmPress={toggleAlarm}
             onAddPress={() => setIsAdding(true)}
@@ -149,7 +160,10 @@ export function PersonalTaskDetailScreen() {
               ) : undefined
             }
           />
-          <ResourceSection items={RESOURCES} />
+          <ResourceSection
+            items={RESOURCES}
+            collapsedCount={RESOURCE_COLLAPSED_COUNT}
+          />
         </View>
       </ScrollView>
     </View>

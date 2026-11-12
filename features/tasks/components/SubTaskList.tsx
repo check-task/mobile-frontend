@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
 import { Add, Pencil } from "@/components/icons";
 import { CARD_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,8 @@ export type SubTaskListProps = {
   onAddPress?: () => void;
   /** 넘기면 `세부과제 추가` 줄 대신 이 입력 폼을 보여 준다. */
   addForm?: ReactNode;
+  /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
+  collapsedCount?: number;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -31,8 +34,14 @@ export function SubTaskList({
   onEditPress,
   onAddPress,
   addForm,
+  collapsedCount,
   className,
 }: SubTaskListProps) {
+  const [expanded, setExpanded] = useState(false);
+  const isCollapsed =
+    collapsedCount !== undefined && !expanded && items.length > collapsedCount;
+  const visibleItems = isCollapsed ? items.slice(0, collapsedCount) : items;
+
   return (
     <View className={cn("gap-4", className)}>
       <View className="flex-row items-center gap-1">
@@ -49,7 +58,7 @@ export function SubTaskList({
 
       <View style={CARD_SHADOW} className="gap-4 rounded-xl bg-bg px-3 py-4">
         <View className="gap-4">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <SubTaskRow
               key={item.id}
               title={item.title}
@@ -63,6 +72,10 @@ export function SubTaskList({
             />
           ))}
         </View>
+
+        {isCollapsed ? (
+          <ExpandButton onPress={() => setExpanded(true)} />
+        ) : null}
 
         {addForm ?? (
           <Pressable
