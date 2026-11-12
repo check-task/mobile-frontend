@@ -13,7 +13,7 @@ const meta = {
       control: "inline-radio",
       options: ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05", "sub-null"],
     },
-    size: { control: "inline-radio", options: ["2xs", "xs", "sm"] },
+    size: { control: "inline-radio", options: ["2xs", "xs", "sm", "md"] },
   },
   args: {
     color: "sub-01",
