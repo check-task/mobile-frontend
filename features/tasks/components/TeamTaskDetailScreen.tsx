@@ -107,7 +107,9 @@ export function TeamTaskDetailScreen() {
   const [expandedIds, setExpandedIds] = useState<readonly string[]>(["2"]);
   const [resourceTab, setResourceTab] =
     useState<(typeof RESOURCE_TABS)[number]>("커뮤니케이션");
-  const [commentDraft, setCommentDraft] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<
+    Readonly<Record<string, string>>
+  >({});
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -119,6 +121,10 @@ export function TeamTaskDetailScreen() {
         subTask.id === id ? { ...subTask, [key]: !subTask[key] } : subTask
       )
     );
+  };
+
+  const changeCommentDraft = (id: string, draft: string) => {
+    setCommentDrafts((current) => ({ ...current, [id]: draft }));
   };
 
   const toggleExpanded = (id: string) => {
@@ -154,14 +160,16 @@ export function TeamTaskDetailScreen() {
             onAlarmPress={(id) => updateSubTask(id, "alarm")}
             expandedIds={expandedIds}
             onExpandPress={toggleExpanded}
-            renderExpanded={() => (
+            renderExpanded={(item) => (
               <TeamSubTaskDetail
                 assignees={ASSIGNEES}
                 extraAssigneeCount={1}
                 comments={INITIAL_COMMENTS}
-                commentDraft={commentDraft}
-                onChangeCommentDraft={setCommentDraft}
-                onSendComment={() => setCommentDraft("")}
+                commentDraft={commentDrafts[item.id] ?? ""}
+                onChangeCommentDraft={(draft) =>
+                  changeCommentDraft(item.id, draft)
+                }
+                onSendComment={() => changeCommentDraft(item.id, "")}
               />
             )}
           />
