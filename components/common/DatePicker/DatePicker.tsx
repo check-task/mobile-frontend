@@ -105,6 +105,15 @@ export function DatePicker({
   const [viewMonth, setViewMonth] = useState(
     () => new Date(value.getFullYear(), value.getMonth(), 1)
   );
+  // 부모가 value의 연/월을 바꿨을 때만 표시 월을 맞춘다. value가 그대로면 이전/다음 달 탐색 상태를 유지한다.
+  const valueMonthKey = value.getFullYear() * 12 + value.getMonth();
+  const [syncedMonthKey, setSyncedMonthKey] = useState(valueMonthKey);
+
+  if (syncedMonthKey !== valueMonthKey) {
+    setSyncedMonthKey(valueMonthKey);
+    setViewMonth(new Date(value.getFullYear(), value.getMonth(), 1));
+  }
+
   const weeks = buildMonthWeeks(viewMonth);
   const minDay = minDate ? startOfDay(minDate) : null;
   const time = formatTime(value);
