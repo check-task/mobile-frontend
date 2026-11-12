@@ -57,8 +57,8 @@ export function ResourceSection({
               key={item.id}
               title={item.title}
               link={item.link}
-              onEdit={() => onEdit?.(item.id)}
-              onDelete={() => onDelete?.(item.id)}
+              onEdit={onEdit ? () => onEdit(item.id) : undefined}
+              onDelete={onDelete ? () => onDelete(item.id) : undefined}
             />
           ))}
           {isCollapsed ? (
