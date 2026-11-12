@@ -54,6 +54,12 @@ export function SubTaskList({
     collapsedCount !== undefined && !expanded && items.length > collapsedCount;
   const visibleItems = isCollapsed ? items.slice(0, collapsedCount) : items;
 
+  // 추가 중이거나 추가한 항목이 숨겨지지 않도록 펼친다. 한 번 펼친 상태는 폼을 닫아도 유지된다.
+  const handleAddPress = () => {
+    setExpanded(true);
+    onAddPress?.();
+  };
+
   return (
     <View className={cn("gap-4", className)}>
       <View className="flex-row items-center gap-1">
@@ -102,7 +108,7 @@ export function SubTaskList({
         {addForm ?? (
           <Pressable
             accessibilityRole={onAddPress ? "button" : undefined}
-            onPress={onAddPress}
+            onPress={handleAddPress}
             className="flex-row items-center gap-1"
           >
             <Add variant="sm" className="text-gray-500" />
