@@ -31,6 +31,16 @@ type Story = StoryObj<typeof meta>;
 /** 비어 있는 상태. 플레이스홀더가 보인다. */
 export const Default: Story = {};
 
+/** `URL명`/`URL경로`로 문구를 바꾼 자료 수정. */
+export const UrlVariant: Story = {
+  args: {
+    nameLabel: "URL명",
+    namePlaceholder: "URL명을 입력하세요.",
+    pathLabel: "URL경로",
+    pathPlaceholder: "URL 경로를 입력하세요.",
+  },
+};
+
 /** 값이 채워진 상태. */
 export const Filled: Story = {
   args: { fileName: "발표 자료", filePath: "/documents/presentation.pdf" },

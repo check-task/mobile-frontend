@@ -29,6 +29,21 @@ type Story = StoryObj<typeof meta>;
 /** 세부과제 전체 삭제 확인. */
 export const Default: Story = {};
 
+/** 대상 이름이 파랗게 강조되고 `취소`가 위에 놓이는 자료 삭제. */
+export const TargetName: Story = {
+  render: (args) => (
+    <Modal title="자료 삭제" onClose={args.onCancel}>
+      <DeleteConfirmModalContent
+        targetName="자료명"
+        description="삭제된 자료는 영구 삭제되며, 복구할 수 없습니다."
+        cancelFirst
+        onConfirm={args.onConfirm}
+        onCancel={args.onCancel}
+      />
+    </Modal>
+  ),
+};
+
 /** 확인 버튼 문구를 바꾼 경우. */
 export const CustomConfirmLabel: Story = {
   args: {

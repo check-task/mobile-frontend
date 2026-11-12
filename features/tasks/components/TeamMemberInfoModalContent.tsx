@@ -20,9 +20,9 @@ export function TeamMemberInfoModalContent({
   className,
 }: TeamMemberInfoModalContentProps) {
   return (
-    <View className={cn("gap-4 py-5", className)}>
+    <View className={cn("gap-4 pb-5 pt-4", className)}>
       <View className="items-center gap-3">
-        <View className="h-[100px] w-[100px] rounded-full bg-gray-200" />
+        <View className="h-[100px] w-[100px] rounded-full bg-[#d9d9d9]" />
         <Text className="text-gray-900 text-b-02-m">{nickname}</Text>
       </View>
       <View className="mx-3 h-px bg-gray-200" />
@@ -31,11 +31,11 @@ export function TeamMemberInfoModalContent({
         <View className="gap-3 pl-6">
           <View className="gap-2">
             <Text className="text-gray-600 text-b-02-r">연락처</Text>
-            <Text className="text-gray-900 text-b-02-r">{phone}</Text>
+            <Text className="text-gray-700 text-b-02-m">{phone}</Text>
           </View>
           <View className="gap-2">
             <Text className="text-gray-600 text-b-02-r">이메일</Text>
-            <Text className="text-gray-900 text-b-02-r">{email}</Text>
+            <Text className="text-gray-700 text-b-02-m">{email}</Text>
           </View>
         </View>
       </View>
