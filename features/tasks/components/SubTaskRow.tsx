@@ -1,6 +1,13 @@
 import { Pressable, Text, View } from "react-native";
 
-import { Calendar, CheckBox, Clock, ClockClose } from "@/components/icons";
+import {
+  Bottom,
+  Calendar,
+  CheckBox,
+  Clock,
+  ClockClose,
+  Top,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export type SubTask = {
@@ -24,6 +31,10 @@ export type SubTaskRowProps = {
   onToggle?: () => void;
   /** 알림 아이콘을 눌렀을 때 */
   onAlarmPress?: () => void;
+  /** 펼침 화살표를 눌렀을 때. 넘기면 행 오른쪽 끝에 화살표를 그린다. */
+  onExpandPress?: () => void;
+  /** 펼쳐진 상태 여부. 화살표 방향이 바뀐다. */
+  expanded?: boolean;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -35,6 +46,8 @@ export function SubTaskRow({
   alarm,
   onToggle,
   onAlarmPress,
+  onExpandPress,
+  expanded = false,
   className,
 }: SubTaskRowProps) {
   const metaColorClass = done ? "text-gray-400" : "text-gray-600";
@@ -90,6 +103,21 @@ export function SubTaskRow({
             />
           )}
         </Pressable>
+        {onExpandPress ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={expanded ? "접기" : "펼치기"}
+            accessibilityState={{ expanded }}
+            hitSlop={8}
+            onPress={onExpandPress}
+          >
+            {expanded ? (
+              <Top variant="lg" className="text-gray-600" />
+            ) : (
+              <Bottom variant="lg" className="text-gray-600" />
+            )}
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );

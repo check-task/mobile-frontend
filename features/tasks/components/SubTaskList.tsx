@@ -23,6 +23,12 @@ export type SubTaskListProps = {
   addForm?: ReactNode;
   /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
   collapsedCount?: number;
+  /** 펼쳐진 세부 TASK의 id 목록 */
+  expandedIds?: readonly string[];
+  /** 행의 펼침 화살표를 눌렀을 때. 넘기면 화살표를 그린다. */
+  onExpandPress?: (id: string) => void;
+  /** 펼쳐진 행 아래에 그릴 내용 */
+  renderExpanded?: (item: SubTask) => ReactNode;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -35,6 +41,9 @@ export function SubTaskList({
   onAddPress,
   addForm,
   collapsedCount,
+  expandedIds,
+  onExpandPress,
+  renderExpanded,
   className,
 }: SubTaskListProps) {
   const [expanded, setExpanded] = useState(false);
@@ -58,19 +67,29 @@ export function SubTaskList({
 
       <View style={CARD_SHADOW} className="gap-4 rounded-xl bg-bg px-3 py-4">
         <View className="gap-4">
-          {visibleItems.map((item) => (
-            <SubTaskRow
-              key={item.id}
-              title={item.title}
-              dueDate={item.dueDate}
-              done={item.done}
-              alarm={item.alarm}
-              onToggle={onToggle ? () => onToggle(item.id) : undefined}
-              onAlarmPress={
-                onAlarmPress ? () => onAlarmPress(item.id) : undefined
-              }
-            />
-          ))}
+          {visibleItems.map((item) => {
+            const isExpanded = expandedIds?.includes(item.id) ?? false;
+
+            return (
+              <View key={item.id} className="gap-3">
+                <SubTaskRow
+                  title={item.title}
+                  dueDate={item.dueDate}
+                  done={item.done}
+                  alarm={item.alarm}
+                  onToggle={onToggle ? () => onToggle(item.id) : undefined}
+                  onAlarmPress={
+                    onAlarmPress ? () => onAlarmPress(item.id) : undefined
+                  }
+                  expanded={isExpanded}
+                  onExpandPress={
+                    onExpandPress ? () => onExpandPress(item.id) : undefined
+                  }
+                />
+                {isExpanded && renderExpanded ? renderExpanded(item) : null}
+              </View>
+            );
+          })}
         </View>
 
         {isCollapsed ? (

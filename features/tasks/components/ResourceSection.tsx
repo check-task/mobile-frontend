@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
@@ -24,6 +24,8 @@ export type ResourceSectionProps = {
   onAddPress?: () => void;
   /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
   collapsedCount?: number;
+  /** 제목 아래에 그릴 탭 등 */
+  tabs?: ReactNode;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -34,6 +36,7 @@ export function ResourceSection({
   onDelete,
   onAddPress,
   collapsedCount,
+  tabs,
   className,
 }: ResourceSectionProps) {
   const [expanded, setExpanded] = useState(false);
@@ -44,6 +47,7 @@ export function ResourceSection({
   return (
     <View className={cn("gap-4", className)}>
       <Text className="text-gray-900 text-b-02-m">자료 모음집</Text>
+      {tabs}
       <View className="gap-4">
         <View className="gap-3">
           {visibleItems.map((item) => (
