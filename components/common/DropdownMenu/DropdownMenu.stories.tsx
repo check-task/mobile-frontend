@@ -3,7 +3,7 @@ import { View } from "react-native";
 
 import { DropdownMenu } from "./DropdownMenu";
 
-const Avatar = <View className="h-4 w-4 rounded-full bg-blue-200" />;
+const Avatar = <View className="h-4 w-4 rounded-full bg-blue-100" />;
 
 const MEMBER_ITEMS = [
   { key: "me", label: "멤버 닉네임(you)", leading: Avatar },

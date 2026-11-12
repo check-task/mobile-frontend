@@ -22,9 +22,9 @@ const DAY_CIRCLE_CLASS: Record<DayState, string> = {
 
 const DAY_TEXT_CLASS: Record<DayState, string> = {
   default: "text-gray-900",
-  outside: "text-gray-400 opacity-[0.38]",
-  selected: "text-bg",
-  disabled: "text-gray-600 opacity-[0.38]",
+  outside: "text-gray-600 opacity-[0.38]",
+  selected: "text-bg font-medium",
+  disabled: "text-gray-400 opacity-[0.38]",
 };
 
 function startOfDay(date: Date) {
