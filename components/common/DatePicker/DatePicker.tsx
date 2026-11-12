@@ -154,8 +154,13 @@ export function DatePicker({
             </View>
           </View>
 
-          <View className="rounded-lg border border-gray-100 py-1">
-            <View className="flex-row border-b border-gray-100 pb-1">
+          <View className="relative rounded-lg py-1">
+            {/* 피그마 테두리는 프레임 안쪽이라 레이아웃 크기에 넣지 않고 겹쳐 그린다. */}
+            <View
+              pointerEvents="none"
+              className="absolute inset-0 rounded-lg border border-gray-100"
+            />
+            <View className="flex-row border-b border-gray-100 pb-[3px]">
               {WEEKDAYS.map((weekday, index) => (
                 <View
                   key={`${weekday}-${index}`}
@@ -166,7 +171,7 @@ export function DatePicker({
               ))}
             </View>
 
-            <View className="gap-0.5 pt-1">
+            <View className="gap-0.5">
               {weeks.map((week) => (
                 <View key={week[0].getTime()} className="flex-row">
                   {week.map((day) => {
