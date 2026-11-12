@@ -33,8 +33,9 @@ export function ToastProvider() {
           onUndo={
             onUndo
               ? () => {
-                  onUndo();
+                  // onUndo가 새 알림을 띄워도 지워지지 않도록 먼저 닫는다.
                   dismiss();
+                  onUndo();
                 }
               : undefined
           }
