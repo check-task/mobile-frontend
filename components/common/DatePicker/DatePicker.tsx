@@ -126,7 +126,21 @@ export function DatePicker({
 
   const selectDay = (day: Date) => {
     setViewMonth(new Date(day.getFullYear(), day.getMonth(), 1));
-    onChange(day);
+
+    if (!timeEnabled) {
+      onChange(day);
+      return;
+    }
+
+    // 날짜 칸은 자정 기준이라, 시간 추가가 켜져 있으면 기존 시각을 선택한 날짜에 옮긴다.
+    const next = new Date(day);
+    next.setHours(
+      value.getHours(),
+      value.getMinutes(),
+      value.getSeconds(),
+      value.getMilliseconds()
+    );
+    onChange(next);
   };
 
   return (
