@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Tabs } from "@/components/common/Tabs/Tabs";
+import { STRONG_CARD_SHADOW } from "@/constants/shadows";
 
 import { useResourceActions } from "../hooks/useResourceActions";
 import { ResourceSection } from "./ResourceSection";
@@ -148,6 +149,7 @@ export function TeamTaskDetailScreen() {
         <View className="gap-7">
           <SubTaskList
             items={subTasks}
+            cardShadow={STRONG_CARD_SHADOW}
             onToggle={(id) => updateSubTask(id, "done")}
             onAlarmPress={(id) => updateSubTask(id, "alarm")}
             expandedIds={expandedIds}

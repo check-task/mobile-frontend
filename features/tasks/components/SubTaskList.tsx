@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
 import { Add, Pencil } from "@/components/icons";
@@ -23,6 +23,8 @@ export type SubTaskListProps = {
   addForm?: ReactNode;
   /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
   collapsedCount?: number;
+  /** 카드 그림자. (기본값: 일반 카드 그림자) */
+  cardShadow?: ViewStyle;
   /** 펼쳐진 세부 TASK의 id 목록 */
   expandedIds?: readonly string[];
   /** 행의 펼침 화살표를 눌렀을 때. 넘기면 화살표를 그린다. */
@@ -41,6 +43,7 @@ export function SubTaskList({
   onAddPress,
   addForm,
   collapsedCount,
+  cardShadow = CARD_SHADOW,
   expandedIds,
   onExpandPress,
   renderExpanded,
@@ -65,7 +68,7 @@ export function SubTaskList({
         </Pressable>
       </View>
 
-      <View style={CARD_SHADOW} className="gap-4 rounded-xl bg-bg px-3 py-4">
+      <View style={cardShadow} className="gap-4 rounded-xl bg-bg px-3 py-4">
         <View className="gap-4">
           {visibleItems.map((item) => {
             const isExpanded = expandedIds?.includes(item.id) ?? false;

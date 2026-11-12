@@ -45,9 +45,11 @@ export function ResourceSection({
   const visibleItems = isCollapsed ? items.slice(0, collapsedCount) : items;
 
   return (
-    <View className={cn("gap-4", className)}>
-      <Text className="text-gray-900 text-b-02-m">자료 모음집</Text>
-      {tabs}
+    <View className={cn(tabs ? "gap-3" : "gap-4", className)}>
+      <View className="gap-4">
+        <Text className="text-gray-900 text-b-02-m">자료 모음집</Text>
+        {tabs}
+      </View>
       <View className="gap-4">
         <View className="gap-3">
           {visibleItems.map((item) => (

@@ -41,7 +41,7 @@ export function Tabs<T extends string>({
             accessibilityState={{ selected }}
             onPress={() => onChange(item)}
             className={cn(
-              "-mb-px border-b px-1 pb-2",
+              "-mb-px border-b px-1 pb-[7px]",
               selected ? "border-gray-900" : "border-gray-200"
             )}
           >

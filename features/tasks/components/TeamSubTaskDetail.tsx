@@ -83,7 +83,7 @@ export function TeamSubTaskDetail({
           <View key={comment.id} className="gap-1">
             <View className="flex-row items-start justify-between">
               <View className="flex-row items-center gap-1">
-                <View className="h-5 w-5 rounded-full bg-blue-200" />
+                <View className="h-5 w-5 rounded-full bg-blue-100" />
                 <Text className="text-gray-700 text-b-04-m">
                   {comment.author}
                 </Text>
