@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Tabs } from "@/components/common/Tabs/Tabs";
 
+import { useResourceActions } from "../hooks/useResourceActions";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
 import type { SubTask } from "./SubTaskRow";
@@ -100,6 +101,8 @@ export function TeamTaskDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [subTasks, setSubTasks] = useState(INITIAL_SUB_TASKS);
+  const { resources, editResource, deleteResource } =
+    useResourceActions(RESOURCES);
   const [expandedIds, setExpandedIds] = useState<readonly string[]>(["2"]);
   const [resourceTab, setResourceTab] =
     useState<(typeof RESOURCE_TABS)[number]>("커뮤니케이션");
@@ -161,7 +164,9 @@ export function TeamTaskDetailScreen() {
             )}
           />
           <ResourceSection
-            items={RESOURCES}
+            items={resources}
+            onEdit={editResource}
+            onDelete={deleteResource}
             tabs={
               <Tabs
                 items={RESOURCE_TABS}

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
 
+import { useResourceActions } from "../hooks/useResourceActions";
 import { type Resource, ResourceSection } from "./ResourceSection";
 import { SubTaskAddForm } from "./SubTaskAddForm";
 import { SubTaskList } from "./SubTaskList";
@@ -78,6 +79,8 @@ export function PersonalTaskDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [subTasks, setSubTasks] = useState(INITIAL_SUB_TASKS);
+  const { resources, editResource, deleteResource } =
+    useResourceActions(RESOURCES);
   const [isAdding, setIsAdding] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
 
@@ -161,7 +164,9 @@ export function PersonalTaskDetailScreen() {
             }
           />
           <ResourceSection
-            items={RESOURCES}
+            items={resources}
+            onEdit={editResource}
+            onDelete={deleteResource}
             collapsedCount={RESOURCE_COLLAPSED_COUNT}
           />
         </View>
