@@ -57,6 +57,7 @@ export function SubTaskRow({
       <View className="flex-1 flex-row items-center gap-1">
         <Pressable
           accessibilityRole={onToggle ? "checkbox" : undefined}
+          accessibilityLabel={title}
           accessibilityState={{ checked: done }}
           hitSlop={8}
           onPress={onToggle}
