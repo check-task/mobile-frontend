@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 
 import { type Resource, ResourceSection } from "./ResourceSection";
+import { SubTaskAddForm } from "./SubTaskAddForm";
 import { SubTaskList } from "./SubTaskList";
 import type { SubTask } from "./SubTaskRow";
 import { TaskDetailHeader } from "./TaskDetailHeader";
@@ -61,11 +62,14 @@ const RESOURCES: readonly Resource[] = [
 ];
 
 const SCROLL_BOTTOM_GAP = 32;
+const ADD_FORM_DUE_DATE = "25.10.19";
 
 export function PersonalTaskDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [subTasks, setSubTasks] = useState(INITIAL_SUB_TASKS);
+  const [isAdding, setIsAdding] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -77,6 +81,29 @@ export function PersonalTaskDetailScreen() {
         subTask.id === id ? { ...subTask, done: !subTask.done } : subTask
       )
     );
+  };
+
+  const closeForm = () => {
+    setIsAdding(false);
+    setDraftTitle("");
+  };
+
+  const saveSubTask = () => {
+    const title = draftTitle.trim();
+    if (title.length === 0) {
+      return;
+    }
+    setSubTasks((current) => [
+      ...current,
+      {
+        id: String(current.length + 1),
+        title,
+        dueDate: ADD_FORM_DUE_DATE,
+        done: false,
+        alarm: true,
+      },
+    ]);
+    closeForm();
   };
 
   const toggleAlarm = (id: string) => {
@@ -109,6 +136,18 @@ export function PersonalTaskDetailScreen() {
             items={subTasks}
             onToggle={toggleDone}
             onAlarmPress={toggleAlarm}
+            onAddPress={() => setIsAdding(true)}
+            addForm={
+              isAdding ? (
+                <SubTaskAddForm
+                  title={draftTitle}
+                  onChangeTitle={setDraftTitle}
+                  dueDate={ADD_FORM_DUE_DATE}
+                  onCancel={closeForm}
+                  onSave={saveSubTask}
+                />
+              ) : undefined
+            }
           />
           <ResourceSection items={RESOURCES} />
         </View>

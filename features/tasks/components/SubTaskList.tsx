@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Add, Pencil } from "@/components/icons";
@@ -17,6 +18,8 @@ export type SubTaskListProps = {
   onEditPress?: () => void;
   /** `세부과제 추가`를 눌렀을 때 */
   onAddPress?: () => void;
+  /** 넘기면 `세부과제 추가` 줄 대신 이 입력 폼을 보여 준다. */
+  addForm?: ReactNode;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -27,6 +30,7 @@ export function SubTaskList({
   onAlarmPress,
   onEditPress,
   onAddPress,
+  addForm,
   className,
 }: SubTaskListProps) {
   return (
@@ -60,14 +64,16 @@ export function SubTaskList({
           ))}
         </View>
 
-        <Pressable
-          accessibilityRole={onAddPress ? "button" : undefined}
-          onPress={onAddPress}
-          className="flex-row items-center gap-1"
-        >
-          <Add variant="sm" className="text-gray-500" />
-          <Text className="text-gray-500 text-b-04-r">세부과제 추가</Text>
-        </Pressable>
+        {addForm ?? (
+          <Pressable
+            accessibilityRole={onAddPress ? "button" : undefined}
+            onPress={onAddPress}
+            className="flex-row items-center gap-1"
+          >
+            <Add variant="sm" className="text-gray-500" />
+            <Text className="text-gray-500 text-b-04-r">세부과제 추가</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
