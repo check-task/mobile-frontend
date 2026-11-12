@@ -34,7 +34,7 @@ export function Snackbar({ message, onUndo, className }: SnackbarProps) {
           accessibilityRole="button"
           onPress={onUndo}
           hitSlop={8}
-          className="flex-row items-center gap-1 rounded-full border border-blue-600 bg-gray-0 py-1 pl-1 pr-2"
+          className="flex-row items-center gap-1 rounded-full border border-blue-600 bg-gray-0 py-[3px] pl-[3px] pr-[7px]"
         >
           <Re variant="sm" className="text-blue-600" />
           <Text className="text-blue-600 text-caption">되돌리기</Text>

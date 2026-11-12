@@ -17,7 +17,7 @@ export function ExpandButton({ onPress, className }: ExpandButtonProps) {
       accessibilityRole={onPress ? "button" : undefined}
       onPress={onPress}
       className={cn(
-        "flex-row items-center justify-center gap-1 rounded-full border border-gray-100 px-3 py-1",
+        "flex-row items-center justify-center gap-1 rounded-full border border-gray-100 px-3 py-[3px]",
         className
       )}
     >

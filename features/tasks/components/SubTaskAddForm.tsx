@@ -55,7 +55,7 @@ export function SubTaskAddForm({
         <Pressable
           accessibilityRole="button"
           onPress={onCancel}
-          className="flex-row items-center gap-1 rounded-full border border-gray-400 py-1 pl-1 pr-2"
+          className="flex-row items-center gap-1 rounded-full border border-gray-400 py-[3px] pl-[3px] pr-[7px]"
         >
           <Cancel variant="sm" className="text-gray-400" />
           <Text className="text-gray-400 text-b-04-r">취소</Text>
@@ -63,7 +63,7 @@ export function SubTaskAddForm({
         <Pressable
           accessibilityRole="button"
           onPress={onSave}
-          className="flex-row items-center gap-1 rounded-full border border-blue-500 py-1 pl-1 pr-2"
+          className="flex-row items-center gap-1 rounded-full border border-blue-500 py-[3px] pl-[3px] pr-[7px]"
         >
           <Check variant="sm" className="text-blue-500" />
           <Text className="text-blue-500 text-b-04-r">저장</Text>
