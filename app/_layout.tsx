@@ -19,6 +19,7 @@ import "@/global.css";
 import { themeVars } from "@/constants/theme-vars";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ModalProvider } from "@/providers/ModalProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,6 +46,7 @@ export default function RootLayout() {
       <View className="flex-1 bg-bg" style={themeVars[scheme]}>
         <Stack screenOptions={{ headerShown: false }} />
         <ModalProvider />
+        <ToastProvider />
         <StatusBar style="auto" />
       </View>
     </ThemeProvider>
