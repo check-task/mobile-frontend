@@ -1,9 +1,9 @@
 import { useState } from "react";
 
+import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModalContent/DeleteConfirmModalContent";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
 
-import { DeleteConfirmModalContent } from "../components/DeleteConfirmModalContent";
 import { ResourceEditModalForm } from "../components/ResourceEditModalForm";
 import type { Resource } from "../components/ResourceSection";
 

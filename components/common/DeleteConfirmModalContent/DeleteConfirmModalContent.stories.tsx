@@ -5,7 +5,7 @@ import { Modal } from "@/components/common/Modal/Modal";
 import { DeleteConfirmModalContent } from "./DeleteConfirmModalContent";
 
 const meta = {
-  title: "Tasks/DeleteConfirmModalContent",
+  title: "Common/DeleteConfirmModalContent",
   component: DeleteConfirmModalContent,
   parameters: { layout: "centered" },
   tags: ["autodocs"],
