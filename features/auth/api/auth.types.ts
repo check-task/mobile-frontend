@@ -1,3 +1,5 @@
+import type { NativeFilePart } from "@/types/formData.types";
+
 export type SignInRequest = {
   email: string;
   password: string;
@@ -14,4 +16,26 @@ export type SignInResponse = {
     email: string;
     nickname: string;
   };
+};
+
+/** GET /api/v1/auth/check-email 응답 */
+export type CheckEmailResponse = {
+  isDuplicate: boolean;
+};
+
+export type VerifyEmailCodeRequest = {
+  email: string;
+  /** 메일로 받은 6자리 코드 */
+  code: string;
+};
+
+/** POST /api/v1/auth/signup (multipart) */
+export type SignUpRequest = {
+  email: string;
+  password: string;
+  nickname: string;
+  /** 숫자만 (예: 01012345678) */
+  phoneNum?: string;
+  /** native 는 { uri, name, type } 파트, web 은 File */
+  profileImage?: Blob | NativeFilePart;
 };
