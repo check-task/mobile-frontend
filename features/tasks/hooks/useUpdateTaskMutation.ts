@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toDueDateTime } from "@/lib/dueDate";
 
 import {
+  addSubTask,
   createReference,
   deleteReference,
   deleteSubTasks,
@@ -45,24 +46,32 @@ export function useUpdateTaskMutation() {
         await deleteSubTasks(taskId, removedSubTaskIds);
       }
 
+      const subTaskBodies = subTasks.map((subTask) => ({
+        id: toServerId(subTask.id),
+        title: subTask.title.trim(),
+        // 되돌리기로 복원된 세부 과제는 그사이 당겨진 과제 마감을 넘을 수 있어 과제 마감으로 맞춘다
+        endDate: subTask.dueDate
+          ? new Date(
+              Math.min(
+                toDueDateTime(subTask.dueDate).getTime(),
+                deadlineTime.getTime()
+              )
+            ).toISOString()
+          : null,
+      }));
+
       await updateTask(taskId, {
         title: value.title.trim(),
         folderId: value.folderId,
         deadline: deadlineTime.toISOString(),
-        subTasks: subTasks.map((subTask) => ({
-          id: toServerId(subTask.id) ?? undefined,
-          title: subTask.title.trim(),
-          // 되돌리기로 복원된 세부 과제는 그사이 당겨진 과제 마감을 넘을 수 있어 과제 마감으로 맞춘다
-          endDate: subTask.dueDate
-            ? new Date(
-                Math.min(
-                  toDueDateTime(subTask.dueDate).getTime(),
-                  deadlineTime.getTime()
-                )
-              ).toISOString()
-            : null,
-        })),
+        subTasks: subTaskBodies.flatMap(({ id, ...body }) =>
+          id === null ? [] : [{ id, ...body }]
+        ),
       });
+      // PATCH 는 id 없는 세부 과제를 만들지 않아서(2026-11-16 확인) 새 세부 과제는 따로 추가한다. 순서를 지키려고 하나씩 보낸다.
+      for (const { id, title, endDate } of subTaskBodies) {
+        if (id === null) await addSubTask(taskId, { title, deadline: endDate });
+      }
 
       const initialResources = new Map(
         initial.resources.map((resource) => [resource.id, resource])

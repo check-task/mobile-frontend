@@ -133,7 +133,7 @@ export type UpdateTaskRequest = {
   folderId?: number | null;
   /** ISO 8601 date-time */
   deadline?: string;
-  /** id 가 있으면 수정, 없으면 생성 */
+  /** 스펙은 id 없으면 생성이라지만 실제로는 무시된다. 새 세부 과제는 addSubTask 로 만든다 */
   subTasks?: { id?: number; title: string; endDate: string | null }[];
 };
 
