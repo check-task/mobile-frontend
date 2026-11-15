@@ -1,7 +1,7 @@
 import { View } from "react-native";
 
 import { AddItemButton } from "./AddItemButton";
-import type { ResourceDraftItem } from "./TaskForm";
+import type { ResourceDraftItem } from "../api/taskForm.types";
 import { TaskFormField } from "./TaskFormField";
 import { ResourceItem } from "./ResourceItem";
 

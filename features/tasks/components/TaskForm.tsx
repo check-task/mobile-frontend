@@ -8,30 +8,14 @@ import { Chip } from "@/components/common/Chip/Chip";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Input } from "@/components/common/Input/Input";
 
+import type { TaskFormValue } from "../api/taskForm.types";
 import { useMyFoldersQuery } from "../hooks/useMyFoldersQuery";
 import { useTaskForm } from "../hooks/useTaskForm";
 
-import { type DueDate, DueDateField } from "./DueDateField";
-import type { ResourceDraft } from "./ResourceAddModalForm";
+import { DueDateField } from "./DueDateField";
 import { TaskFormField } from "./TaskFormField";
 import { TaskResourceSection } from "./TaskResourceSection";
 import { TaskSubTaskSection } from "./TaskSubTaskSection";
-
-export type SubTaskDraft = {
-  id: string;
-  title: string;
-  dueDate: DueDate | null;
-};
-export type ResourceDraftItem = ResourceDraft & { id: string };
-
-export type TaskFormValue = {
-  isTeam: boolean;
-  title: string;
-  folderId: number | null;
-  deadline: DueDate | null;
-  subTasks: SubTaskDraft[];
-  resources: ResourceDraftItem[];
-};
 
 const EMPTY_VALUE: TaskFormValue = {
   isTeam: false,

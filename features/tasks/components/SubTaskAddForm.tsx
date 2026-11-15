@@ -4,7 +4,9 @@ import { Input } from "@/components/common/Input/Input";
 import { Cancel, Check } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-import { type DueDate, DueDateField } from "./DueDateField";
+import type { DueDate } from "@/lib/dueDate";
+
+import { DueDateField } from "./DueDateField";
 
 export type SubTaskAddFormProps = {
   /** 입력 중인 세부 TASK 이름 */
