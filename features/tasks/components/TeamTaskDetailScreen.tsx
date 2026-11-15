@@ -80,6 +80,9 @@ function TeamTaskDetailContent({
     subTaskId: string;
     anchor: AnchorRect;
   } | null>(null);
+  const [savingAssigneeIds, setSavingAssigneeIds] = useState<readonly string[]>(
+    []
+  );
   const [memberMenu, setMemberMenu] = useState<{
     member: TaskMember;
     anchor: AnchorRect;
@@ -139,6 +142,7 @@ function TeamTaskDetailContent({
     subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
 
   // 서버는 보낸 목록으로 담당자를 통째로 바꾸므로, 누른 팀원을 넣거나 뺀 전체 목록을 보낸다.
+  // 저장하고 상세를 다시 받아 올 때까지 그 세부 과제의 메뉴를 막아, 다음 선택이 예전 목록으로 만들어지지 않게 한다.
   const toggleAssignee = (subTaskId: string, userId: number) => {
     setAssigneeMenu(null);
     const current = (detail.subTaskExtras[subTaskId]?.assignees ?? []).map(
@@ -147,13 +151,18 @@ function TeamTaskDetailContent({
     const assigneeIds = current.includes(userId)
       ? current.filter((id) => id !== userId)
       : [...current, userId];
-    emitWithAck("setSubTaskAssignee", {
+    setSavingAssigneeIds((ids) => [...ids, subTaskId]);
+    emitAndRefresh("setSubTaskAssignee", {
       taskId,
       subTaskId: Number(subTaskId),
       assigneeIds,
-    }).catch((error: unknown) =>
-      showToast("fail", getErrorMessage(error, "담당자를 바꾸지 못했어요."))
-    );
+    })
+      .catch((error: unknown) =>
+        showToast("fail", getErrorMessage(error, "담당자를 바꾸지 못했어요."))
+      )
+      .finally(() =>
+        setSavingAssigneeIds((ids) => ids.filter((id) => id !== subTaskId))
+      );
   };
 
   const makeOwner = (member: TaskMember) => {
@@ -246,8 +255,11 @@ function TeamTaskDetailContent({
                   changeCommentDraft(item.id, draft)
                 }
                 onSendComment={() => changeCommentDraft(item.id, "")}
-                onAssigneePress={(anchor) =>
-                  setAssigneeMenu({ subTaskId: item.id, anchor })
+                onAssigneePress={
+                  savingAssigneeIds.includes(item.id)
+                    ? undefined
+                    : (anchor) =>
+                        setAssigneeMenu({ subTaskId: item.id, anchor })
                 }
               />
             );
