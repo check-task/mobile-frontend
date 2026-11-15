@@ -5,8 +5,11 @@ import { Input } from "@/components/common/Input/Input";
 import { Cancel } from "@/components/icons";
 
 import { AddItemButton } from "./AddItemButton";
-import { type DueDate, DueDateField } from "./DueDateField";
-import type { SubTaskDraft } from "./TaskForm";
+import type { DueDate } from "@/lib/dueDate";
+
+import type { SubTaskDraft } from "../api/taskForm.types";
+
+import { DueDateField } from "./DueDateField";
 import { TaskFormField } from "./TaskFormField";
 
 export type TaskSubTaskSectionProps = {

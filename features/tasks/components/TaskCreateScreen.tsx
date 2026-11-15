@@ -4,15 +4,16 @@ import { Platform } from "react-native";
 import { Button } from "@/components/common/Button/Button";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
+import { toDueDateTime } from "@/lib/dueDate";
+
+import type { ResourceDraft, TaskFormValue } from "../api/taskForm.types";
 
 import {
   type CreateTaskInput,
   useCreateTaskMutation,
 } from "../hooks/useCreateTaskMutation";
 
-import { toDueDateTime } from "./DueDateField";
-import type { ResourceDraft } from "./ResourceAddModalForm";
-import { TaskForm, type TaskFormValue } from "./TaskForm";
+import { TaskForm } from "./TaskForm";
 
 function toReferenceParams({
   type,

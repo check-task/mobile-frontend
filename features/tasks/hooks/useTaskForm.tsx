@@ -3,14 +3,14 @@ import { type Dispatch, type SetStateAction, useRef, useState } from "react";
 import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModalContent/DeleteConfirmModalContent";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
+import { type DueDate, toDueDateTime } from "@/lib/dueDate";
 
-import { type DueDate, toDueDateTime } from "../components/DueDateField";
 import { ResourceAddModalForm } from "../components/ResourceAddModalForm";
 import type {
   ResourceDraftItem,
   SubTaskDraft,
   TaskFormValue,
-} from "../components/TaskForm";
+} from "../api/taskForm.types";
 
 /** 과제 등록·수정 폼의 입력 상태와 핸들러. `isEdit` 이면 개별 삭제에 `되돌리기` 스낵바를 띄운다. */
 export function useTaskForm(initialValue: TaskFormValue, isEdit: boolean) {

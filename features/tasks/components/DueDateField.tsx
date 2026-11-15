@@ -10,12 +10,7 @@ import {
 
 import { DatePicker } from "@/components/common/DatePicker/DatePicker";
 import { Calendar } from "@/components/icons";
-
-export type DueDate = {
-  date: Date;
-  /** `시간 추가`를 켰는지. 끄면 날짜만 의미가 있다. */
-  hasTime: boolean;
-};
+import { type DueDate, toDueDateTime } from "@/lib/dueDate";
 
 // 시간 추가를 켰을 때 Figma 처럼 오전 00:00 부터 시작하도록 자정으로 맞춘다.
 function today(): DueDate {
@@ -24,13 +19,6 @@ function today(): DueDate {
     date: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
     hasTime: false,
   };
-}
-
-/** 실제 마감 시각. 시간을 지정하지 않았으면 그날 23:59 로 본다. */
-export function toDueDateTime({ date, hasTime }: DueDate) {
-  const result = new Date(date);
-  if (!hasTime) result.setHours(23, 59, 0, 0);
-  return result;
 }
 
 function formatDate(date: Date) {

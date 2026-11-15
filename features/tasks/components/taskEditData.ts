@@ -1,6 +1,6 @@
 // API 작업 전까지 임시로 사용할 더미 데이터
 // TODO(api): GET /api/v1/task/{taskId} 응답을 TaskFormValue 로 바꿔 채운다
-import type { TaskFormValue } from "./TaskForm";
+import type { TaskFormValue } from "../api/taskForm.types";
 
 export const EDIT_TASK_DUMMY: TaskFormValue = {
   isTeam: false,
