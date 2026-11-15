@@ -1,3 +1,5 @@
+import type { DocumentPickerAsset } from "expo-document-picker";
+import { getDocumentAsync } from "expo-document-picker";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -13,6 +15,8 @@ export type ResourceDraft = {
   name: string;
   /** 파일이면 파일 경로(이름), URL 이면 주소 */
   path: string;
+  /** 파일 탭에서 고른 파일 */
+  file?: DocumentPickerAsset;
 };
 
 const TYPE_TABS = [
@@ -59,18 +63,44 @@ export function ResourceAddModalForm({
   const [type, setType] = useState<ResourceType>(initialValue?.type ?? "file");
   const [name, setName] = useState(initialValue?.name ?? "");
   const [path, setPath] = useState(initialValue?.path ?? "");
+  const [file, setFile] = useState(initialValue?.file);
   const copy = FIELD_COPY[type];
   // 파일은 이름이 선택 사항, URL 은 이름·주소 모두 필수 (POST /reference/data 규칙)
   const canSave =
-    path.trim().length > 0 && (type === "file" || name.trim().length > 0);
+    type === "file"
+      ? file !== undefined
+      : path.trim().length > 0 && name.trim().length > 0;
 
   const changeType = (next: ResourceType) => {
     if (next === type) {
       return;
     }
+    // 탭을 바꾸면 입력값을 모두 비운다.
     setType(next);
+    setName("");
     setPath("");
+    setFile(undefined);
   };
+
+  const pickFile = async () => {
+    const result = await getDocumentAsync();
+    if (result.canceled) return;
+    const [asset] = result.assets;
+    setFile(asset);
+    setPath(asset.name);
+  };
+
+  const pathInput = (
+    <Input
+      shape="modal"
+      value={path}
+      onChangeText={setPath}
+      placeholder={copy.pathPlaceholder}
+      autoCapitalize="none"
+      keyboardType={type === "url" ? "url" : "default"}
+      editable={type === "url"}
+    />
+  );
 
   return (
     <View className="pb-5 pt-4">
@@ -116,16 +146,19 @@ export function ResourceAddModalForm({
         </View>
         <View className="gap-3">
           <Text className="text-gray-900 text-b-02-r">{copy.path}</Text>
-          {/* [임시] shortcut: 파일명 하나에 파일 하나만 받는다(원래는 여러 파일), 다중 파일 UI·API 확정 후 확장 */}
-          {/* TODO(api): 파일 탭에서는 이 칸을 누르면 expo-document-picker 로 파일을 골라 채운다 */}
-          <Input
-            shape="modal"
-            value={path}
-            onChangeText={setPath}
-            placeholder={copy.pathPlaceholder}
-            autoCapitalize="none"
-            keyboardType={type === "url" ? "url" : "default"}
-          />
+          {/* shortcut: 파일명 하나에 파일 하나만 받는다(원래는 여러 파일), 다중 파일 UI·API 확정 후 확장 */}
+          {type === "file" ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="파일 선택"
+              onPress={pickFile}
+            >
+              {/* 입력칸이 터치를 먹지 않게 해서 Pressable 이 받게 한다 (className 은 native 에서 적용 안 됨) */}
+              <View style={{ pointerEvents: "none" }}>{pathInput}</View>
+            </Pressable>
+          ) : (
+            pathInput
+          )}
         </View>
       </View>
 
@@ -133,7 +166,9 @@ export function ResourceAddModalForm({
         label="저장"
         size="modal"
         disabled={!canSave}
-        onPress={() => onSave({ type, name: name.trim(), path: path.trim() })}
+        onPress={() =>
+          onSave({ type, name: name.trim(), path: path.trim(), file })
+        }
         className="mt-6"
       />
     </View>
