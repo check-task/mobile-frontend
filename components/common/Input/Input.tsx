@@ -1,7 +1,8 @@
 import { type ComponentProps, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, type TextStyle, View } from "react-native";
 
 import { Eye, EyeClose, Send } from "@/components/icons";
+import { INPUT_TEXT } from "@/constants/inputText";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,6 +39,21 @@ const CONTAINER_CLASS_BY_SHAPE: Record<InputShape, string> = {
   comment: "h-[34px] rounded px-3 py-2",
 };
 
+/**
+ * 한 줄 입력의 고정 높이(패딩 + 글자 줄높이). iOS `TextInput`은 placeholder일 때와
+ * 글자가 있을 때 높이가 달라 입력하는 순간 레이아웃이 들썩이므로 높이를 고정한다.
+ * 비밀번호 모양은 24px 아이콘이 높이를 정하므로 고정하지 않고, `multiline`이면 적용하지 않는다.
+ */
+const SINGLE_LINE_HEIGHT_CLASS_BY_SHAPE: Record<InputShape, string> = {
+  box: "h-[45px]",
+  "box-password": "",
+  "box-timer": "h-[45px]",
+  modal: "h-9",
+  "modal-password": "",
+  line: "h-[31.5px]",
+  comment: "",
+};
+
 const BORDER_CLASS_BY_SHAPE: Record<InputShape, string> = {
   box: "border",
   "box-password": "border",
@@ -48,14 +64,15 @@ const BORDER_CLASS_BY_SHAPE: Record<InputShape, string> = {
   comment: "border",
 };
 
-const TEXT_CLASS_BY_SHAPE: Record<InputShape, string> = {
-  box: "text-b-02-r",
-  "box-password": "text-b-02-r",
-  "box-timer": "text-b-02-r",
-  modal: "text-b-03-r",
-  "modal-password": "text-b-03-r",
-  line: "text-b-03-r",
-  comment: "text-b-04-r",
+// 입력값은 줄높이 없는 스타일을 쓴다(한글/영문 높이 차이 방지). INPUT_TEXT 참고.
+const TEXT_STYLE_BY_SHAPE: Record<InputShape, TextStyle> = {
+  box: INPUT_TEXT["b-02-r"],
+  "box-password": INPUT_TEXT["b-02-r"],
+  "box-timer": INPUT_TEXT["b-02-r"],
+  modal: INPUT_TEXT["b-03-r"],
+  "modal-password": INPUT_TEXT["b-03-r"],
+  line: INPUT_TEXT["b-03-r"],
+  comment: INPUT_TEXT["b-04-r"],
 };
 
 type RNTextInputProps = ComponentProps<typeof TextInput>;
@@ -129,6 +146,7 @@ export function Input({
       className={cn(
         "flex-row items-center",
         CONTAINER_CLASS_BY_SHAPE[shape],
+        rest.multiline ? null : SINGLE_LINE_HEIGHT_CLASS_BY_SHAPE[shape],
         BORDER_CLASS_BY_SHAPE[shape],
         isFocused ? "border-gray-400" : "border-gray-200",
         className
@@ -141,10 +159,8 @@ export function Input({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         secureTextEntry={hasPasswordToggle ? isSecure : undefined}
-        className={cn(
-          "flex-1 text-gray-600 placeholder:text-gray-400",
-          TEXT_CLASS_BY_SHAPE[shape]
-        )}
+        style={TEXT_STYLE_BY_SHAPE[shape]}
+        className="flex-1 text-gray-600 placeholder:text-gray-400"
         {...rest}
       />
 

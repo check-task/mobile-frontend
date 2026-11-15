@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { Button } from "@/components/common/Button/Button";
 import { Toggle } from "@/components/common/Toggle/Toggle";
 import { CheckCircle, Left, Right } from "@/components/icons";
+import { INPUT_TEXT } from "@/constants/inputText";
 import { CARD_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,45 @@ function formatTime(date: Date) {
   };
 }
 
+type TimeDigitsProps = {
+  /** 표시할 두 자리 값 (예: `09`) */
+  value: string;
+  /** 스크린 리더용 이름 (예: `시`) */
+  label: string;
+  /** 숫자를 입력할 때마다 호출된다. 범위 보정은 호출부가 한다. */
+  onChange: (value: number) => void;
+};
+
+/** 시간 칩 안의 시/분 두 자리 입력. 입력 중에는 친 그대로 보여 주고, 포커스가 빠지면 `value`로 돌아간다. */
+function TimeDigits({ value, label, onChange }: TimeDigitsProps) {
+  // null 이면 입력 중이 아님. 포커스되면 비워서 새로 치게 하고, 현재 값은 placeholder 로 흐리게 보여 준다.
+  const [draft, setDraft] = useState<string | null>(null);
+
+  return (
+    <TextInput
+      value={draft ?? value}
+      placeholder={value}
+      onChangeText={(text) => {
+        const digits = text.replace(/\D/g, "").slice(0, 2);
+        setDraft(digits);
+        if (digits.length > 0) {
+          onChange(Number(digits));
+        }
+      }}
+      onFocus={() => setDraft("")}
+      onBlur={() => setDraft(null)}
+      keyboardType="number-pad"
+      maxLength={2}
+      // 칸이 작아 커서·선택 핸들이 숫자를 가리므로 숨긴다.
+      caretHidden
+      contextMenuHidden
+      accessibilityLabel={label}
+      style={INPUT_TEXT.caption}
+      className="w-4 p-0 text-center text-gray-600 placeholder:text-gray-400"
+    />
+  );
+}
+
 function buildMonthWeeks(viewMonth: Date) {
   const year = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
@@ -80,8 +120,6 @@ export type DatePickerProps = {
   noDate?: boolean;
   /** `날짜 지정 안함`을 눌렀을 때. 넘기지 않으면 이 줄을 그리지 않는다. */
   onNoDateChange?: (noDate: boolean) => void;
-  /** 시간 칩을 눌렀을 때. 넘기지 않으면 탭할 수 없는 표시 전용 칩이 된다. */
-  onTimePress?: () => void;
   /** 바깥 여백·위치 보정용. 너비는 달력 격자(224px)에 맞춰진다. */
   className?: string;
 };
@@ -99,7 +137,6 @@ export function DatePicker({
   minDate,
   noDate = false,
   onNoDateChange,
-  onTimePress,
   className,
 }: DatePickerProps) {
   const [viewMonth, setViewMonth] = useState(
@@ -117,6 +154,13 @@ export function DatePicker({
   const weeks = buildMonthWeeks(viewMonth);
   const minDay = minDate ? startOfDay(minDate) : null;
   const time = formatTime(value);
+  const isPm = value.getHours() >= 12;
+
+  const setTime = (hours: number, minutes: number) => {
+    const next = new Date(value);
+    next.setHours(hours, minutes);
+    onChange(next);
+  };
 
   const moveMonth = (offset: number) => {
     setViewMonth(
@@ -273,24 +317,44 @@ export function DatePicker({
               <Text className="text-gray-600 text-caption">
                 {`${value.getFullYear()}년 ${value.getMonth() + 1}월 ${value.getDate()}일`}
               </Text>
-              <Pressable
-                accessibilityRole={onTimePress ? "button" : undefined}
-                onPress={onTimePress}
-                className="flex-row items-center gap-1 rounded-[2px] border border-gray-600 px-1 py-0.5"
-              >
-                <Text className="text-gray-600 text-caption">
-                  {time.period}
-                </Text>
+              <View className="flex-row items-center gap-1 rounded-[2px] border border-gray-600 px-1 py-0.5">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="오전/오후 전환"
+                  hitSlop={4}
+                  onPress={() =>
+                    setTime((value.getHours() + 12) % 24, value.getMinutes())
+                  }
+                >
+                  <Text style={INPUT_TEXT.caption} className="text-gray-600">
+                    {time.period}
+                  </Text>
+                </Pressable>
                 <View className="flex-row items-center gap-0.5">
-                  <Text className="text-gray-600 text-caption">
-                    {time.hour}
+                  <TimeDigits
+                    value={time.hour}
+                    label="시"
+                    // 00~11 로 표기하므로 12 는 00 으로 받는다.
+                    onChange={(hour) =>
+                      setTime(
+                        (hour === 12 ? 0 : Math.min(hour, 11)) +
+                          (isPm ? 12 : 0),
+                        value.getMinutes()
+                      )
+                    }
+                  />
+                  <Text style={INPUT_TEXT.caption} className="text-gray-600">
+                    :
                   </Text>
-                  <Text className="text-gray-600 text-caption">:</Text>
-                  <Text className="text-gray-600 text-caption">
-                    {time.minute}
-                  </Text>
+                  <TimeDigits
+                    value={time.minute}
+                    label="분"
+                    onChange={(minute) =>
+                      setTime(value.getHours(), Math.min(minute, 59))
+                    }
+                  />
                 </View>
-              </Pressable>
+              </View>
             </View>
           ) : null}
         </View>
