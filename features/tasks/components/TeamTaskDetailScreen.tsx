@@ -4,9 +4,11 @@ import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
+import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModalContent/DeleteConfirmModalContent";
 import { DropdownMenu } from "@/components/common/DropdownMenu/DropdownMenu";
 import { Tabs } from "@/components/common/Tabs/Tabs";
 import { STRONG_CARD_SHADOW } from "@/constants/shadows";
+import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
@@ -14,6 +16,7 @@ import { emitWithAck } from "@/lib/socket/socketClient";
 import type { TaskDetail } from "../api/taskMapper";
 import type { AddSubTaskRequest, TaskMember } from "../api/task.types";
 import { useMyUserIdQuery } from "../hooks/useMyUserIdQuery";
+import { useRemoveTaskMemberMutation } from "../hooks/useRemoveTaskMemberMutation";
 import { useResourceActions } from "../hooks/useResourceActions";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
@@ -30,10 +33,8 @@ import { TeamSubTaskDetail } from "./TeamSubTaskDetail";
 const RESOURCE_TABS = ["커뮤니케이션", "회의록", "자료"] as const;
 
 function toMemberRole(member: TaskMember, myUserId: number | undefined) {
-  if (member.role === "owner") {
-    return "Owner";
-  }
-  return member.id === myUserId ? "member(you)" : "member";
+  const role = member.role === "owner" ? "Owner" : "member";
+  return member.id === myUserId ? `${role}(you)` : role;
 }
 
 const SCROLL_BOTTOM_GAP = 32;
@@ -69,6 +70,12 @@ function TeamTaskDetailContent({
   const { data: members = [] } = useTaskMembersQuery(taskId);
   const { data: myUserId } = useMyUserIdQuery();
   const [assigneeMenuId, setAssigneeMenuId] = useState<string | null>(null);
+  const [memberMenuId, setMemberMenuId] = useState<number | null>(null);
+  const { openModal, closeModal } = useModal();
+  const removeMemberMutation = useRemoveTaskMemberMutation(taskId);
+  const isOwner = members.some(
+    (member) => member.id === myUserId && member.role === "owner"
+  );
   const [subTasks, setSubTasks] = useState(detail.subTasks);
   const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
   // 팀원이 바꿔 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
@@ -139,6 +146,43 @@ function TeamTaskDetailContent({
     }).catch((error: unknown) =>
       showToast("fail", getErrorMessage(error, "담당자를 바꾸지 못했어요."))
     );
+  };
+
+  const makeOwner = (member: TaskMember) => {
+    setMemberMenuId(null);
+    emitWithAck("member:update", {
+      taskId,
+      userId: myUserId,
+      targetUserId: member.id,
+      role: 0,
+    }).catch((error: unknown) =>
+      showToast("fail", getErrorMessage(error, "팀장을 바꾸지 못했어요."))
+    );
+  };
+
+  const confirmRemoveMember = (member: TaskMember) => {
+    setMemberMenuId(null);
+    openModal({
+      title: "팀원 삭제",
+      children: (
+        <DeleteConfirmModalContent
+          targetName={member.nickname}
+          description="삭제된 팀원은 이 과제에서 나가게 됩니다."
+          cancelFirst
+          onConfirm={() => {
+            closeModal();
+            removeMemberMutation.mutate(member.id, {
+              onError: (error) =>
+                showToast(
+                  "fail",
+                  getErrorMessage(error, "팀원을 삭제하지 못했어요.")
+                ),
+            });
+          }}
+          onCancel={closeModal}
+        />
+      ),
+    });
   };
 
   const changeCommentDraft = (id: string, draft: string) => {
@@ -233,11 +277,35 @@ function TeamTaskDetailContent({
           }
         />
         <TeamMemberSection
-          members={members.map((member) => ({
-            id: String(member.id),
-            name: member.nickname,
-            role: toMemberRole(member, myUserId),
-          }))}
+          members={members.map((member) => {
+            const canManage = isOwner && member.id !== myUserId;
+            return {
+              id: String(member.id),
+              name: member.nickname,
+              role: toMemberRole(member, myUserId),
+              onRolePress: canManage
+                ? () =>
+                    setMemberMenuId((current) =>
+                      current === member.id ? null : member.id
+                    )
+                : undefined,
+              menu:
+                canManage && memberMenuId === member.id ? (
+                  <DropdownMenu
+                    variant="leader"
+                    items={[
+                      { key: "owner", label: "팀장 설정" },
+                      { key: "remove", label: "팀원 삭제" },
+                    ]}
+                    onSelect={(key) =>
+                      key === "owner"
+                        ? makeOwner(member)
+                        : confirmRemoveMember(member)
+                    }
+                  />
+                ) : undefined,
+            };
+          })}
         />
       </View>
     </ScrollView>

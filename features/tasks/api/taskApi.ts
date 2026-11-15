@@ -28,6 +28,10 @@ export function getTaskMembers(taskId: number) {
   return apiClient.get<TaskMembersResponse>(`/api/v1/task/${taskId}/members`);
 }
 
+export function removeTaskMember(taskId: number, userId: number) {
+  return apiClient.delete<unknown>(`/api/v1/task/${taskId}/member/${userId}`);
+}
+
 export function updateSubTaskStatus(subTaskId: number, status: SubTaskStatus) {
   return apiClient.patch<unknown>(`/api/v1/task/subtask/${subTaskId}/status`, {
     status,
