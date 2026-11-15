@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
@@ -21,8 +21,11 @@ export function useSubTaskAddForm({
   const [isSaving, setIsSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<DueDate | null>(null);
+  // 폼을 닫을 때마다 바뀐다. 저장 중에 취소하고 다시 입력했으면 앞선 저장이 끝나도 새 입력을 지우지 않는다.
+  const sessionRef = useRef(0);
 
   const close = () => {
+    sessionRef.current += 1;
     setIsAdding(false);
     setTitle("");
     setDueDate(null);
@@ -33,13 +36,16 @@ export function useSubTaskAddForm({
     if (trimmed.length === 0 || isSaving) {
       return;
     }
+    const session = sessionRef.current;
     setIsSaving(true);
     try {
       await submit({
         title: trimmed,
         deadline: dueDate ? toDueDateTime(dueDate).toISOString() : null,
       });
-      close();
+      if (session === sessionRef.current) {
+        close();
+      }
     } catch (error) {
       showToast(
         "fail",
