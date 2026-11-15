@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -47,13 +46,6 @@ function PersonalTaskDetailContent({
   detail: TaskDetail;
 }) {
   const insets = useSafeAreaInsets();
-  const [subTasks, setSubTasks] = useState(detail.subTasks);
-  const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
-  // 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
-  if (syncedSubTasks !== detail.subTasks) {
-    setSyncedSubTasks(detail.subTasks);
-    setSubTasks(detail.subTasks);
-  }
   const { resources, editResource, deleteResource } = useResourceActions(
     detail.references
   );
@@ -63,15 +55,9 @@ function PersonalTaskDetailContent({
     submit: addSubTaskMutation.mutateAsync,
   });
 
-  const doneCount = subTasks.filter((subTask) => subTask.done).length;
-  const percent =
-    subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
-
   const updateStatusMutation = useUpdateSubTaskStatusMutation(taskId);
   const updateAlarmMutation = useUpdateSubTaskAlarmMutation(taskId);
-  const toggleDone = useSubTaskToggle({
-    subTasks,
-    setSubTasks,
+  const doneToggle = useSubTaskToggle({
     field: "done",
     submit: (subTaskId, done) =>
       updateStatusMutation.mutateAsync({
@@ -80,14 +66,17 @@ function PersonalTaskDetailContent({
       }),
     failMessage: "완료 상태를 바꾸지 못했어요.",
   });
-  const toggleAlarm = useSubTaskToggle({
-    subTasks,
-    setSubTasks,
+  const alarmToggle = useSubTaskToggle({
     field: "alarm",
     submit: (subTaskId, isAlarm) =>
       updateAlarmMutation.mutateAsync({ subTaskId, isAlarm }),
     failMessage: "알림 설정을 바꾸지 못했어요.",
   });
+  const subTasks = alarmToggle.apply(doneToggle.apply(detail.subTasks));
+
+  const doneCount = subTasks.filter((subTask) => subTask.done).length;
+  const percent =
+    subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
 
   return (
     <ScrollView
@@ -108,8 +97,8 @@ function PersonalTaskDetailContent({
         <SubTaskList
           items={subTasks}
           collapsedCount={SUB_TASK_COLLAPSED_COUNT}
-          onToggle={toggleDone}
-          onAlarmPress={toggleAlarm}
+          onToggle={(id) => doneToggle.toggle(subTasks, id)}
+          onAlarmPress={(id) => alarmToggle.toggle(subTasks, id)}
           onAddPress={addForm.open}
           addForm={addForm.form}
         />

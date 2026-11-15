@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
 
+import { taskKeys } from "../api/taskApi";
 import type { TaskDetail } from "../api/taskMapper";
 import type { AddSubTaskRequest, TaskMember } from "../api/task.types";
 import { useMyUserIdQuery } from "../hooks/useMyUserIdQuery";
@@ -76,13 +78,11 @@ function TeamTaskDetailContent({
   const isOwner = members.some(
     (member) => member.id === myUserId && member.role === "owner"
   );
-  const [subTasks, setSubTasks] = useState(detail.subTasks);
-  const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
-  // 팀원이 바꿔 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
-  if (syncedSubTasks !== detail.subTasks) {
-    setSyncedSubTasks(detail.subTasks);
-    setSubTasks(detail.subTasks);
-  }
+  const queryClient = useQueryClient();
+  const emitAndRefresh = async (event: string, payload: unknown) => {
+    await emitWithAck(event, payload);
+    await queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+  };
   const addForm = useSubTaskAddForm({
     taskDeadline: detail.deadline,
     submit: (data: AddSubTaskRequest) =>
@@ -102,29 +102,26 @@ function TeamTaskDetailContent({
   const { resources, editResource, deleteResource } =
     resourceActions[resourceTab];
 
-  const toggleDone = useSubTaskToggle({
-    subTasks,
-    setSubTasks,
+  const doneToggle = useSubTaskToggle({
     field: "done",
     submit: (subTaskId, done) =>
-      emitWithAck("updateSubtaskStatus", {
+      emitAndRefresh("updateSubtaskStatus", {
         taskId,
         subTaskId,
         status: done ? "COMPLETED" : "PENDING",
       }),
     failMessage: "완료 상태를 바꾸지 못했어요.",
   });
-  const toggleAlarm = useSubTaskToggle({
-    subTasks,
-    setSubTasks,
+  const alarmToggle = useSubTaskToggle({
     field: "alarm",
     submit: (subTaskId, isAlarm) =>
-      emitWithAck("subtask:update", {
+      emitAndRefresh("subtask:update", {
         taskId,
         data: [{ subTaskId, isAlarm }],
       }),
     failMessage: "알림 설정을 바꾸지 못했어요.",
   });
+  const subTasks = alarmToggle.apply(doneToggle.apply(detail.subTasks));
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -216,8 +213,8 @@ function TeamTaskDetailContent({
         <SubTaskList
           items={subTasks}
           cardShadow={STRONG_CARD_SHADOW}
-          onToggle={toggleDone}
-          onAlarmPress={toggleAlarm}
+          onToggle={(id) => doneToggle.toggle(subTasks, id)}
+          onAlarmPress={(id) => alarmToggle.toggle(subTasks, id)}
           onAddPress={addForm.open}
           addForm={addForm.form}
           expandedIds={expandedIds}
