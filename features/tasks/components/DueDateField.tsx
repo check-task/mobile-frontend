@@ -125,7 +125,11 @@ export function DueDateField({
           />
           <DatePicker
             value={draft.date}
-            onChange={(date) => setDraft({ ...draft, date })}
+            onChange={(date) => {
+              setDraft({ ...draft, date });
+              // 날짜를 고르면 `날짜 지정 안함`을 해제해야 저장 시 null 로 덮이지 않는다.
+              setDraftNoDate(false);
+            }}
             timeEnabled={draft.hasTime}
             onTimeEnabledChange={(hasTime) => setDraft({ ...draft, hasTime })}
             noDate={draftNoDate}

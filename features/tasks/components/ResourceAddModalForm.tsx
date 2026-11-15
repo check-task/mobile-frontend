@@ -65,6 +65,9 @@ export function ResourceAddModalForm({
     path.trim().length > 0 && (type === "file" || name.trim().length > 0);
 
   const changeType = (next: ResourceType) => {
+    if (next === type) {
+      return;
+    }
     setType(next);
     setPath("");
   };
