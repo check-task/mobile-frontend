@@ -115,11 +115,11 @@ export function TaskCreateScreen() {
   const changeDeadline = (next: DueDate | null) => {
     setDeadline(next);
     if (!next) return;
-    // 과제 마감일보다 늦은 날짜의 세부 과제는 마감일을 비운다.
-    const lastDay = new Date(next.date).setHours(23, 59, 59, 999);
+    // 새 과제 마감 시각을 넘는 세부 과제는 마감일을 비운다. 시간 없는 세부 과제는 자정이라 당일이면 유지된다.
+    const limit = toDueDateTime(next);
     setSubTasks((current) =>
       current.map((subTask) =>
-        subTask.dueDate && subTask.dueDate.date.getTime() > lastDay
+        subTask.dueDate && subTask.dueDate.date > limit
           ? { ...subTask, dueDate: null }
           : subTask
       )
