@@ -1,23 +1,18 @@
 import { useRouter } from "expo-router";
-import { type ReactNode, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Checkbox } from "@/components/common/Checkbox/Checkbox";
 import { Chip } from "@/components/common/Chip/Chip";
-import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModalContent/DeleteConfirmModalContent";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Input } from "@/components/common/Input/Input";
-import { useModal } from "@/hooks/useModal";
-import { useToast } from "@/hooks/useToast";
 
 import { useMyFoldersQuery } from "../hooks/useMyFoldersQuery";
+import { useTaskForm } from "../hooks/useTaskForm";
 
-import { type DueDate, DueDateField, toDueDateTime } from "./DueDateField";
-import {
-  ResourceAddModalForm,
-  type ResourceDraft,
-} from "./ResourceAddModalForm";
+import { type DueDate, DueDateField } from "./DueDateField";
+import type { ResourceDraft } from "./ResourceAddModalForm";
 import { TaskFormField } from "./TaskFormField";
 import { TaskResourceSection } from "./TaskResourceSection";
 import { TaskSubTaskSection } from "./TaskSubTaskSection";
@@ -94,110 +89,9 @@ export function TaskForm({
 }: TaskFormProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { openModal, closeModal } = useModal();
-  const { showSnackbar } = useToast();
   const foldersQuery = useMyFoldersQuery();
-  const nextId = useRef(0);
-
-  const [isTeam, setIsTeam] = useState(initialValue.isTeam);
-  // shortcut: 사양에 없는 Figma 옵션이라 상태만 둔다, 웬투밋 범위 정해지면 연결
-  const [withWhen2meet, setWithWhen2meet] = useState(false);
-  const [title, setTitle] = useState(initialValue.title);
-  const [folderId, setFolderId] = useState(initialValue.folderId);
-  const [deadline, setDeadline] = useState(initialValue.deadline);
-  const [subTasks, setSubTasks] = useState(initialValue.subTasks);
-  const [resources, setResources] = useState(initialValue.resources);
-
-  const newId = () => `new-${nextId.current++}`;
-
-  const changeDeadline = (next: DueDate | null) => {
-    setDeadline(next);
-    if (!next) return;
-    // 새 과제 마감 시각을 넘는 세부 과제는 마감일을 비운다. 시간 없는 세부 과제는 자정이라 당일이면 유지된다.
-    const limit = toDueDateTime(next);
-    setSubTasks((current) =>
-      current.map((subTask) =>
-        subTask.dueDate && subTask.dueDate.date > limit
-          ? { ...subTask, dueDate: null }
-          : subTask
-      )
-    );
-  };
-
-  const updateSubTask = (id: string, patch: Partial<SubTaskDraft>) => {
-    setSubTasks((current) =>
-      current.map((subTask) =>
-        subTask.id === id ? { ...subTask, ...patch } : subTask
-      )
-    );
-  };
-
-  const removeSubTask = (target: SubTaskDraft) => {
-    const index = subTasks.findIndex((subTask) => subTask.id === target.id);
-    setSubTasks((current) =>
-      current.filter((subTask) => subTask.id !== target.id)
-    );
-    if (!isEdit) return;
-    showSnackbar(`${target.title || "TASK"}이 삭제되었습니다`, () =>
-      setSubTasks((current) => [
-        ...current.slice(0, index),
-        target,
-        ...current.slice(index),
-      ])
-    );
-  };
-
-  const removeResource = (target: ResourceDraftItem) => {
-    const index = resources.findIndex((item) => item.id === target.id);
-    setResources((current) => current.filter((item) => item.id !== target.id));
-    if (!isEdit) return;
-    showSnackbar(`${target.name || target.path}이 삭제되었습니다`, () =>
-      setResources((current) => [
-        ...current.slice(0, index),
-        target,
-        ...current.slice(index),
-      ])
-    );
-  };
-
-  const confirmRemoveAllSubTasks = () => {
-    openModal({
-      title: "TASK 삭제",
-      children: (
-        <DeleteConfirmModalContent
-          heading="모든 세부과제를 삭제하시겠습니까?"
-          description="삭제된 과제는 영구 삭제되며, 복구할 수 없습니다."
-          onConfirm={() => {
-            setSubTasks([]);
-            closeModal();
-          }}
-          onCancel={closeModal}
-        />
-      ),
-    });
-  };
-
-  const openResourceModal = (target?: ResourceDraftItem) => {
-    openModal({
-      title: target ? "자료 수정" : "자료 추가",
-      headerIcon: "cancel",
-      children: (
-        <ResourceAddModalForm
-          initialValue={target}
-          onSave={(value) => {
-            setResources((current) =>
-              target
-                ? current.map((item) =>
-                    item.id === target.id ? { ...item, ...value } : item
-                  )
-                : [...current, { ...value, id: newId() }]
-            );
-            closeModal();
-          }}
-        />
-      ),
-    });
-  };
+  const form = useTaskForm(initialValue, isEdit);
+  const { isTeam, title, folderId, deadline, subTasks, resources } = form.value;
 
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
@@ -215,12 +109,12 @@ export function TaskForm({
             label="팀프로젝트"
             checked={isTeam}
             // shortcut: 수정 화면은 유형 변경을 임시로 막는다, convert-to-team 연동이 정해지면 연다
-            onPress={isEdit ? undefined : () => setIsTeam(!isTeam)}
+            onPress={isEdit ? undefined : form.toggleTeam}
           />
           <LabeledCheckbox
             label="웬투밋 추가"
-            checked={withWhen2meet}
-            onPress={() => setWithWhen2meet(!withWhen2meet)}
+            checked={form.withWhen2meet}
+            onPress={form.toggleWhen2meet}
           />
         </View>
 
@@ -232,7 +126,7 @@ export function TaskForm({
               <Input
                 shape="box"
                 value={title}
-                onChangeText={setTitle}
+                onChangeText={form.setTitle}
                 placeholder="과제명을 입력하세요."
               />
             </TaskFormField>
@@ -250,12 +144,7 @@ export function TaskForm({
                     label={folder.folderTitle}
                     color={folder.color}
                     variant={folder.folderId === folderId ? "fill" : "default"}
-                    // 다시 누르면 선택 해제 → folderId 생략(미지정)
-                    onPress={() =>
-                      setFolderId(
-                        folder.folderId === folderId ? null : folder.folderId
-                      )
-                    }
+                    onPress={() => form.toggleFolder(folder.folderId)}
                   />
                 ))}
               </View>
@@ -265,7 +154,7 @@ export function TaskForm({
               <View className="self-start">
                 <DueDateField
                   value={deadline}
-                  onChange={changeDeadline}
+                  onChange={form.changeDeadline}
                   showTime
                   placeholder="날짜를 선택하세요"
                 />
@@ -279,20 +168,15 @@ export function TaskForm({
             <TaskSubTaskSection
               subTasks={subTasks}
               deadline={deadline}
-              onChange={updateSubTask}
-              onRemove={removeSubTask}
-              onAdd={() =>
-                setSubTasks((current) => [
-                  ...current,
-                  { id: newId(), title: "", dueDate: null },
-                ])
-              }
-              onRemoveAll={isEdit ? confirmRemoveAllSubTasks : undefined}
+              onChange={form.updateSubTask}
+              onRemove={form.removeSubTask}
+              onAdd={form.addSubTask}
+              onRemoveAll={isEdit ? form.confirmRemoveAllSubTasks : undefined}
             />
             <TaskResourceSection
               resources={resources}
-              onOpenModal={openResourceModal}
-              onRemove={removeResource}
+              onOpenModal={form.openResourceModal}
+              onRemove={form.removeResource}
             />
           </View>
         </View>
@@ -302,7 +186,7 @@ export function TaskForm({
         className="gap-3 px-4 pt-3"
         style={{ paddingBottom: insets.bottom + FOOTER_BOTTOM_GAP }}
       >
-        {footer({ isTeam, title, folderId, deadline, subTasks, resources })}
+        {footer(form.value)}
       </View>
     </View>
   );
