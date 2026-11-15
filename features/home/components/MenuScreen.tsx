@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/common/Button/Button";
@@ -55,7 +55,10 @@ export function MenuScreen() {
           <Cancel variant="xl" className="text-gray-800" />
         </Pressable>
       </View>
-      <View className="flex-1 gap-3 px-4 pt-5">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-3 px-4 pt-5"
+      >
         <MenuRow label="홈" icon={Home} onPress={() => router.navigate("/")} />
         <View className="border-b border-blue-100 px-2 pb-[11px]">
           <Pressable
@@ -94,7 +97,7 @@ export function MenuScreen() {
         {items.map(({ label, icon, onPress }) => (
           <MenuRow key={label} label={label} icon={icon} onPress={onPress} />
         ))}
-      </View>
+      </ScrollView>
       <View className="gap-3 px-4">
         <Pressable
           disabled
