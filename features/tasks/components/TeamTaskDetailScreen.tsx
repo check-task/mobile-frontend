@@ -218,6 +218,7 @@ function TeamTaskDetailContent({
           onAddPress={addForm.open}
           addForm={addForm.form}
           expandedIds={expandedIds}
+          raisedId={assigneeMenuId}
           onExpandPress={toggleExpanded}
           renderExpanded={(item) => {
             const extra = detail.subTaskExtras[item.id];
