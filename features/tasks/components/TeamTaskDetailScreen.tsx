@@ -12,6 +12,7 @@ import type { TaskDetail } from "../api/taskMapper";
 import type { AddSubTaskRequest } from "../api/task.types";
 import { useResourceActions } from "../hooks/useResourceActions";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
+import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
 import { useTaskRoom } from "../hooks/useTaskRoom";
 import { ResourceSection } from "./ResourceSection";
@@ -85,17 +86,33 @@ function TeamTaskDetailContent({
   const { resources, editResource, deleteResource } =
     resourceActions[resourceTab];
 
+  const toggleDone = useSubTaskToggle({
+    subTasks,
+    setSubTasks,
+    field: "done",
+    submit: (subTaskId, done) =>
+      emitWithAck("updateSubtaskStatus", {
+        taskId,
+        subTaskId,
+        status: done ? "COMPLETED" : "PENDING",
+      }),
+    failMessage: "완료 상태를 바꾸지 못했어요.",
+  });
+  const toggleAlarm = useSubTaskToggle({
+    subTasks,
+    setSubTasks,
+    field: "alarm",
+    submit: (subTaskId, isAlarm) =>
+      emitWithAck("subtask:update", {
+        taskId,
+        data: [{ subTaskId, isAlarm }],
+      }),
+    failMessage: "알림 설정을 바꾸지 못했어요.",
+  });
+
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
     subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
-
-  const updateSubTask = (id: string, key: "done" | "alarm") => {
-    setSubTasks((current) =>
-      current.map((subTask) =>
-        subTask.id === id ? { ...subTask, [key]: !subTask[key] } : subTask
-      )
-    );
-  };
 
   const changeCommentDraft = (id: string, draft: string) => {
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
@@ -128,8 +145,8 @@ function TeamTaskDetailContent({
         <SubTaskList
           items={subTasks}
           cardShadow={STRONG_CARD_SHADOW}
-          onToggle={(id) => updateSubTask(id, "done")}
-          onAlarmPress={(id) => updateSubTask(id, "alarm")}
+          onToggle={toggleDone}
+          onAlarmPress={toggleAlarm}
           onAddPress={addForm.open}
           addForm={addForm.form}
           expandedIds={expandedIds}

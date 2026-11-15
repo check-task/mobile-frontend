@@ -9,6 +9,7 @@ import type {
   TaskDetailResponse,
   AddSubTaskRequest,
   AddSubTaskResponse,
+  SubTaskStatus,
 } from "./task.types";
 
 export const taskKeys = {
@@ -19,6 +20,22 @@ export const taskKeys = {
 
 export function getTaskDetail(taskId: number) {
   return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);
+}
+
+export function updateSubTaskStatus(subTaskId: number, status: SubTaskStatus) {
+  return apiClient.patch<unknown>(`/api/v1/task/subtask/${subTaskId}/status`, {
+    status,
+  });
+}
+
+export function updateSubTaskAlarm(
+  taskId: number,
+  subTaskId: number,
+  isAlarm: boolean
+) {
+  return apiClient.patch<unknown>(`/api/v1/task/${taskId}/subtask`, {
+    subTasks: [{ subTaskId, isAlarm }],
+  });
 }
 
 export function addSubTask(taskId: number, body: AddSubTaskRequest) {

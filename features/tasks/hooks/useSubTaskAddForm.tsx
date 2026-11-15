@@ -1,8 +1,7 @@
 import { useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
-import { ApiError } from "@/lib/api/apiError";
-import { SocketError } from "@/lib/socket/socketClient";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 import type { AddSubTaskRequest } from "../api/task.types";
 import { type DueDate, toDueDateTime } from "../components/DueDateField";
@@ -42,13 +41,10 @@ export function useSubTaskAddForm({
       });
       close();
     } catch (error) {
-      if (error instanceof ApiError) {
-        showToast("fail", error.reason);
-      } else if (error instanceof SocketError) {
-        showToast("fail", error.message);
-      } else {
-        showToast("fail", "세부 과제를 추가하지 못했어요.");
-      }
+      showToast(
+        "fail",
+        getErrorMessage(error, "세부 과제를 추가하지 못했어요.")
+      );
     } finally {
       setIsSaving(false);
     }

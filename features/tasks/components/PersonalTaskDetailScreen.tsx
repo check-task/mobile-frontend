@@ -9,6 +9,9 @@ import type { TaskDetail } from "../api/taskMapper";
 import { useAddSubTaskMutation } from "../hooks/useAddSubTaskMutation";
 import { useResourceActions } from "../hooks/useResourceActions";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
+import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
+import { useUpdateSubTaskAlarmMutation } from "../hooks/useUpdateSubTaskAlarmMutation";
+import { useUpdateSubTaskStatusMutation } from "../hooks/useUpdateSubTaskStatusMutation";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
@@ -64,21 +67,27 @@ function PersonalTaskDetailContent({
   const percent =
     subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
 
-  const toggleDone = (id: string) => {
-    setSubTasks((current) =>
-      current.map((subTask) =>
-        subTask.id === id ? { ...subTask, done: !subTask.done } : subTask
-      )
-    );
-  };
-
-  const toggleAlarm = (id: string) => {
-    setSubTasks((current) =>
-      current.map((subTask) =>
-        subTask.id === id ? { ...subTask, alarm: !subTask.alarm } : subTask
-      )
-    );
-  };
+  const updateStatusMutation = useUpdateSubTaskStatusMutation(taskId);
+  const updateAlarmMutation = useUpdateSubTaskAlarmMutation(taskId);
+  const toggleDone = useSubTaskToggle({
+    subTasks,
+    setSubTasks,
+    field: "done",
+    submit: (subTaskId, done) =>
+      updateStatusMutation.mutateAsync({
+        subTaskId,
+        status: done ? "COMPLETED" : "PENDING",
+      }),
+    failMessage: "완료 상태를 바꾸지 못했어요.",
+  });
+  const toggleAlarm = useSubTaskToggle({
+    subTasks,
+    setSubTasks,
+    field: "alarm",
+    submit: (subTaskId, isAlarm) =>
+      updateAlarmMutation.mutateAsync({ subTaskId, isAlarm }),
+    failMessage: "알림 설정을 바꾸지 못했어요.",
+  });
 
   return (
     <ScrollView

@@ -44,12 +44,14 @@ export type CreateReferenceParams =
       file: Blob | NativeFilePart;
     };
 
+export type SubTaskStatus = "PENDING" | "COMPLETED";
+
 /** 시각은 타임존 표기 없는 UTC(`2026-11-20T10:00:00`)로 온다 */
 export type SubTaskDto = {
   subTaskId: number;
   title: string;
   deadline: string | null;
-  status: "PENDING" | "COMPLETED";
+  status: SubTaskStatus;
   isAlarm: boolean;
   commentCount: number;
   comments: {
