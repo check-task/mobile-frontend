@@ -35,6 +35,16 @@ export function ResourceItem({
       style={CARD_SHADOW}
       className={cn("gap-2 rounded-lg bg-blue-50 p-3", className)}
     >
+      <Text
+        numberOfLines={1}
+        className={cn("text-gray-600 text-b-04-m", hasActions ? "pr-12" : "")}
+      >
+        {title}
+      </Text>
+      <Text numberOfLines={1} className="text-gray-600 underline text-b-04-r">
+        {link}
+      </Text>
+      {/* 텍스트보다 뒤에 그려야 위에 겹쳐서 native 에서 터치를 받는다 */}
       {hasActions ? (
         <View className="absolute right-3 top-[11px] flex-row gap-2">
           {onEdit ? (
@@ -59,16 +69,6 @@ export function ResourceItem({
           ) : null}
         </View>
       ) : null}
-
-      <Text
-        numberOfLines={1}
-        className={cn("text-gray-600 text-b-04-m", hasActions ? "pr-12" : "")}
-      >
-        {title}
-      </Text>
-      <Text numberOfLines={1} className="text-gray-600 underline text-b-04-r">
-        {link}
-      </Text>
     </View>
   );
 }
