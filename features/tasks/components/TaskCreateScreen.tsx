@@ -1,42 +1,15 @@
 import { useRouter } from "expo-router";
-import { Platform } from "react-native";
 
 import { Button } from "@/components/common/Button/Button";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
 import { toDueDateTime } from "@/lib/dueDate";
 
-import type { ResourceDraft, TaskFormValue } from "../api/taskForm.types";
+import type { TaskFormValue } from "../api/taskForm.types";
 
-import {
-  type CreateTaskInput,
-  useCreateTaskMutation,
-} from "../hooks/useCreateTaskMutation";
+import { useCreateTaskMutation } from "../hooks/useCreateTaskMutation";
 
 import { TaskForm } from "./TaskForm";
-
-function toReferenceParams({
-  type,
-  name,
-  path,
-  file,
-}: ResourceDraft): CreateTaskInput["references"][number] | null {
-  if (type === "url") return { type, name, url: path };
-  if (!file) return null;
-  return {
-    type,
-    name: name || undefined,
-    // web 은 File 객체, native 는 uri 파트로 보낸다
-    file:
-      Platform.OS === "web" && file.file
-        ? file.file
-        : {
-            uri: file.uri,
-            name: file.name,
-            type: file.mimeType ?? "application/octet-stream",
-          },
-  };
-}
 
 export function TaskCreateScreen() {
   const router = useRouter();
@@ -75,9 +48,7 @@ export function TaskCreateScreen() {
                 : null,
             })),
         },
-        references: resources
-          .map(toReferenceParams)
-          .filter((params) => params !== null),
+        references: resources,
       },
       {
         onSuccess: ({ taskId, failedReferenceCount }) => {

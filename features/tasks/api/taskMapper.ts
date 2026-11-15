@@ -1,4 +1,8 @@
+import { Platform } from "react-native";
+
 import type { FolderColor } from "@/types/folder.types";
+import type { NativeFilePart } from "@/types/formData.types";
+import type { DueDate } from "@/lib/dueDate";
 
 import type { Resource } from "../components/ResourceSection";
 import type { SubTask } from "../components/SubTaskRow";
@@ -6,7 +10,12 @@ import type {
   TaskAssignee,
   TaskComment,
 } from "../components/TeamSubTaskDetail";
-import type { MyFolder, TaskDetailResponse } from "./task.types";
+import type {
+  CreateReferenceParams,
+  MyFolder,
+  TaskDetailResponse,
+} from "./task.types";
+import type { ResourceDraft, TaskFormValue } from "./taskForm.types";
 
 // 디자인 토큰(constants/theme-vars.ts 라이트 값)과 hex 가 같을 때만 매핑한다.
 const FOLDER_COLOR_BY_HEX: Record<string, FolderColor> = {
@@ -113,4 +122,78 @@ export function toFolderOptions(folders: MyFolder[]) {
     folderTitle: folder.folderTitle,
     color: toFolderColor(folder.color),
   }));
+}
+
+/**
+ * 날짜만 고른 마감으로 되돌리는 경우: 앱이 저장한 23:59(toDueDateTime, 로컬), 또는 서버 원문이 `T23:59:59`(날짜만 있는 데이터).
+ * shortcut: 서버가 시간 지정 여부를 안 주므로 시각으로 추정한다, 백엔드가 필드를 주면 교체
+ */
+function toDueDate(value: string): DueDate {
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})T23:59:59/.exec(value);
+  if (dateOnly) {
+    const [, year, month, day] = dateOnly.map(Number);
+    return { date: new Date(year, month - 1, day), hasTime: false };
+  }
+  const date = parseServerDate(value);
+  if (date.getHours() === 23 && date.getMinutes() === 59) {
+    return {
+      date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+      hasTime: false,
+    };
+  }
+  return { date, hasTime: true };
+}
+
+/** 수정 화면 초기값. 서버 항목 id 는 숫자 문자열, 새로 추가한 항목은 `new-` 로 시작한다 */
+export function toTaskFormValue(data: TaskDetailResponse): TaskFormValue {
+  return {
+    isTeam: data.type === "TEAM",
+    title: data.title,
+    folderId: data.folderId,
+    deadline: data.deadline ? toDueDate(data.deadline) : null,
+    subTasks: data.subTasks.map((subTask) => ({
+      id: String(subTask.subTaskId),
+      title: subTask.title,
+      dueDate: subTask.deadline ? toDueDate(subTask.deadline) : null,
+    })),
+    resources: data.references.map((reference) =>
+      reference.url
+        ? {
+            id: String(reference.id),
+            type: "url" as const,
+            name: reference.name,
+            path: reference.url,
+          }
+        : {
+            id: String(reference.id),
+            type: "file" as const,
+            name: reference.name,
+            path: reference.fileName ?? reference.fileUrl ?? "",
+          }
+    ),
+  };
+}
+
+/** 고른 파일을 업로드 파트로. web 은 File 객체, native 는 uri 파트로 보낸다 */
+export function toFilePart(
+  file: NonNullable<ResourceDraft["file"]>
+): Blob | NativeFilePart {
+  return Platform.OS === "web" && file.file
+    ? file.file
+    : {
+        uri: file.uri,
+        name: file.name,
+        type: file.mimeType ?? "application/octet-stream",
+      };
+}
+
+export function toReferenceParams({
+  type,
+  name,
+  path,
+  file,
+}: ResourceDraft): CreateReferenceParams | null {
+  if (type === "url") return { type, name, url: path };
+  if (!file) return null;
+  return { type, name: name || undefined, file: toFilePart(file) };
 }
