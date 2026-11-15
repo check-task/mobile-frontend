@@ -19,7 +19,11 @@ export function getSocket() {
       transports: ["websocket"],
       autoConnect: false,
       auth: (callback) => {
-        Promise.resolve(getAccessToken()).then((token) => callback({ token }));
+        // 토큰을 못 읽어도 callback 을 불러야 연결이 멈추지 않는다. 토큰이 없으면 서버가 거부해 connect_error 로 간다.
+        Promise.resolve()
+          .then(getAccessToken)
+          .catch(() => null)
+          .then((token) => callback({ token: token ?? null }));
       },
     });
   }
