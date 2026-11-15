@@ -35,6 +35,8 @@ export function NotificationScreen() {
     data: alarms = [],
     isPending,
     isError,
+    isSuccess,
+    isFetchedAfterMount,
     refetch,
     hasNextPage,
     isFetchingNextPage,
@@ -45,7 +47,7 @@ export function NotificationScreen() {
   const didMarkReadRef = useRef(false);
 
   // 웹과 같이 알림 화면에 들어오면 모두 읽음 처리한다. 요청 중이거나 성공했으면 다시 보내지 않고,
-  // 실패하면 표시를 풀어 `다시 시도`에서 다시 보낼 수 있게 한다.
+  // 실패하면 표시를 풀어, 목록을 다시 성공적으로 받거나 화면에 다시 들어올 때 다시 보낸다.
   const markAllReadOnce = useCallback(() => {
     if (didMarkReadRef.current) {
       return;
@@ -58,7 +60,14 @@ export function NotificationScreen() {
     });
   }, [markAllRead]);
 
-  useEffect(markAllReadOnce, [markAllReadOnce]);
+  // 목록을 먼저 받은 뒤에 읽음 처리해야 받은 목록에 새 알림 표시가 남는다.
+  // 캐시가 있어도 이번 화면에서 새로 받아 온 뒤에만 보낸다.
+  const hasFreshList = isSuccess && isFetchedAfterMount;
+  useEffect(() => {
+    if (hasFreshList) {
+      markAllReadOnce();
+    }
+  }, [hasFreshList, markAllReadOnce]);
 
   const showError = (fallback: string) => (error: unknown) =>
     showToast("fail", getErrorMessage(error, fallback));
@@ -136,10 +145,7 @@ export function NotificationScreen() {
               variant="gray"
               size="sm"
               className="w-auto"
-              onPress={() => {
-                refetch();
-                markAllReadOnce();
-              }}
+              onPress={() => refetch()}
             />
           </View>
         ) : !isPending && alarms.length === 0 ? (
