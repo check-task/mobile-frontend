@@ -86,12 +86,8 @@ export function DueDateField({
   const save = () => {
     if (draftNoDate) {
       onChange(null);
-    } else if (
-      maxDate &&
-      draft.hasTime &&
-      draft.date > toDueDateTime(maxDate)
-    ) {
-      // 같은 날 더 늦은 시각을 고르면 상한 시각으로 맞춘다.
+    } else if (maxDate && draft.date > toDueDateTime(maxDate)) {
+      // 상한보다 늦은 날짜이거나, 같은 날 더 늦은 시각이면 상한 시각으로 맞춘다.
       onChange({ ...draft, date: toDueDateTime(maxDate) });
     } else {
       onChange(draft);
