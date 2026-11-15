@@ -5,7 +5,8 @@ import type { TaskFormValue } from "./TaskForm";
 export const EDIT_TASK_DUMMY: TaskFormValue = {
   isTeam: false,
   title: "기말 프로젝트",
-  folderId: 1,
+  // 개발 계정의 과제 266(빨강 폴더) 기준. 내 폴더 목록에 있는 id 여야 칩이 선택돼 보인다.
+  folderId: 142,
   deadline: { date: new Date(2026, 11, 19, 9, 0), hasTime: true },
   subTasks: [1, 2, 3, 4].map((n) => ({
     id: `sub-${n}`,
