@@ -92,6 +92,18 @@ export type TaskDetailResponse = {
   }[];
 };
 
+export type AddSubTaskRequest = {
+  title: string;
+  /** ISO 8601 date-time. 미지정이면 null */
+  deadline: string | null;
+};
+
+export type AddSubTaskResponse = {
+  subTaskId: number;
+  title: string;
+  deadline: string | null;
+};
+
 /** Reference API 는 snake_case 로 온다 */
 export type ReferenceDto = {
   reference_id: number;

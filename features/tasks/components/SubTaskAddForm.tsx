@@ -1,18 +1,22 @@
 import { Pressable, Text, View } from "react-native";
 
 import { Input } from "@/components/common/Input/Input";
-import { Calendar, Cancel, Check } from "@/components/icons";
+import { Cancel, Check } from "@/components/icons";
 import { cn } from "@/lib/utils";
+
+import { type DueDate, DueDateField } from "./DueDateField";
 
 export type SubTaskAddFormProps = {
   /** 입력 중인 세부 TASK 이름 */
   title: string;
   /** 이름이 바뀔 때 */
   onChangeTitle: (title: string) => void;
-  /** 마감일 라벨 (예: `25.10.19`). 포맷은 호출부가 정한다. */
-  dueDate: string;
-  /** 마감일을 눌렀을 때 */
-  onDatePress?: () => void;
+  /** 선택한 마감일. `null`이면 미지정 */
+  dueDate: DueDate | null;
+  /** 마감일을 고를 때 */
+  onChangeDueDate: (dueDate: DueDate | null) => void;
+  /** 이 마감일보다 늦게 고를 수 없다 (과제 마감일) */
+  maxDate?: DueDate | null;
   /** `취소`를 눌렀을 때 */
   onCancel: () => void;
   /** `저장`을 눌렀을 때 */
@@ -25,7 +29,8 @@ export function SubTaskAddForm({
   title,
   onChangeTitle,
   dueDate,
-  onDatePress,
+  onChangeDueDate,
+  maxDate,
   onCancel,
   onSave,
   className,
@@ -40,15 +45,16 @@ export function SubTaskAddForm({
           placeholder="과제명을 입력하세요"
           className="w-[244px]"
         />
-        <Pressable
-          accessibilityRole={onDatePress ? "button" : undefined}
-          accessibilityLabel="마감일 선택"
-          onPress={onDatePress}
-          className="flex-1 flex-row items-center gap-1"
-        >
-          <Calendar variant="lg" className="text-gray-600" />
-          <Text className="text-gray-600 text-b-04-r">{dueDate}</Text>
-        </Pressable>
+        <View className="flex-1">
+          <DueDateField
+            value={dueDate}
+            onChange={onChangeDueDate}
+            allowNoDate
+            maxDate={maxDate}
+            placeholder="미지정"
+            size="sm"
+          />
+        </View>
       </View>
 
       <View className="flex-row gap-2 self-start">

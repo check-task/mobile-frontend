@@ -25,6 +25,7 @@ export type TaskDetail = {
   title: string;
   folderColor: FolderColor;
   dday: string;
+  deadline: Date | null;
   subTasks: SubTask[];
   /** 팀 과제 세부 TASK 펼침 영역. 키는 세부 TASK id */
   subTaskExtras: Record<
@@ -57,6 +58,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
     title: data.title,
     folderColor: toFolderColor(data.foldercolor),
     dday: data.dDay ?? "",
+    deadline: data.deadline ? parseServerDate(data.deadline) : null,
     subTasks: data.subTasks.map((subTask) => ({
       id: String(subTask.subTaskId),
       title: subTask.title,

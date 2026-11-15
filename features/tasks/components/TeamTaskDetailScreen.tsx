@@ -6,10 +6,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Tabs } from "@/components/common/Tabs/Tabs";
 import { STRONG_CARD_SHADOW } from "@/constants/shadows";
+import { emitWithAck } from "@/lib/socket/socketClient";
 
 import type { TaskDetail } from "../api/taskMapper";
+import type { AddSubTaskRequest } from "../api/task.types";
 import { useResourceActions } from "../hooks/useResourceActions";
+import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
+import { useTaskRoom } from "../hooks/useTaskRoom";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
 import { TaskDetailHeader } from "./TaskDetailHeader";
@@ -33,12 +37,13 @@ export function TeamTaskDetailScreen({ taskId }: { taskId: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data, isError, refetch } = useTaskDetailQuery(taskId);
+  useTaskRoom(taskId);
 
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
       <BackHeader onBack={() => router.back()} />
       {data ? (
-        <TeamTaskDetailContent detail={data} />
+        <TeamTaskDetailContent taskId={taskId} detail={data} />
       ) : (
         <TaskDetailStatus isError={isError} onRetry={refetch} />
       )}
@@ -46,9 +51,26 @@ export function TeamTaskDetailScreen({ taskId }: { taskId: number }) {
   );
 }
 
-function TeamTaskDetailContent({ detail }: { detail: TaskDetail }) {
+function TeamTaskDetailContent({
+  taskId,
+  detail,
+}: {
+  taskId: number;
+  detail: TaskDetail;
+}) {
   const insets = useSafeAreaInsets();
   const [subTasks, setSubTasks] = useState(detail.subTasks);
+  const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
+  // 팀원이 바꿔 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
+  if (syncedSubTasks !== detail.subTasks) {
+    setSyncedSubTasks(detail.subTasks);
+    setSubTasks(detail.subTasks);
+  }
+  const addForm = useSubTaskAddForm({
+    taskDeadline: detail.deadline,
+    submit: (data: AddSubTaskRequest) =>
+      emitWithAck("subtask:create", { taskId, data }),
+  });
   const resourceActions = {
     커뮤니케이션: useResourceActions(detail.communications),
     회의록: useResourceActions(detail.meetingLogs),
@@ -108,6 +130,8 @@ function TeamTaskDetailContent({ detail }: { detail: TaskDetail }) {
           cardShadow={STRONG_CARD_SHADOW}
           onToggle={(id) => updateSubTask(id, "done")}
           onAlarmPress={(id) => updateSubTask(id, "alarm")}
+          onAddPress={addForm.open}
+          addForm={addForm.form}
           expandedIds={expandedIds}
           onExpandPress={toggleExpanded}
           renderExpanded={(item) => {

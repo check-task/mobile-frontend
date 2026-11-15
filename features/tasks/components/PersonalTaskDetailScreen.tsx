@@ -6,16 +6,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 
 import type { TaskDetail } from "../api/taskMapper";
+import { useAddSubTaskMutation } from "../hooks/useAddSubTaskMutation";
 import { useResourceActions } from "../hooks/useResourceActions";
+import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
 import { ResourceSection } from "./ResourceSection";
-import { SubTaskAddForm } from "./SubTaskAddForm";
 import { SubTaskList } from "./SubTaskList";
 import { TaskDetailHeader } from "./TaskDetailHeader";
 import { TaskDetailStatus } from "./TaskDetailStatus";
 
 const SCROLL_BOTTOM_GAP = 32;
-const ADD_FORM_DUE_DATE = "25.10.19";
 const SUB_TASK_COLLAPSED_COUNT = 6;
 const RESOURCE_COLLAPSED_COUNT = 2;
 
@@ -28,7 +28,7 @@ export function PersonalTaskDetailScreen({ taskId }: { taskId: number }) {
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
       <BackHeader onBack={() => router.back()} />
       {data ? (
-        <PersonalTaskDetailContent detail={data} />
+        <PersonalTaskDetailContent taskId={taskId} detail={data} />
       ) : (
         <TaskDetailStatus isError={isError} onRetry={refetch} />
       )}
@@ -36,14 +36,29 @@ export function PersonalTaskDetailScreen({ taskId }: { taskId: number }) {
   );
 }
 
-function PersonalTaskDetailContent({ detail }: { detail: TaskDetail }) {
+function PersonalTaskDetailContent({
+  taskId,
+  detail,
+}: {
+  taskId: number;
+  detail: TaskDetail;
+}) {
   const insets = useSafeAreaInsets();
   const [subTasks, setSubTasks] = useState(detail.subTasks);
+  const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
+  // 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
+  if (syncedSubTasks !== detail.subTasks) {
+    setSyncedSubTasks(detail.subTasks);
+    setSubTasks(detail.subTasks);
+  }
   const { resources, editResource, deleteResource } = useResourceActions(
     detail.references
   );
-  const [isAdding, setIsAdding] = useState(false);
-  const [draftTitle, setDraftTitle] = useState("");
+  const addSubTaskMutation = useAddSubTaskMutation(taskId);
+  const addForm = useSubTaskAddForm({
+    taskDeadline: detail.deadline,
+    submit: addSubTaskMutation.mutateAsync,
+  });
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -55,29 +70,6 @@ function PersonalTaskDetailContent({ detail }: { detail: TaskDetail }) {
         subTask.id === id ? { ...subTask, done: !subTask.done } : subTask
       )
     );
-  };
-
-  const closeForm = () => {
-    setIsAdding(false);
-    setDraftTitle("");
-  };
-
-  const saveSubTask = () => {
-    const title = draftTitle.trim();
-    if (title.length === 0) {
-      return;
-    }
-    setSubTasks((current) => [
-      ...current,
-      {
-        id: String(current.length + 1),
-        title,
-        dueDate: ADD_FORM_DUE_DATE,
-        done: false,
-        alarm: true,
-      },
-    ]);
-    closeForm();
   };
 
   const toggleAlarm = (id: string) => {
@@ -109,18 +101,8 @@ function PersonalTaskDetailContent({ detail }: { detail: TaskDetail }) {
           collapsedCount={SUB_TASK_COLLAPSED_COUNT}
           onToggle={toggleDone}
           onAlarmPress={toggleAlarm}
-          onAddPress={() => setIsAdding(true)}
-          addForm={
-            isAdding ? (
-              <SubTaskAddForm
-                title={draftTitle}
-                onChangeTitle={setDraftTitle}
-                dueDate={ADD_FORM_DUE_DATE}
-                onCancel={closeForm}
-                onSave={saveSubTask}
-              />
-            ) : undefined
-          }
+          onAddPress={addForm.open}
+          addForm={addForm.form}
         />
         <ResourceSection
           items={resources}

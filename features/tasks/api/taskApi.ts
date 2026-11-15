@@ -7,6 +7,8 @@ import type {
   MyInfoResponse,
   ReferenceDto,
   TaskDetailResponse,
+  AddSubTaskRequest,
+  AddSubTaskResponse,
 } from "./task.types";
 
 export const taskKeys = {
@@ -17,6 +19,13 @@ export const taskKeys = {
 
 export function getTaskDetail(taskId: number) {
   return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);
+}
+
+export function addSubTask(taskId: number, body: AddSubTaskRequest) {
+  return apiClient.post<AddSubTaskResponse>(
+    `/api/v1/task/${taskId}/subtask`,
+    body
+  );
 }
 
 export function createTask(body: CreateTaskRequest) {
