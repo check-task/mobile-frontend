@@ -80,7 +80,11 @@ export function SubTaskList({
             const isExpanded = expandedIds?.includes(item.id) ?? false;
 
             return (
-              <View key={item.id} className="gap-3">
+              // 펼친 행의 담당자 메뉴가 아래 행에 가리지 않도록 앞에 그린다.
+              <View
+                key={item.id}
+                className={cn("gap-3", isExpanded ? "z-10" : undefined)}
+              >
                 <SubTaskRow
                   title={item.title}
                   dueDate={item.dueDate}

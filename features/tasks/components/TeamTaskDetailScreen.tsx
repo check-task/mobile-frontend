@@ -4,16 +4,21 @@ import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
+import { DropdownMenu } from "@/components/common/DropdownMenu/DropdownMenu";
 import { Tabs } from "@/components/common/Tabs/Tabs";
 import { STRONG_CARD_SHADOW } from "@/constants/shadows";
+import { useToast } from "@/hooks/useToast";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
 
 import type { TaskDetail } from "../api/taskMapper";
-import type { AddSubTaskRequest } from "../api/task.types";
+import type { AddSubTaskRequest, TaskMember } from "../api/task.types";
+import { useMyUserIdQuery } from "../hooks/useMyUserIdQuery";
 import { useResourceActions } from "../hooks/useResourceActions";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
+import { useTaskMembersQuery } from "../hooks/useTaskMembersQuery";
 import { useTaskRoom } from "../hooks/useTaskRoom";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
@@ -24,12 +29,12 @@ import { TeamSubTaskDetail } from "./TeamSubTaskDetail";
 
 const RESOURCE_TABS = ["커뮤니케이션", "회의록", "자료"] as const;
 
-// 팀원 목록 API 연결 전까지 사용
-const MEMBERS = [
-  { id: "1", name: "닉네임", role: "Owner" },
-  { id: "2", name: "닉네임", role: "member(you)" },
-  { id: "3", name: "닉네임", role: "member" },
-] as const;
+function toMemberRole(member: TaskMember, myUserId: number | undefined) {
+  if (member.role === "owner") {
+    return "Owner";
+  }
+  return member.id === myUserId ? "member(you)" : "member";
+}
 
 const SCROLL_BOTTOM_GAP = 32;
 const VISIBLE_ASSIGNEE_COUNT = 3;
@@ -60,6 +65,10 @@ function TeamTaskDetailContent({
   detail: TaskDetail;
 }) {
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
+  const { data: members = [] } = useTaskMembersQuery(taskId);
+  const { data: myUserId } = useMyUserIdQuery();
+  const [assigneeMenuId, setAssigneeMenuId] = useState<string | null>(null);
   const [subTasks, setSubTasks] = useState(detail.subTasks);
   const [syncedSubTasks, setSyncedSubTasks] = useState(detail.subTasks);
   // 팀원이 바꿔 다시 불러온 데이터로 목록을 맞춘다 (effect 안 setState 는 린트가 막는다)
@@ -114,6 +123,24 @@ function TeamTaskDetailContent({
   const percent =
     subTasks.length === 0 ? 0 : (doneCount / subTasks.length) * 100;
 
+  // 서버는 보낸 목록으로 담당자를 통째로 바꾸므로, 누른 팀원을 넣거나 뺀 전체 목록을 보낸다.
+  const toggleAssignee = (subTaskId: string, userId: number) => {
+    setAssigneeMenuId(null);
+    const current = (detail.subTaskExtras[subTaskId]?.assignees ?? []).map(
+      (assignee) => Number(assignee.id)
+    );
+    const assigneeIds = current.includes(userId)
+      ? current.filter((id) => id !== userId)
+      : [...current, userId];
+    emitWithAck("setSubTaskAssignee", {
+      taskId,
+      subTaskId: Number(subTaskId),
+      assigneeIds,
+    }).catch((error: unknown) =>
+      showToast("fail", getErrorMessage(error, "담당자를 바꾸지 못했어요."))
+    );
+  };
+
   const changeCommentDraft = (id: string, draft: string) => {
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
   };
@@ -167,6 +194,28 @@ function TeamTaskDetailContent({
                   changeCommentDraft(item.id, draft)
                 }
                 onSendComment={() => changeCommentDraft(item.id, "")}
+                onAssigneePress={() =>
+                  setAssigneeMenuId((current) =>
+                    current === item.id ? null : item.id
+                  )
+                }
+                assigneeMenu={
+                  assigneeMenuId === item.id ? (
+                    <DropdownMenu
+                      items={members.map((member) => ({
+                        key: String(member.id),
+                        label:
+                          member.id === myUserId
+                            ? `${member.nickname}(you)`
+                            : member.nickname,
+                        leading: (
+                          <View className="h-4 w-4 rounded-full bg-blue-100" />
+                        ),
+                      }))}
+                      onSelect={(key) => toggleAssignee(item.id, Number(key))}
+                    />
+                  ) : undefined
+                }
               />
             );
           }}
@@ -183,7 +232,13 @@ function TeamTaskDetailContent({
             />
           }
         />
-        <TeamMemberSection members={MEMBERS} />
+        <TeamMemberSection
+          members={members.map((member) => ({
+            id: String(member.id),
+            name: member.nickname,
+            role: toMemberRole(member, myUserId),
+          }))}
+        />
       </View>
     </ScrollView>
   );

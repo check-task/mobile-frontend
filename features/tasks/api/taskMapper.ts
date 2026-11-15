@@ -73,7 +73,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
         String(subTask.subTaskId),
         {
           assignees: subTask.assignees.map((assignee) => ({
-            id: String(assignee.memberId),
+            id: String(assignee.userId),
             name: assignee.nickname,
           })),
           comments: subTask.comments.map((comment) => {

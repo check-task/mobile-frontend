@@ -37,8 +37,10 @@ export function useTaskRoom(taskId: number) {
     const socket = getSocket();
     // 재연결되면 서버가 방 정보를 잃으므로 연결될 때마다 다시 들어간다.
     const join = () => socket.emit("joinTaskRoom", taskId);
-    const refresh = () =>
+    const refresh = () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+      queryClient.invalidateQueries({ queryKey: taskKeys.members(taskId) });
+    };
 
     if (socket.connected) {
       join();

@@ -94,6 +94,17 @@ export type TaskDetailResponse = {
   }[];
 };
 
+export type TaskMember = {
+  /** User.id. 담당자 지정에 이 값을 보낸다 */
+  id: number;
+  nickname: string;
+  profileImage: string | null;
+  role: "owner" | "member";
+};
+
+/** GET /api/v1/task/:taskId/members */
+export type TaskMembersResponse = { members: TaskMember[]; count: number };
+
 export type AddSubTaskRequest = {
   title: string;
   /** ISO 8601 date-time. 미지정이면 null */

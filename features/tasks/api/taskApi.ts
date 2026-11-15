@@ -10,16 +10,22 @@ import type {
   AddSubTaskRequest,
   AddSubTaskResponse,
   SubTaskStatus,
+  TaskMembersResponse,
 } from "./task.types";
 
 export const taskKeys = {
   all: ["task"] as const,
   myInfo: () => ["user", "me"] as const,
   detail: (taskId: number) => ["task", "detail", taskId] as const,
+  members: (taskId: number) => ["task", "members", taskId] as const,
 };
 
 export function getTaskDetail(taskId: number) {
   return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);
+}
+
+export function getTaskMembers(taskId: number) {
+  return apiClient.get<TaskMembersResponse>(`/api/v1/task/${taskId}/members`);
 }
 
 export function updateSubTaskStatus(subTaskId: number, status: SubTaskStatus) {
