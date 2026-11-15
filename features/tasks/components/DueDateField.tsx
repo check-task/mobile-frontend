@@ -62,6 +62,8 @@ export type DueDateFieldProps = {
   placeholder?: string;
   /** 이 마감일보다 늦게 고를 수 없다 (같은 날은 시간까지 비교) */
   maxDate?: DueDate | null;
+  /** 라벨 글자 크기. `sm`은 세부 TASK 행과 같은 12px (기본값: `md` 14px) */
+  size?: "sm" | "md";
 };
 
 /** 달력 아이콘 + 날짜 라벨. 누르면 `DatePicker`를 화면 가운데 모달로 띄운다. */
@@ -72,7 +74,9 @@ export function DueDateField({
   showTime = false,
   placeholder = "",
   maxDate,
+  size = "md",
 }: DueDateFieldProps) {
+  const textClass = size === "sm" ? "text-b-04-r" : "text-b-02-r";
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<DueDate>(today);
   const [draftNoDate, setDraftNoDate] = useState(false);
@@ -106,17 +110,17 @@ export function DueDateField({
         <View className="flex-row items-center gap-1">
           <Calendar variant="lg" className="text-gray-600" />
           {value ? (
-            <Text className="text-gray-600 text-b-02-r">
+            <Text className={`text-gray-600 ${textClass}`}>
               {formatDate(value.date)}
             </Text>
           ) : (
-            <Text className="text-gray-400 text-b-02-r">{placeholder}</Text>
+            <Text className={`text-gray-400 ${textClass}`}>{placeholder}</Text>
           )}
         </View>
         {showTime && value?.hasTime ? (
           <>
             <View className="h-4 w-px bg-gray-600" />
-            <Text className="text-gray-600 text-b-02-r">
+            <Text className={`text-gray-600 ${textClass}`}>
               {formatTime(value.date)}
             </Text>
           </>

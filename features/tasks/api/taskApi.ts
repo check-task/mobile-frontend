@@ -6,12 +6,54 @@ import type {
   CreateTaskResponse,
   MyInfoResponse,
   ReferenceDto,
+  TaskDetailResponse,
+  AddSubTaskRequest,
+  AddSubTaskResponse,
+  SubTaskStatus,
+  TaskMembersResponse,
 } from "./task.types";
 
 export const taskKeys = {
   all: ["task"] as const,
   myInfo: () => ["user", "me"] as const,
+  detail: (taskId: number) => ["task", "detail", taskId] as const,
+  members: (taskId: number) => ["task", "members", taskId] as const,
 };
+
+export function getTaskDetail(taskId: number) {
+  return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);
+}
+
+export function getTaskMembers(taskId: number) {
+  return apiClient.get<TaskMembersResponse>(`/api/v1/task/${taskId}/members`);
+}
+
+export function removeTaskMember(taskId: number, userId: number) {
+  return apiClient.delete<unknown>(`/api/v1/task/${taskId}/member/${userId}`);
+}
+
+export function updateSubTaskStatus(subTaskId: number, status: SubTaskStatus) {
+  return apiClient.patch<unknown>(`/api/v1/task/subtask/${subTaskId}/status`, {
+    status,
+  });
+}
+
+export function updateSubTaskAlarm(
+  taskId: number,
+  subTaskId: number,
+  isAlarm: boolean
+) {
+  return apiClient.patch<unknown>(`/api/v1/task/${taskId}/subtask`, {
+    subTasks: [{ subTaskId, isAlarm }],
+  });
+}
+
+export function addSubTask(taskId: number, body: AddSubTaskRequest) {
+  return apiClient.post<AddSubTaskResponse>(
+    `/api/v1/task/${taskId}/subtask`,
+    body
+  );
+}
 
 export function createTask(body: CreateTaskRequest) {
   return apiClient.post<CreateTaskResponse>("/api/v1/task", body);

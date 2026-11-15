@@ -44,6 +44,79 @@ export type CreateReferenceParams =
       file: Blob | NativeFilePart;
     };
 
+export type SubTaskStatus = "PENDING" | "COMPLETED";
+
+/** 시각은 타임존 표기 없는 UTC(`2026-11-20T10:00:00`)로 온다 */
+export type SubTaskDto = {
+  subTaskId: number;
+  title: string;
+  deadline: string | null;
+  status: SubTaskStatus;
+  isAlarm: boolean;
+  commentCount: number;
+  comments: {
+    commentId: number;
+    content: string;
+    writer: string;
+    profileImage: string | null;
+    createdAt: string;
+  }[];
+  assignees: {
+    memberId: number;
+    userId: number;
+    nickname: string;
+    profileImage: string | null;
+  }[];
+};
+
+/** GET /api/v1/task/:taskId */
+export type TaskDetailResponse = {
+  taskId: number;
+  title: string;
+  folderId: number | null;
+  /** 서버 필드명이 소문자 c 다. hex 문자열 */
+  foldercolor: string;
+  folderTitle: string;
+  type: TaskType;
+  deadline: string | null;
+  /** `D-3`, `D-Day`, `D+2` */
+  dDay: string | null;
+  progressRate: number;
+  subTasks: SubTaskDto[];
+  communications: { id: number; name: string; url: string }[];
+  meetingLogs: { id: number; date: string; agenda: string | null }[];
+  references: {
+    id: number;
+    name: string;
+    fileName: string | null;
+    url: string | null;
+    fileUrl: string | null;
+  }[];
+};
+
+export type TaskMember = {
+  /** User.id. 담당자 지정에 이 값을 보낸다 */
+  id: number;
+  nickname: string;
+  profileImage: string | null;
+  role: "owner" | "member";
+};
+
+/** GET /api/v1/task/:taskId/members */
+export type TaskMembersResponse = { members: TaskMember[]; count: number };
+
+export type AddSubTaskRequest = {
+  title: string;
+  /** ISO 8601 date-time. 미지정이면 null */
+  deadline: string | null;
+};
+
+export type AddSubTaskResponse = {
+  subTaskId: number;
+  title: string;
+  deadline: string | null;
+};
+
 /** Reference API 는 snake_case 로 온다 */
 export type ReferenceDto = {
   reference_id: number;
