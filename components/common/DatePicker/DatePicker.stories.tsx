@@ -49,6 +49,11 @@ export const WithMinDate: Story = {
   args: { minDate: new Date(2026, 5, 15) },
 };
 
+/** `maxDate`보다 이후 날짜는 흐리게 표시되고 선택할 수 없다. */
+export const WithMaxDate: Story = {
+  args: { maxDate: new Date(2026, 5, 15) },
+};
+
 /** 날짜 선택, 월 이동, 토글, `날짜 지정 안함`을 직접 눌러 볼 수 있다. */
 export const Interactive: Story = {
   render: function Render(args) {

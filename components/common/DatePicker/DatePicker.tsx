@@ -116,6 +116,8 @@ export type DatePickerProps = {
   onSave: () => void;
   /** 이 날짜보다 이전 날짜는 선택할 수 없다. 넘기지 않으면 제한이 없다. */
   minDate?: Date;
+  /** 이 날짜보다 이후 날짜는 선택할 수 없다. 넘기지 않으면 제한이 없다. */
+  maxDate?: Date;
   /** `날짜 지정 안함` 선택 여부 */
   noDate?: boolean;
   /** `날짜 지정 안함`을 눌렀을 때. 넘기지 않으면 이 줄을 그리지 않는다. */
@@ -135,6 +137,7 @@ export function DatePicker({
   onTimeEnabledChange,
   onSave,
   minDate,
+  maxDate,
   noDate = false,
   onNoDateChange,
   className,
@@ -153,6 +156,7 @@ export function DatePicker({
 
   const weeks = buildMonthWeeks(viewMonth);
   const minDay = minDate ? startOfDay(minDate) : null;
+  const maxDay = maxDate ? startOfDay(maxDate) : null;
   const time = formatTime(value);
   const isPm = value.getHours() >= 12;
 
@@ -243,9 +247,10 @@ export function DatePicker({
                 <View key={week[0].getTime()} className="flex-row">
                   {week.map((day) => {
                     const state: DayState =
-                      minDay && day < minDay
+                      (minDay && day < minDay) || (maxDay && day > maxDay)
                         ? "disabled"
-                        : isSameDay(day, value)
+                        : // `날짜 지정 안함`이면 선택 표시를 끈다
+                          !noDate && isSameDay(day, value)
                           ? "selected"
                           : day.getMonth() !== viewMonth.getMonth()
                             ? "outside"

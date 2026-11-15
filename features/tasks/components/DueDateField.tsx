@@ -26,6 +26,13 @@ function today(): DueDate {
   };
 }
 
+/** 실제 마감 시각. 시간을 지정하지 않았으면 그날 23:59 로 본다. */
+export function toDueDateTime({ date, hasTime }: DueDate) {
+  const result = new Date(date);
+  if (!hasTime) result.setHours(23, 59, 0, 0);
+  return result;
+}
+
 function formatDate(date: Date) {
   const yy = String(date.getFullYear() % 100).padStart(2, "0");
   const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -53,6 +60,8 @@ export type DueDateFieldProps = {
   showTime?: boolean;
   /** 값이 없을 때 보여 줄 문구 */
   placeholder?: string;
+  /** 이 마감일보다 늦게 고를 수 없다 (같은 날은 시간까지 비교) */
+  maxDate?: DueDate | null;
 };
 
 /** 달력 아이콘 + 날짜 라벨. 누르면 `DatePicker`를 화면 가운데 모달로 띄운다. */
@@ -62,6 +71,7 @@ export function DueDateField({
   allowNoDate = false,
   showTime = false,
   placeholder = "",
+  maxDate,
 }: DueDateFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<DueDate>(today);
@@ -74,7 +84,14 @@ export function DueDateField({
   };
 
   const save = () => {
-    onChange(draftNoDate ? null : draft);
+    if (draftNoDate) {
+      onChange(null);
+    } else if (maxDate && draft.date > toDueDateTime(maxDate)) {
+      // 상한보다 늦은 날짜이거나, 같은 날 더 늦은 시각이면 상한 시각으로 맞춘다.
+      onChange({ ...draft, date: toDueDateTime(maxDate) });
+    } else {
+      onChange(draft);
+    }
     setIsOpen(false);
   };
 
@@ -132,6 +149,7 @@ export function DueDateField({
             }}
             timeEnabled={draft.hasTime}
             onTimeEnabledChange={(hasTime) => setDraft({ ...draft, hasTime })}
+            maxDate={maxDate?.date}
             noDate={draftNoDate}
             onNoDateChange={allowNoDate ? setDraftNoDate : undefined}
             onSave={save}
