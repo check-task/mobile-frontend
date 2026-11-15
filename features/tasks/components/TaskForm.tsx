@@ -3,25 +3,24 @@ import { type ReactNode, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/common/Button/Button";
 import { Checkbox } from "@/components/common/Checkbox/Checkbox";
 import { Chip } from "@/components/common/Chip/Chip";
 import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModalContent/DeleteConfirmModalContent";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Input } from "@/components/common/Input/Input";
-import { Cancel } from "@/components/icons";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
 
 import { useMyFoldersQuery } from "../hooks/useMyFoldersQuery";
 
-import { AddItemButton } from "./AddItemButton";
 import { type DueDate, DueDateField, toDueDateTime } from "./DueDateField";
 import {
   ResourceAddModalForm,
   type ResourceDraft,
 } from "./ResourceAddModalForm";
-import { ResourceItem } from "./ResourceItem";
+import { TaskFormField } from "./TaskFormField";
+import { TaskResourceSection } from "./TaskResourceSection";
+import { TaskSubTaskSection } from "./TaskSubTaskSection";
 
 export type SubTaskDraft = {
   id: string;
@@ -50,26 +49,6 @@ const EMPTY_VALUE: TaskFormValue = {
 
 const SCROLL_BOTTOM_GAP = 32;
 const FOOTER_BOTTOM_GAP = 46;
-
-function Field({
-  label,
-  action,
-  children,
-}: {
-  label: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <View className="gap-3">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-gray-900 text-b-02-r">{label}</Text>
-        {action}
-      </View>
-      {children}
-    </View>
-  );
-}
 
 function LabeledCheckbox({
   label,
@@ -249,16 +228,16 @@ export function TaskForm({
 
         <View className="gap-5">
           <View className="gap-5">
-            <Field label="과제명">
+            <TaskFormField label="과제명">
               <Input
                 shape="box"
                 value={title}
                 onChangeText={setTitle}
                 placeholder="과제명을 입력하세요."
               />
-            </Field>
+            </TaskFormField>
 
-            <Field label="폴더색">
+            <TaskFormField label="폴더색">
               <View className="flex-row flex-wrap gap-2">
                 {foldersQuery.isError ? (
                   <Text className="text-gray-600 text-b-02-r">
@@ -280,9 +259,9 @@ export function TaskForm({
                   />
                 ))}
               </View>
-            </Field>
+            </TaskFormField>
 
-            <Field label="마감일">
+            <TaskFormField label="마감일">
               <View className="self-start">
                 <DueDateField
                   value={deadline}
@@ -291,97 +270,30 @@ export function TaskForm({
                   placeholder="날짜를 선택하세요"
                 />
               </View>
-            </Field>
+            </TaskFormField>
           </View>
 
           <View className="h-px bg-gray-200" />
 
           <View className="gap-5">
-            <Field
-              label="TASK"
-              action={
-                isEdit && subTasks.length > 0 ? (
-                  <Button
-                    label="전체삭제"
-                    variant="gray"
-                    size="sm"
-                    className="h-6 w-auto px-2 py-0"
-                    onPress={confirmRemoveAllSubTasks}
-                  />
-                ) : null
+            <TaskSubTaskSection
+              subTasks={subTasks}
+              deadline={deadline}
+              onChange={updateSubTask}
+              onRemove={removeSubTask}
+              onAdd={() =>
+                setSubTasks((current) => [
+                  ...current,
+                  { id: newId(), title: "", dueDate: null },
+                ])
               }
-            >
-              {subTasks.length > 0 ? (
-                <View className="gap-2">
-                  {subTasks.map((subTask) => (
-                    <View
-                      key={subTask.id}
-                      className="flex-row items-center gap-1"
-                    >
-                      <View className="flex-1 flex-row items-center gap-2">
-                        <Input
-                          shape="line"
-                          value={subTask.title}
-                          onChangeText={(text) =>
-                            updateSubTask(subTask.id, { title: text })
-                          }
-                          placeholder="과제명을 입력하세요."
-                          className="flex-1"
-                        />
-                        {/* 날짜 글자 폭과 관계없이 X 위치를 맞추려고 Figma 폭(아이콘 24 + 간격 4 + 날짜 54)으로 고정 */}
-                        <View className="w-[82px]">
-                          <DueDateField
-                            value={subTask.dueDate}
-                            onChange={(dueDate) =>
-                              updateSubTask(subTask.id, { dueDate })
-                            }
-                            allowNoDate
-                            maxDate={deadline}
-                          />
-                        </View>
-                      </View>
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="TASK 삭제"
-                        hitSlop={8}
-                        onPress={() => removeSubTask(subTask)}
-                      >
-                        <Cancel className="text-gray-600" />
-                      </Pressable>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-              <AddItemButton
-                label="TASK 추가"
-                onPress={() =>
-                  setSubTasks((current) => [
-                    ...current,
-                    { id: newId(), title: "", dueDate: null },
-                  ])
-                }
-              />
-            </Field>
-
-            <Field label="자료">
-              {resources.length > 0 ? (
-                <View className="gap-2">
-                  {resources.map((resource) => (
-                    <ResourceItem
-                      key={resource.id}
-                      title={resource.name || resource.path}
-                      link={resource.path}
-                      onEdit={() => openResourceModal(resource)}
-                      onDelete={() => removeResource(resource)}
-                    />
-                  ))}
-                </View>
-              ) : null}
-              <AddItemButton
-                label="자료 추가"
-                onPress={() => openResourceModal()}
-              />
-            </Field>
+              onRemoveAll={isEdit ? confirmRemoveAllSubTasks : undefined}
+            />
+            <TaskResourceSection
+              resources={resources}
+              onOpenModal={openResourceModal}
+              onRemove={removeResource}
+            />
           </View>
         </View>
       </ScrollView>
