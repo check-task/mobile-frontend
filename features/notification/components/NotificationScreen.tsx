@@ -37,6 +37,7 @@ export function NotificationScreen() {
     isError,
     isSuccess,
     isFetchedAfterMount,
+    isFetching,
     refetch,
     hasNextPage,
     isFetchingNextPage,
@@ -88,7 +89,8 @@ export function NotificationScreen() {
     const isNearBottom =
       layoutMeasurement.height + contentOffset.y >=
       contentSize.height - LOAD_MORE_THRESHOLD;
-    if (isNearBottom && hasNextPage && !isFetchingNextPage) {
+    // 목록을 다시 불러오는 중에는 예전 커서로 다음 페이지를 요청하지 않는다.
+    if (isNearBottom && hasNextPage && !isFetchingNextPage && !isFetching) {
       fetchNextPage();
     }
   };
