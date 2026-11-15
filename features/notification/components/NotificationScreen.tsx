@@ -34,7 +34,8 @@ export function NotificationScreen() {
   const {
     data: alarms = [],
     isPending,
-    isError,
+    isLoadingError,
+    isFetchNextPageError,
     isSuccess,
     isFetchedAfterMount,
     isFetching,
@@ -137,7 +138,7 @@ export function NotificationScreen() {
             <Text className="text-gray-400 text-b-04-r">모두 지우기</Text>
           </Pressable>
         </View>
-        {isError ? (
+        {isLoadingError ? (
           <View className="items-center gap-4 pt-10">
             <Text className="text-gray-600 text-b-02-r">
               알림을 불러오지 못했어요.
@@ -170,6 +171,20 @@ export function NotificationScreen() {
                 }
               />
             ))}
+            {isFetchNextPageError ? (
+              <View className="items-center gap-2 pt-2">
+                <Text className="text-gray-600 text-b-04-r">
+                  알림을 더 불러오지 못했어요.
+                </Text>
+                <Button
+                  label="다시 시도"
+                  variant="gray"
+                  size="sm"
+                  className="w-auto"
+                  onPress={() => fetchNextPage()}
+                />
+              </View>
+            ) : null}
           </View>
         )}
       </ScrollView>
