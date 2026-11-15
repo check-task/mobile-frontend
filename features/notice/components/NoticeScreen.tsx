@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { Fragment } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,12 +12,12 @@ import { NOTICES } from "./notices";
 const CONTENT_BOTTOM_OFFSET = 24;
 
 export function NoticeScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
-      {/*메뉴 화면이 추가되면 onMenuPress 연결하기 (연결 전에는 메뉴 아이콘이 보이지 않음)*/}
-      <LogoHeader />
+      <LogoHeader onMenuPress={() => router.navigate("/menu")} />
       <ScrollView
         contentContainerClassName="gap-5 px-4 pt-5"
         contentContainerStyle={{
