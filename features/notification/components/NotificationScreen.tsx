@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -44,14 +44,21 @@ export function NotificationScreen() {
   const { mutate: markAllRead } = readAll;
   const didMarkReadRef = useRef(false);
 
-  // 웹과 같이 알림 화면에 들어오면 모두 읽음 처리한다.
-  useEffect(() => {
+  // 웹과 같이 알림 화면에 들어오면 모두 읽음 처리한다. 요청 중이거나 성공했으면 다시 보내지 않고,
+  // 실패하면 표시를 풀어 `다시 시도`에서 다시 보낼 수 있게 한다.
+  const markAllReadOnce = useCallback(() => {
     if (didMarkReadRef.current) {
       return;
     }
     didMarkReadRef.current = true;
-    markAllRead();
+    markAllRead(undefined, {
+      onError: () => {
+        didMarkReadRef.current = false;
+      },
+    });
   }, [markAllRead]);
+
+  useEffect(markAllReadOnce, [markAllReadOnce]);
 
   const showError = (fallback: string) => (error: unknown) =>
     showToast("fail", getErrorMessage(error, fallback));
@@ -129,7 +136,10 @@ export function NotificationScreen() {
               variant="gray"
               size="sm"
               className="w-auto"
-              onPress={() => refetch()}
+              onPress={() => {
+                refetch();
+                markAllReadOnce();
+              }}
             />
           </View>
         ) : !isPending && alarms.length === 0 ? (
