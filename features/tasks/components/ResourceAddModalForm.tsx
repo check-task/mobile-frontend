@@ -6,6 +6,7 @@ import { Pressable, Text, View } from "react-native";
 import { Button } from "@/components/common/Button/Button";
 import { Input } from "@/components/common/Input/Input";
 import { Folder, Link } from "@/components/icons";
+import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
 
 export type ResourceType = "file" | "url";
@@ -64,6 +65,7 @@ export function ResourceAddModalForm({
   const [name, setName] = useState(initialValue?.name ?? "");
   const [path, setPath] = useState(initialValue?.path ?? "");
   const [file, setFile] = useState(initialValue?.file);
+  const { showToast } = useToast();
   const copy = FIELD_COPY[type];
   // 파일은 이름이 선택 사항, URL 은 이름·주소 모두 필수 (POST /reference/data 규칙)
   const canSave =
@@ -83,7 +85,13 @@ export function ResourceAddModalForm({
   };
 
   const pickFile = async () => {
-    const result = await getDocumentAsync();
+    let result: Awaited<ReturnType<typeof getDocumentAsync>>;
+    try {
+      result = await getDocumentAsync();
+    } catch {
+      showToast("fail", "파일을 열지 못했어요. 다시 시도해 주세요.");
+      return;
+    }
     if (result.canceled) return;
     const [asset] = result.assets;
     setFile(asset);
