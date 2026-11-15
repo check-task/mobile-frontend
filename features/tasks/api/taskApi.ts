@@ -6,12 +6,18 @@ import type {
   CreateTaskResponse,
   MyInfoResponse,
   ReferenceDto,
+  TaskDetailResponse,
 } from "./task.types";
 
 export const taskKeys = {
   all: ["task"] as const,
   myInfo: () => ["user", "me"] as const,
+  detail: (taskId: number) => ["task", "detail", taskId] as const,
 };
+
+export function getTaskDetail(taskId: number) {
+  return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);
+}
 
 export function createTask(body: CreateTaskRequest) {
   return apiClient.post<CreateTaskResponse>("/api/v1/task", body);

@@ -7,89 +7,19 @@ import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Tabs } from "@/components/common/Tabs/Tabs";
 import { STRONG_CARD_SHADOW } from "@/constants/shadows";
 
+import type { TaskDetail } from "../api/taskMapper";
 import { useResourceActions } from "../hooks/useResourceActions";
+import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
-import type { SubTask } from "./SubTaskRow";
 import { TaskDetailHeader } from "./TaskDetailHeader";
+import { TaskDetailStatus } from "./TaskDetailStatus";
 import { TeamMemberSection } from "./TeamMemberSection";
 import { TeamSubTaskDetail } from "./TeamSubTaskDetail";
 
-const INITIAL_SUB_TASKS: readonly SubTask[] = [
-  {
-    id: "1",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "2",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "3",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "4",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "5",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "6",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-];
-
-const RESOURCES = [
-  { id: "1", title: "자료명", link: "경로" },
-  { id: "2", title: "자료명", link: "파일명" },
-] as const;
-
 const RESOURCE_TABS = ["커뮤니케이션", "회의록", "자료"] as const;
 
-const ASSIGNEES = [
-  { id: "1", name: "송월송송월" },
-  { id: "2", name: "송월송송월" },
-  { id: "3", name: "송월송송월" },
-] as const;
-
-const INITIAL_COMMENTS = [
-  {
-    id: "1",
-    author: "유저명",
-    date: "25.10.18",
-    time: "13:22",
-    body: "Lorem ipsum dolor sit amet consectetur. Netus viverra augue sit sagittis.",
-  },
-  {
-    id: "2",
-    author: "유저명",
-    date: "25.10.18",
-    time: "13:22",
-    body: "Lorem ipsum dolor sit amet consectetur.",
-  },
-] as const;
-
+// 팀원 목록 API 연결 전까지 사용
 const MEMBERS = [
   { id: "1", name: "닉네임", role: "Owner" },
   { id: "2", name: "닉네임", role: "member(you)" },
@@ -97,19 +27,41 @@ const MEMBERS = [
 ] as const;
 
 const SCROLL_BOTTOM_GAP = 32;
+const VISIBLE_ASSIGNEE_COUNT = 3;
 
-export function TeamTaskDetailScreen() {
+export function TeamTaskDetailScreen({ taskId }: { taskId: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [subTasks, setSubTasks] = useState(INITIAL_SUB_TASKS);
-  const { resources, editResource, deleteResource } =
-    useResourceActions(RESOURCES);
-  const [expandedIds, setExpandedIds] = useState<readonly string[]>(["2"]);
+  const { data, isError, refetch } = useTaskDetailQuery(taskId);
+
+  return (
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
+      <BackHeader onBack={() => router.back()} />
+      {data ? (
+        <TeamTaskDetailContent detail={data} />
+      ) : (
+        <TaskDetailStatus isError={isError} onRetry={refetch} />
+      )}
+    </View>
+  );
+}
+
+function TeamTaskDetailContent({ detail }: { detail: TaskDetail }) {
+  const insets = useSafeAreaInsets();
+  const [subTasks, setSubTasks] = useState(detail.subTasks);
+  const resourceActions = {
+    커뮤니케이션: useResourceActions(detail.communications),
+    회의록: useResourceActions(detail.meetingLogs),
+    자료: useResourceActions(detail.references),
+  };
+  const [expandedIds, setExpandedIds] = useState<readonly string[]>([]);
   const [resourceTab, setResourceTab] =
     useState<(typeof RESOURCE_TABS)[number]>("커뮤니케이션");
   const [commentDrafts, setCommentDrafts] = useState<
     Readonly<Record<string, string>>
   >({});
+  const { resources, editResource, deleteResource } =
+    resourceActions[resourceTab];
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -136,58 +88,62 @@ export function TeamTaskDetailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
-      <BackHeader onBack={() => router.back()} />
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-5 px-4 pt-5"
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + SCROLL_BOTTOM_GAP,
-        }}
-      >
-        <TaskDetailHeader
-          folderColor="sub-01"
-          dday="D-3"
-          title="과제명"
-          percent={percent}
-        />
-        <View className="h-px bg-gray-200" />
-        <View className="gap-7">
-          <SubTaskList
-            items={subTasks}
-            cardShadow={STRONG_CARD_SHADOW}
-            onToggle={(id) => updateSubTask(id, "done")}
-            onAlarmPress={(id) => updateSubTask(id, "alarm")}
-            expandedIds={expandedIds}
-            onExpandPress={toggleExpanded}
-            renderExpanded={(item) => (
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="gap-5 px-4 pt-5"
+      contentContainerStyle={{
+        paddingBottom: insets.bottom + SCROLL_BOTTOM_GAP,
+      }}
+    >
+      <TaskDetailHeader
+        folderColor={detail.folderColor}
+        dday={detail.dday}
+        title={detail.title}
+        percent={percent}
+      />
+      <View className="h-px bg-gray-200" />
+      <View className="gap-7">
+        <SubTaskList
+          items={subTasks}
+          cardShadow={STRONG_CARD_SHADOW}
+          onToggle={(id) => updateSubTask(id, "done")}
+          onAlarmPress={(id) => updateSubTask(id, "alarm")}
+          expandedIds={expandedIds}
+          onExpandPress={toggleExpanded}
+          renderExpanded={(item) => {
+            const extra = detail.subTaskExtras[item.id];
+            const assignees = extra?.assignees ?? [];
+            return (
               <TeamSubTaskDetail
-                assignees={ASSIGNEES}
-                extraAssigneeCount={1}
-                comments={INITIAL_COMMENTS}
+                assignees={assignees.slice(0, VISIBLE_ASSIGNEE_COUNT)}
+                extraAssigneeCount={Math.max(
+                  assignees.length - VISIBLE_ASSIGNEE_COUNT,
+                  0
+                )}
+                comments={extra?.comments ?? []}
                 commentDraft={commentDrafts[item.id] ?? ""}
                 onChangeCommentDraft={(draft) =>
                   changeCommentDraft(item.id, draft)
                 }
                 onSendComment={() => changeCommentDraft(item.id, "")}
               />
-            )}
-          />
-          <ResourceSection
-            items={resources}
-            onEdit={editResource}
-            onDelete={deleteResource}
-            tabs={
-              <Tabs
-                items={RESOURCE_TABS}
-                value={resourceTab}
-                onChange={setResourceTab}
-              />
-            }
-          />
-          <TeamMemberSection members={MEMBERS} />
-        </View>
-      </ScrollView>
-    </View>
+            );
+          }}
+        />
+        <ResourceSection
+          items={resources}
+          onEdit={editResource}
+          onDelete={deleteResource}
+          tabs={
+            <Tabs
+              items={RESOURCE_TABS}
+              value={resourceTab}
+              onChange={setResourceTab}
+            />
+          }
+        />
+        <TeamMemberSection members={MEMBERS} />
+      </View>
+    </ScrollView>
   );
 }

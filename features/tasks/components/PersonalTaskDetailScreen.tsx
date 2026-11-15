@@ -5,82 +5,43 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
 
+import type { TaskDetail } from "../api/taskMapper";
 import { useResourceActions } from "../hooks/useResourceActions";
-import { type Resource, ResourceSection } from "./ResourceSection";
+import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
+import { ResourceSection } from "./ResourceSection";
 import { SubTaskAddForm } from "./SubTaskAddForm";
 import { SubTaskList } from "./SubTaskList";
-import type { SubTask } from "./SubTaskRow";
 import { TaskDetailHeader } from "./TaskDetailHeader";
-
-const INITIAL_SUB_TASKS: readonly SubTask[] = [
-  {
-    id: "1",
-    title: "프로젝트 세팅",
-    dueDate: "25.10.19",
-    done: true,
-    alarm: false,
-  },
-  {
-    id: "2",
-    title: "주제 정하기",
-    dueDate: "25.10.22",
-    done: true,
-    alarm: true,
-  },
-  {
-    id: "3",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "4",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "5",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "6",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-  {
-    id: "7",
-    title: "선행 연구 조사",
-    dueDate: "25.10.22",
-    done: false,
-    alarm: true,
-  },
-];
-
-const RESOURCES: readonly Resource[] = [
-  { id: "1", title: "자료명", link: "경로" },
-  { id: "2", title: "자료명", link: "파일명" },
-  { id: "3", title: "자료명", link: "경로" },
-];
+import { TaskDetailStatus } from "./TaskDetailStatus";
 
 const SCROLL_BOTTOM_GAP = 32;
 const ADD_FORM_DUE_DATE = "25.10.19";
 const SUB_TASK_COLLAPSED_COUNT = 6;
 const RESOURCE_COLLAPSED_COUNT = 2;
 
-export function PersonalTaskDetailScreen() {
+export function PersonalTaskDetailScreen({ taskId }: { taskId: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [subTasks, setSubTasks] = useState(INITIAL_SUB_TASKS);
-  const { resources, editResource, deleteResource } =
-    useResourceActions(RESOURCES);
+  const { data, isError, refetch } = useTaskDetailQuery(taskId);
+
+  return (
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
+      <BackHeader onBack={() => router.back()} />
+      {data ? (
+        <PersonalTaskDetailContent detail={data} />
+      ) : (
+        <TaskDetailStatus isError={isError} onRetry={refetch} />
+      )}
+    </View>
+  );
+}
+
+function PersonalTaskDetailContent({ detail }: { detail: TaskDetail }) {
+  const insets = useSafeAreaInsets();
+  const [subTasks, setSubTasks] = useState(detail.subTasks);
+  const { resources, editResource, deleteResource } = useResourceActions(
+    detail.references
+  );
   const [isAdding, setIsAdding] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
 
@@ -128,49 +89,46 @@ export function PersonalTaskDetailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
-      <BackHeader onBack={() => router.back()} />
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-5 px-4 pt-5"
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + SCROLL_BOTTOM_GAP,
-        }}
-      >
-        <TaskDetailHeader
-          folderColor="sub-01"
-          dday="D-3"
-          title="과제명"
-          percent={percent}
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="gap-5 px-4 pt-5"
+      contentContainerStyle={{
+        paddingBottom: insets.bottom + SCROLL_BOTTOM_GAP,
+      }}
+    >
+      <TaskDetailHeader
+        folderColor={detail.folderColor}
+        dday={detail.dday}
+        title={detail.title}
+        percent={percent}
+      />
+      <View className="h-px bg-gray-200" />
+      <View className="gap-7">
+        <SubTaskList
+          items={subTasks}
+          collapsedCount={SUB_TASK_COLLAPSED_COUNT}
+          onToggle={toggleDone}
+          onAlarmPress={toggleAlarm}
+          onAddPress={() => setIsAdding(true)}
+          addForm={
+            isAdding ? (
+              <SubTaskAddForm
+                title={draftTitle}
+                onChangeTitle={setDraftTitle}
+                dueDate={ADD_FORM_DUE_DATE}
+                onCancel={closeForm}
+                onSave={saveSubTask}
+              />
+            ) : undefined
+          }
         />
-        <View className="h-px bg-gray-200" />
-        <View className="gap-7">
-          <SubTaskList
-            items={subTasks}
-            collapsedCount={SUB_TASK_COLLAPSED_COUNT}
-            onToggle={toggleDone}
-            onAlarmPress={toggleAlarm}
-            onAddPress={() => setIsAdding(true)}
-            addForm={
-              isAdding ? (
-                <SubTaskAddForm
-                  title={draftTitle}
-                  onChangeTitle={setDraftTitle}
-                  dueDate={ADD_FORM_DUE_DATE}
-                  onCancel={closeForm}
-                  onSave={saveSubTask}
-                />
-              ) : undefined
-            }
-          />
-          <ResourceSection
-            items={resources}
-            onEdit={editResource}
-            onDelete={deleteResource}
-            collapsedCount={RESOURCE_COLLAPSED_COUNT}
-          />
-        </View>
-      </ScrollView>
-    </View>
+        <ResourceSection
+          items={resources}
+          onEdit={editResource}
+          onDelete={deleteResource}
+          collapsedCount={RESOURCE_COLLAPSED_COUNT}
+        />
+      </View>
+    </ScrollView>
   );
 }
