@@ -101,7 +101,7 @@ export type TaskFormProps = {
   heading: string;
   /** 수정 화면에서 채워 둘 기존 값 */
   initialValue?: TaskFormValue;
-  /** 수정 화면: 과제 유형 변경 막기, TASK `전체삭제`, 개별 삭제 `되돌리기` 스낵바 */
+  /** 수정 화면: 과제 유형 변경 막기, TASK `전체삭제`, TASK·자료 개별 삭제 `되돌리기` 스낵바 */
   isEdit?: boolean;
   /** 하단 버튼 영역. 현재 입력값을 받아 제출한다. */
   footer: (value: TaskFormValue) => ReactNode;
@@ -161,6 +161,19 @@ export function TaskForm({
     if (!isEdit) return;
     showSnackbar(`${target.title || "TASK"}이 삭제되었습니다`, () =>
       setSubTasks((current) => [
+        ...current.slice(0, index),
+        target,
+        ...current.slice(index),
+      ])
+    );
+  };
+
+  const removeResource = (target: ResourceDraftItem) => {
+    const index = resources.findIndex((item) => item.id === target.id);
+    setResources((current) => current.filter((item) => item.id !== target.id));
+    if (!isEdit) return;
+    showSnackbar(`${target.name || target.path}이 삭제되었습니다`, () =>
+      setResources((current) => [
         ...current.slice(0, index),
         target,
         ...current.slice(index),
@@ -359,11 +372,7 @@ export function TaskForm({
                       title={resource.name || resource.path}
                       link={resource.path}
                       onEdit={() => openResourceModal(resource)}
-                      onDelete={() =>
-                        setResources((current) =>
-                          current.filter((item) => item.id !== resource.id)
-                        )
-                      }
+                      onDelete={() => removeResource(resource)}
                     />
                   ))}
                 </View>
