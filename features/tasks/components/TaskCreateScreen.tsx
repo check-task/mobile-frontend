@@ -1,0 +1,277 @@
+import { useRouter } from "expo-router";
+import { type ReactNode, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { Button } from "@/components/common/Button/Button";
+import { Checkbox } from "@/components/common/Checkbox/Checkbox";
+import { Chip } from "@/components/common/Chip/Chip";
+import { BackHeader } from "@/components/common/Header/BackHeader";
+import { Input } from "@/components/common/Input/Input";
+import { Cancel } from "@/components/icons";
+import { useModal } from "@/hooks/useModal";
+
+import { AddItemButton } from "./AddItemButton";
+import { type DueDate, DueDateField } from "./DueDateField";
+import {
+  ResourceAddModalForm,
+  type ResourceDraft,
+} from "./ResourceAddModalForm";
+import { ResourceItem } from "./ResourceItem";
+import { FOLDER_OPTIONS } from "./taskCreateData";
+
+type SubTaskDraft = { id: string; title: string; dueDate: DueDate | null };
+type ResourceDraftItem = ResourceDraft & { id: string };
+
+const SCROLL_BOTTOM_GAP = 32;
+const SUBMIT_BOTTOM_GAP = 46;
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <View className="gap-3">
+      <Text className="text-gray-900 text-b-02-r">{label}</Text>
+      {children}
+    </View>
+  );
+}
+
+function LabeledCheckbox({
+  label,
+  checked,
+  onPress,
+}: {
+  label: string;
+  checked: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      onPress={onPress}
+      className="flex-row items-center gap-1"
+    >
+      {/* 박스를 직접 눌러도 토글되게 넘긴다. 안 넘기면 Checkbox 가 터치만 먹고 아무것도 안 한다. */}
+      <Checkbox checked={checked} onPress={onPress} />
+      <Text className="text-gray-600 text-b-02-m">{label}</Text>
+    </Pressable>
+  );
+}
+
+export function TaskCreateScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { openModal, closeModal } = useModal();
+  const nextId = useRef(0);
+
+  const [isTeam, setIsTeam] = useState(false);
+  // shortcut: 사양에 없는 Figma 옵션이라 상태만 둔다, 웬투밋 범위 정해지면 연결
+  const [withWhen2meet, setWithWhen2meet] = useState(false);
+  const [title, setTitle] = useState("");
+  const [folderId, setFolderId] = useState<number | null>(null);
+  const [deadline, setDeadline] = useState<DueDate | null>(null);
+  const [subTasks, setSubTasks] = useState<SubTaskDraft[]>([]);
+  const [resources, setResources] = useState<ResourceDraftItem[]>([]);
+
+  const canSubmit = title.trim().length > 0 && deadline !== null;
+  const newId = () => String(nextId.current++);
+
+  const updateSubTask = (id: string, patch: Partial<SubTaskDraft>) => {
+    setSubTasks((current) =>
+      current.map((subTask) =>
+        subTask.id === id ? { ...subTask, ...patch } : subTask
+      )
+    );
+  };
+
+  const openResourceModal = (target?: ResourceDraftItem) => {
+    openModal({
+      title: target ? "자료 수정" : "자료 추가",
+      headerIcon: "cancel",
+      children: (
+        <ResourceAddModalForm
+          initialValue={target}
+          onSave={(value) => {
+            setResources((current) =>
+              target
+                ? current.map((item) =>
+                    item.id === target.id ? { ...item, ...value } : item
+                  )
+                : [...current, { ...value, id: newId() }]
+            );
+            closeModal();
+          }}
+        />
+      ),
+    });
+  };
+
+  const submit = () => {
+    // TODO(api): POST /api/v1/task → 자료는 POST /api/v1/reference/data/{taskId} 로 이어서 업로드
+    const taskId = "1";
+    router.replace({
+      pathname: isTeam ? "/tasks/team/[taskId]" : "/tasks/personal/[taskId]",
+      params: { taskId },
+    });
+  };
+
+  return (
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
+      <BackHeader onBack={() => router.back()} />
+      <ScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        contentContainerClassName="gap-4 px-4 pt-5"
+        contentContainerStyle={{ paddingBottom: SCROLL_BOTTOM_GAP }}
+      >
+        <Text className="text-gray-900 text-h-02">과제 등록</Text>
+
+        <View className="flex-row items-center gap-3">
+          <LabeledCheckbox
+            label="팀프로젝트"
+            checked={isTeam}
+            onPress={() => setIsTeam(!isTeam)}
+          />
+          <LabeledCheckbox
+            label="웬투밋 추가"
+            checked={withWhen2meet}
+            onPress={() => setWithWhen2meet(!withWhen2meet)}
+          />
+        </View>
+
+        <View className="h-px bg-gray-200" />
+
+        <View className="gap-5">
+          <View className="gap-5">
+            <Field label="과제명">
+              <Input
+                shape="box"
+                value={title}
+                onChangeText={setTitle}
+                placeholder="과제명을 입력하세요."
+              />
+            </Field>
+
+            <Field label="폴더색">
+              <View className="flex-row flex-wrap gap-2">
+                {FOLDER_OPTIONS.map((folder) => (
+                  <Chip
+                    key={folder.folderId}
+                    label={folder.folderTitle}
+                    color={folder.color}
+                    variant={folder.folderId === folderId ? "fill" : "default"}
+                    // 다시 누르면 선택 해제 → folderId 생략(미지정)
+                    onPress={() =>
+                      setFolderId(
+                        folder.folderId === folderId ? null : folder.folderId
+                      )
+                    }
+                  />
+                ))}
+              </View>
+            </Field>
+
+            <Field label="마감일">
+              <View className="self-start">
+                <DueDateField
+                  value={deadline}
+                  onChange={setDeadline}
+                  showTime
+                  placeholder="날짜를 선택하세요"
+                />
+              </View>
+            </Field>
+          </View>
+
+          <View className="h-px bg-gray-200" />
+
+          <View className="gap-5">
+            <Field label="TASK">
+              {subTasks.length > 0 ? (
+                <View className="gap-2">
+                  {subTasks.map((subTask) => (
+                    <View
+                      key={subTask.id}
+                      className="flex-row items-center gap-1"
+                    >
+                      <View className="flex-1 flex-row items-center gap-2">
+                        <Input
+                          shape="line"
+                          value={subTask.title}
+                          onChangeText={(text) =>
+                            updateSubTask(subTask.id, { title: text })
+                          }
+                          placeholder="과제명을 입력하세요."
+                          className="flex-1"
+                        />
+                        <DueDateField
+                          value={subTask.dueDate}
+                          onChange={(dueDate) =>
+                            updateSubTask(subTask.id, { dueDate })
+                          }
+                          allowNoDate
+                        />
+                      </View>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="TASK 삭제"
+                        hitSlop={8}
+                        onPress={() =>
+                          setSubTasks((current) =>
+                            current.filter((item) => item.id !== subTask.id)
+                          )
+                        }
+                      >
+                        <Cancel className="text-gray-600" />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              <AddItemButton
+                label="TASK 추가"
+                onPress={() =>
+                  setSubTasks((current) => [
+                    ...current,
+                    { id: newId(), title: "", dueDate: null },
+                  ])
+                }
+              />
+            </Field>
+
+            <Field label="자료">
+              {resources.length > 0 ? (
+                <View className="gap-2">
+                  {resources.map((resource) => (
+                    <ResourceItem
+                      key={resource.id}
+                      title={resource.name || resource.path}
+                      link={resource.path}
+                      onEdit={() => openResourceModal(resource)}
+                      onDelete={() =>
+                        setResources((current) =>
+                          current.filter((item) => item.id !== resource.id)
+                        )
+                      }
+                    />
+                  ))}
+                </View>
+              ) : null}
+              <AddItemButton
+                label="자료 추가"
+                onPress={() => openResourceModal()}
+              />
+            </Field>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View
+        className="px-4 pt-3"
+        style={{ paddingBottom: insets.bottom + SUBMIT_BOTTOM_GAP }}
+      >
+        <Button label="과제 등록" disabled={!canSubmit} onPress={submit} />
+      </View>
+    </View>
+  );
+}
