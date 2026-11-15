@@ -7,10 +7,16 @@ import { useToast } from "@/hooks/useToast";
 import { ResourceEditModalForm } from "../components/ResourceEditModalForm";
 import type { Resource } from "../components/ResourceSection";
 
-export function useResourceActions(initialResources: readonly Resource[]) {
+export function useResourceActions(serverResources: readonly Resource[]) {
   const { openModal, closeModal } = useModal();
   const { showSnackbar } = useToast();
-  const [resources, setResources] = useState(initialResources);
+  const [resources, setResources] = useState(serverResources);
+  const [syncedResources, setSyncedResources] = useState(serverResources);
+  // 수정·삭제는 아직 서버에 저장하지 않는 화면 안 편집이다. 서버에서 새 목록이 오면 서버 목록으로 맞춘다.
+  if (syncedResources !== serverResources) {
+    setSyncedResources(serverResources);
+    setResources(serverResources);
+  }
 
   const editResource = (id: string) => {
     const target = resources.find((resource) => resource.id === id);
