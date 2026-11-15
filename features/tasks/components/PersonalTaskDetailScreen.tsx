@@ -45,6 +45,7 @@ function PersonalTaskDetailContent({
   taskId: number;
   detail: TaskDetail;
 }) {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { resources, editResource, deleteResource } = useResourceActions(
     detail.references
@@ -91,6 +92,12 @@ function PersonalTaskDetailContent({
         dday={detail.dday}
         title={detail.title}
         percent={percent}
+        onEditPress={() =>
+          router.push({
+            pathname: "/tasks/[taskId]/edit",
+            params: { taskId: String(taskId) },
+          })
+        }
       />
       <View className="h-px bg-gray-200" />
       <View className="gap-7">
