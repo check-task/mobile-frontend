@@ -15,7 +15,7 @@ import type {
 /** 과제 등록·수정 폼의 입력 상태와 핸들러. `isEdit` 이면 개별 삭제에 `되돌리기` 스낵바를 띄운다. */
 export function useTaskForm(initialValue: TaskFormValue, isEdit: boolean) {
   const { openModal, closeModal } = useModal();
-  const { showSnackbar } = useToast();
+  const { showSnackbar, dismiss } = useToast();
   const nextId = useRef(0);
 
   const [isTeam, setIsTeam] = useState(initialValue.isTeam);
@@ -91,6 +91,8 @@ export function useTaskForm(initialValue: TaskFormValue, isEdit: boolean) {
           description="삭제된 과제는 영구 삭제되며, 복구할 수 없습니다."
           onConfirm={() => {
             setSubTasks([]);
+            // 앞서 지운 TASK 의 되돌리기가 남아 있으면 빈 목록에 하나만 되살아나므로 닫는다
+            dismiss();
             closeModal();
           }}
           onCancel={closeModal}
