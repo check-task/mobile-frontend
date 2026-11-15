@@ -35,11 +35,15 @@ export function useTaskRoom(taskId: number) {
 
   useEffect(() => {
     const socket = getSocket();
-    // 재연결되면 서버가 방 정보를 잃으므로 연결될 때마다 다시 들어간다.
-    const join = () => socket.emit("joinTaskRoom", taskId);
     const refresh = () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
       queryClient.invalidateQueries({ queryKey: taskKeys.members(taskId) });
+    };
+    // 재연결되면 서버가 방 정보를 잃으므로 연결될 때마다 다시 들어간다.
+    // 방 밖에 있던 동안의 변경 알림은 받지 못했으니 들어간 뒤 다시 불러온다.
+    const join = () => {
+      socket.emit("joinTaskRoom", taskId);
+      refresh();
     };
 
     if (socket.connected) {
