@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,12 +23,19 @@ type TaskListViewProps = {
   // ongoing은 D-day, completed는 완료 날짜 표시
   status: "ongoing" | "completed";
   tasks: readonly TaskListItem[];
+  initialScope?: TaskScope;
 };
 
 // 내 과제, 완료 과제 공통 레이아웃
-export function TaskListView({ title, status, tasks }: TaskListViewProps) {
+export function TaskListView({
+  title,
+  status,
+  tasks,
+  initialScope = "personal",
+}: TaskListViewProps) {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [scope, setScope] = useState<TaskScope>("personal");
+  const [scope, setScope] = useState<TaskScope>(initialScope);
   const folderFilter = useFolderFilter(TASK_FOLDERS);
 
   const filteredTasks = tasks.filter((task) =>
@@ -41,8 +49,7 @@ export function TaskListView({ title, status, tasks }: TaskListViewProps) {
 
   return (
     <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
-      {/* 메뉴 화면 만들어지면 onMenuPress 연결 (지금은 메뉴 아이콘 안 보임) */}
-      <LogoHeader />
+      <LogoHeader onMenuPress={() => router.navigate("/menu")} />
       <View className="gap-4 px-4 pt-5">
         <View className="h-[33px] flex-row items-center justify-between">
           <Text className="text-gray-900 text-h-02">{title}</Text>
@@ -71,14 +78,32 @@ export function TaskListView({ title, status, tasks }: TaskListViewProps) {
             folderColor: folder?.color,
             title: task.title,
           };
-          // 과제 상세 화면 만들어지면 onPress 연결
           return status === "ongoing" ? (
-            <TaskCard key={task.id} type="ing" dday={task.dday} {...common} />
+            <TaskCard
+              key={task.id}
+              type="ing"
+              dday={task.dday}
+              onPress={() =>
+                router.push(
+                  scope === "team"
+                    ? `/tasks/team/${task.id}`
+                    : `/tasks/personal/${task.id}`
+                )
+              }
+              {...common}
+            />
           ) : (
             <TaskCard
               key={task.id}
               type="history"
               date={task.completedDate}
+              onPress={() =>
+                router.push(
+                  scope === "team"
+                    ? `/tasks/team/${task.id}`
+                    : `/tasks/personal/${task.id}`
+                )
+              }
               {...common}
             />
           );

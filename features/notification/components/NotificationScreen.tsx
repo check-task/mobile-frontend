@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +13,7 @@ import { NOTIFICATIONS } from "./notifications";
 const CONTENT_BOTTOM_OFFSET = 24;
 
 export function NotificationScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { openModal, closeModal } = useModal();
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
@@ -41,8 +43,7 @@ export function NotificationScreen() {
 
   return (
     <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
-      {/*메뉴 화면이 추가되면 onMenuPress 연결하기 (연결 전에는 메뉴 아이콘이 보이지 않음)*/}
-      <LogoHeader />
+      <LogoHeader onMenuPress={() => router.navigate("/menu")} />
       <ScrollView
         contentContainerClassName="gap-4 px-4 pt-5"
         contentContainerStyle={{

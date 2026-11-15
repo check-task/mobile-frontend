@@ -1,8 +1,18 @@
-import { ONGOING_TASKS } from "./taskListData";
+import { ONGOING_TASKS, type TaskScope } from "./taskListData";
 import { TaskListView } from "./TaskListView";
 
-export function MyTasksScreen() {
+export function MyTasksScreen({
+  initialScope = "personal",
+}: {
+  initialScope?: TaskScope;
+}) {
   return (
-    <TaskListView title="내 과제" status="ongoing" tasks={ONGOING_TASKS} />
+    <TaskListView
+      key={initialScope}
+      title="내 과제"
+      status="ongoing"
+      tasks={ONGOING_TASKS}
+      initialScope={initialScope}
+    />
   );
 }

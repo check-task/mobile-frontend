@@ -1,12 +1,16 @@
-import { Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/common/Button/Button";
+import { LogoHeader } from "@/components/common/Header/LogoHeader";
 
 export function HomeScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="flex-1 items-center justify-center gap-4 bg-bg px-4">
-      <Text className="text-gray-900 text-h-04">비밀번호 찾기</Text>
-      <Button label="Button" />
+    <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
+      <LogoHeader onMenuPress={() => router.navigate("/menu")} />
     </View>
   );
 }
