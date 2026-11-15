@@ -70,7 +70,11 @@ function TeamTaskDetailContent({
 }) {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
-  const { data: members = [] } = useTaskMembersQuery(taskId);
+  const {
+    data: members = [],
+    isError: isMembersError,
+    refetch: refetchMembers,
+  } = useTaskMembersQuery(taskId);
   const { data: myUserId } = useMyUserIdQuery();
   const [assigneeMenu, setAssigneeMenu] = useState<{
     subTaskId: string;
@@ -262,6 +266,7 @@ function TeamTaskDetailContent({
           }
         />
         <TeamMemberSection
+          onRetry={isMembersError ? () => refetchMembers() : undefined}
           members={members.map((member) => {
             const canManage = isOwner && member.id !== myUserId;
             return {

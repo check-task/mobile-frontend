@@ -1,6 +1,7 @@
 import { type ComponentRef, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { Button } from "@/components/common/Button/Button";
 import { BottomFill, Share } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,8 @@ export type TeamMemberSectionProps = {
   members: readonly TeamMember[];
   /** `팀원초대`를 눌렀을 때 */
   onInvitePress?: () => void;
+  /** 넘기면 목록 대신 조회 실패 안내와 `다시 시도` 버튼을 보여 준다. */
+  onRetry?: () => void;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -27,6 +30,7 @@ export type TeamMemberSectionProps = {
 export function TeamMemberSection({
   members,
   onInvitePress,
+  onRetry,
   className,
 }: TeamMemberSectionProps) {
   return (
@@ -43,6 +47,20 @@ export function TeamMemberSection({
         </Pressable>
       </View>
       <View className="gap-4 rounded-lg bg-gray-0 px-3 py-4">
+        {onRetry ? (
+          <View className="flex-row items-center justify-between">
+            <Text className="text-gray-600 text-b-04-r">
+              팀원 목록을 불러오지 못했어요.
+            </Text>
+            <Button
+              label="다시 시도"
+              variant="gray"
+              size="tiny"
+              className="w-auto"
+              onPress={onRetry}
+            />
+          </View>
+        ) : null}
         {members.map((member) => (
           <View
             key={member.id}
