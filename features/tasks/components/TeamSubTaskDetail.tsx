@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import { type ComponentRef, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Input } from "@/components/common/Input/Input";
 import { Menu } from "@/components/icons";
 import { cn } from "@/lib/utils";
+
+import type { AnchorRect } from "./MenuPopover";
 
 export type TaskAssignee = {
   id: string;
@@ -33,10 +35,8 @@ export type TeamSubTaskDetailProps = {
   onSendComment: () => void;
   /** 댓글 더보기 아이콘을 눌렀을 때 */
   onCommentMenuPress?: (id: string) => void;
-  /** `TASK 담당` 줄을 눌렀을 때. 넘기면 담당자 줄을 누를 수 있다. */
-  onAssigneePress?: () => void;
-  /** 담당자 줄 아래에 겹쳐 그릴 메뉴 (예: 팀원 목록 드롭다운) */
-  assigneeMenu?: ReactNode;
+  /** `TASK 담당` 줄을 눌렀을 때. 메뉴를 붙일 수 있게 줄의 화면 좌표를 넘긴다. */
+  onAssigneePress?: (anchor: AnchorRect) => void;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -50,42 +50,45 @@ export function TeamSubTaskDetail({
   onSendComment,
   onCommentMenuPress,
   onAssigneePress,
-  assigneeMenu,
   className,
 }: TeamSubTaskDetailProps) {
+  const assigneeRowRef = useRef<ComponentRef<typeof View>>(null);
   return (
     <View className={cn("gap-3 pl-7", className)}>
-      <View className="z-10">
-        <Pressable
-          accessibilityRole={onAssigneePress ? "button" : undefined}
-          accessibilityLabel="TASK 담당 설정"
-          onPress={onAssigneePress}
-          className="flex-row items-center gap-1"
-        >
-          <Text className="text-gray-600 text-caption">TASK 담당:</Text>
-          <View className="flex-1 flex-row items-center gap-1">
-            <View className="flex-row items-center gap-0.5">
-              {assignees.map((assignee) => (
-                <View
-                  key={assignee.id}
-                  className="flex-row items-center gap-0.5 rounded-[40px] bg-blue-50 p-1"
-                >
-                  <View className="h-4 w-4 rounded-full bg-blue-200" />
-                  <Text className="text-gray-800 text-caption">
-                    {assignee.name}
-                  </Text>
-                </View>
-              ))}
-            </View>
-            {extraAssigneeCount > 0 ? (
-              <Text className="text-blue-300 text-caption">{`외 ${extraAssigneeCount}`}</Text>
-            ) : null}
+      <Pressable
+        ref={assigneeRowRef}
+        accessibilityRole={onAssigneePress ? "button" : undefined}
+        accessibilityLabel="TASK 담당 설정"
+        onPress={
+          onAssigneePress
+            ? () =>
+                assigneeRowRef.current?.measureInWindow((x, y, width, height) =>
+                  onAssigneePress({ x, y, width, height })
+                )
+            : undefined
+        }
+        className="flex-row items-center gap-1"
+      >
+        <Text className="text-gray-600 text-caption">TASK 담당:</Text>
+        <View className="flex-1 flex-row items-center gap-1">
+          <View className="flex-row items-center gap-0.5">
+            {assignees.map((assignee) => (
+              <View
+                key={assignee.id}
+                className="flex-row items-center gap-0.5 rounded-[40px] bg-blue-50 p-1"
+              >
+                <View className="h-4 w-4 rounded-full bg-blue-200" />
+                <Text className="text-gray-800 text-caption">
+                  {assignee.name}
+                </Text>
+              </View>
+            ))}
           </View>
-        </Pressable>
-        {assigneeMenu ? (
-          <View className="absolute left-0 top-full mt-1">{assigneeMenu}</View>
-        ) : null}
-      </View>
+          {extraAssigneeCount > 0 ? (
+            <Text className="text-blue-300 text-caption">{`외 ${extraAssigneeCount}`}</Text>
+          ) : null}
+        </View>
+      </Pressable>
 
       <Input
         shape="comment"

@@ -1,18 +1,18 @@
-import type { ReactNode } from "react";
+import { type ComponentRef, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { BottomFill, Share } from "@/components/icons";
 import { cn } from "@/lib/utils";
+
+import type { AnchorRect } from "./MenuPopover";
 
 export type TeamMember = {
   id: string;
   name: string;
   /** 역할 라벨 (예: `Owner`, `member(you)`) */
   role: string;
-  /** 역할 옆 화살표를 눌렀을 때. 넘기면 화살표를 그린다 (팀장이 다른 팀원을 볼 때). */
-  onRolePress?: () => void;
-  /** 이 줄 아래에 겹쳐 그릴 메뉴 (예: 팀장 설정/팀원 삭제) */
-  menu?: ReactNode;
+  /** 역할 옆 화살표를 눌렀을 때. 넘기면 화살표를 그린다 (팀장이 다른 팀원을 볼 때). 메뉴를 붙일 수 있게 화면 좌표를 넘긴다. */
+  onRolePress?: (anchor: AnchorRect) => void;
 };
 
 export type TeamMemberSectionProps = {
@@ -46,37 +46,54 @@ export function TeamMemberSection({
         {members.map((member) => (
           <View
             key={member.id}
-            className={cn(
-              "flex-row items-center justify-between",
-              member.menu ? "z-10" : undefined
-            )}
+            className="flex-row items-center justify-between"
           >
             <View className="flex-row items-center gap-1">
               <View className="h-4 w-4 rounded-full bg-blue-200" />
               <Text className="text-gray-800 text-b-04-r">{member.name}</Text>
             </View>
             {member.onRolePress ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${member.name} 권한 메뉴`}
-                hitSlop={8}
+              <RoleMenuButton
+                name={member.name}
+                role={member.role}
                 onPress={member.onRolePress}
-                className="flex-row items-center gap-0.5"
-              >
-                <Text className="text-gray-800 text-b-04-r">{member.role}</Text>
-                <BottomFill variant="sm" className="text-gray-800" />
-              </Pressable>
+              />
             ) : (
               <Text className="text-gray-800 text-b-04-r">{member.role}</Text>
             )}
-            {member.menu ? (
-              <View className="absolute right-0 top-full mt-1">
-                {member.menu}
-              </View>
-            ) : null}
           </View>
         ))}
       </View>
     </View>
+  );
+}
+
+function RoleMenuButton({
+  name,
+  role,
+  onPress,
+}: {
+  name: string;
+  role: string;
+  onPress: (anchor: AnchorRect) => void;
+}) {
+  const ref = useRef<ComponentRef<typeof View>>(null);
+
+  return (
+    <Pressable
+      ref={ref}
+      accessibilityRole="button"
+      accessibilityLabel={`${name} 권한 메뉴`}
+      hitSlop={8}
+      onPress={() =>
+        ref.current?.measureInWindow((x, y, width, height) =>
+          onPress({ x, y, width, height })
+        )
+      }
+      className="flex-row items-center gap-0.5"
+    >
+      <Text className="text-gray-800 text-b-04-r">{role}</Text>
+      <BottomFill variant="sm" className="text-gray-800" />
+    </Pressable>
   );
 }

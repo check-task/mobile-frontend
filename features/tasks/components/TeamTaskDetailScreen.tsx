@@ -28,6 +28,7 @@ import { useTaskRoom } from "../hooks/useTaskRoom";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
 import { TaskDetailHeader } from "./TaskDetailHeader";
+import { type AnchorRect, MenuPopover } from "./MenuPopover";
 import { TaskDetailStatus } from "./TaskDetailStatus";
 import { TeamMemberSection } from "./TeamMemberSection";
 import { TeamSubTaskDetail } from "./TeamSubTaskDetail";
@@ -71,8 +72,14 @@ function TeamTaskDetailContent({
   const { showToast } = useToast();
   const { data: members = [] } = useTaskMembersQuery(taskId);
   const { data: myUserId } = useMyUserIdQuery();
-  const [assigneeMenuId, setAssigneeMenuId] = useState<string | null>(null);
-  const [memberMenuId, setMemberMenuId] = useState<number | null>(null);
+  const [assigneeMenu, setAssigneeMenu] = useState<{
+    subTaskId: string;
+    anchor: AnchorRect;
+  } | null>(null);
+  const [memberMenu, setMemberMenu] = useState<{
+    member: TaskMember;
+    anchor: AnchorRect;
+  } | null>(null);
   const { openModal, closeModal } = useModal();
   const removeMemberMutation = useRemoveTaskMemberMutation(taskId);
   const isOwner = members.some(
@@ -129,7 +136,7 @@ function TeamTaskDetailContent({
 
   // 서버는 보낸 목록으로 담당자를 통째로 바꾸므로, 누른 팀원을 넣거나 뺀 전체 목록을 보낸다.
   const toggleAssignee = (subTaskId: string, userId: number) => {
-    setAssigneeMenuId(null);
+    setAssigneeMenu(null);
     const current = (detail.subTaskExtras[subTaskId]?.assignees ?? []).map(
       (assignee) => Number(assignee.id)
     );
@@ -146,7 +153,7 @@ function TeamTaskDetailContent({
   };
 
   const makeOwner = (member: TaskMember) => {
-    setMemberMenuId(null);
+    setMemberMenu(null);
     emitWithAck("member:update", {
       taskId,
       userId: myUserId,
@@ -158,7 +165,7 @@ function TeamTaskDetailContent({
   };
 
   const confirmRemoveMember = (member: TaskMember) => {
-    setMemberMenuId(null);
+    setMemberMenu(null);
     openModal({
       title: "팀원 삭제",
       children: (
@@ -218,7 +225,6 @@ function TeamTaskDetailContent({
           onAddPress={addForm.open}
           addForm={addForm.form}
           expandedIds={expandedIds}
-          raisedId={assigneeMenuId}
           onExpandPress={toggleExpanded}
           renderExpanded={(item) => {
             const extra = detail.subTaskExtras[item.id];
@@ -236,27 +242,8 @@ function TeamTaskDetailContent({
                   changeCommentDraft(item.id, draft)
                 }
                 onSendComment={() => changeCommentDraft(item.id, "")}
-                onAssigneePress={() =>
-                  setAssigneeMenuId((current) =>
-                    current === item.id ? null : item.id
-                  )
-                }
-                assigneeMenu={
-                  assigneeMenuId === item.id ? (
-                    <DropdownMenu
-                      items={members.map((member) => ({
-                        key: String(member.id),
-                        label:
-                          member.id === myUserId
-                            ? `${member.nickname}(you)`
-                            : member.nickname,
-                        leading: (
-                          <View className="h-4 w-4 rounded-full bg-blue-100" />
-                        ),
-                      }))}
-                      onSelect={(key) => toggleAssignee(item.id, Number(key))}
-                    />
-                  ) : undefined
+                onAssigneePress={(anchor) =>
+                  setAssigneeMenu({ subTaskId: item.id, anchor })
                 }
               />
             );
@@ -282,30 +269,54 @@ function TeamTaskDetailContent({
               name: member.nickname,
               role: toMemberRole(member, myUserId),
               onRolePress: canManage
-                ? () =>
-                    setMemberMenuId((current) =>
-                      current === member.id ? null : member.id
-                    )
+                ? (anchor: AnchorRect) => setMemberMenu({ member, anchor })
                 : undefined,
-              menu:
-                canManage && memberMenuId === member.id ? (
-                  <DropdownMenu
-                    variant="leader"
-                    items={[
-                      { key: "owner", label: "팀장 설정" },
-                      { key: "remove", label: "팀원 삭제" },
-                    ]}
-                    onSelect={(key) =>
-                      key === "owner"
-                        ? makeOwner(member)
-                        : confirmRemoveMember(member)
-                    }
-                  />
-                ) : undefined,
             };
           })}
         />
       </View>
+      <MenuPopover
+        anchor={assigneeMenu?.anchor ?? null}
+        align="left"
+        onClose={() => setAssigneeMenu(null)}
+      >
+        <DropdownMenu
+          items={members.map((member) => ({
+            key: String(member.id),
+            label:
+              member.id === myUserId
+                ? `${member.nickname}(you)`
+                : member.nickname,
+            leading: <View className="h-4 w-4 rounded-full bg-blue-100" />,
+          }))}
+          onSelect={(key) =>
+            assigneeMenu && toggleAssignee(assigneeMenu.subTaskId, Number(key))
+          }
+        />
+      </MenuPopover>
+      <MenuPopover
+        anchor={memberMenu?.anchor ?? null}
+        align="right"
+        onClose={() => setMemberMenu(null)}
+      >
+        <DropdownMenu
+          variant="leader"
+          items={[
+            { key: "owner", label: "팀장 설정" },
+            { key: "remove", label: "팀원 삭제" },
+          ]}
+          onSelect={(key) => {
+            if (!memberMenu) {
+              return;
+            }
+            if (key === "owner") {
+              makeOwner(memberMenu.member);
+            } else {
+              confirmRemoveMember(memberMenu.member);
+            }
+          }}
+        />
+      </MenuPopover>
     </ScrollView>
   );
 }

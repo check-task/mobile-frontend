@@ -31,8 +31,6 @@ export type SubTaskListProps = {
   onExpandPress?: (id: string) => void;
   /** 펼쳐진 행 아래에 그릴 내용 */
   renderExpanded?: (item: SubTask) => ReactNode;
-  /** 메뉴를 연 세부 TASK의 id. 이 행만 앞에 그려 메뉴가 아래 행에 가리지 않게 한다. */
-  raisedId?: string | null;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -49,7 +47,6 @@ export function SubTaskList({
   expandedIds,
   onExpandPress,
   renderExpanded,
-  raisedId,
   className,
 }: SubTaskListProps) {
   const [expanded, setExpanded] = useState(false);
@@ -83,13 +80,7 @@ export function SubTaskList({
             const isExpanded = expandedIds?.includes(item.id) ?? false;
 
             return (
-              <View
-                key={item.id}
-                className={cn(
-                  "gap-3",
-                  item.id === raisedId ? "z-10" : undefined
-                )}
-              >
+              <View key={item.id} className="gap-3">
                 <SubTaskRow
                   title={item.title}
                   dueDate={item.dueDate}
