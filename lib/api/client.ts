@@ -84,7 +84,8 @@ function refreshAccessToken() {
         }
       );
       const { accessToken } = unwrap(response.data);
-      if (!(await isSameSession(tokens.refreshToken))) return true;
+      // 세션이 바뀌었으면 이전 계정 요청이 새 계정 토큰으로 나가지 않게 재시도하지 않는다
+      if (!(await isSameSession(tokens.refreshToken))) return false;
       await saveTokens({ ...tokens, accessToken });
       return true;
     } catch (error) {
