@@ -13,10 +13,16 @@ import { isValidPassword, PasswordCriteria } from "./PasswordCriteria";
 type PasswordStepProps = {
   description: string;
   onSubmit: (password: string) => void;
+  //저장 요청 중이면 버튼을 막는다
+  isSubmitting?: boolean;
 };
 
 //비밀번호 입력 단계
-export function PasswordStep({ description, onSubmit }: PasswordStepProps) {
+export function PasswordStep({
+  description,
+  onSubmit,
+  isSubmitting = false,
+}: PasswordStepProps) {
   const [password, setPassword] = useState("");
 
   return (
@@ -24,7 +30,7 @@ export function PasswordStep({ description, onSubmit }: PasswordStepProps) {
       footer={
         <Button
           label="다음"
-          disabled={!isValidPassword(password)}
+          disabled={!isValidPassword(password) || isSubmitting}
           onPress={() => onSubmit(password)}
         />
       }
