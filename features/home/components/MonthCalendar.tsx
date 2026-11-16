@@ -4,7 +4,10 @@ import { CARD_SHADOW } from "@/constants/shadows";
 import { getMonthGrid, toDateKey } from "@/lib/calendarDate";
 import { cn } from "@/lib/utils";
 
+import type { CalendarDrag } from "../hooks/useCalendarDrag";
+
 import { CalendarTaskPill } from "./CalendarTaskPill";
+import { DraggableCalendarPill } from "./DraggableCalendarPill";
 import type { CalendarItem } from "./homeData";
 
 const WEEKDAY_LABELS = ["SUN", "MON", "TUE", "WED", "THUR", "FRI", "SAT"];
@@ -17,6 +20,7 @@ type MonthCalendarProps = {
   todayKey: string;
   itemsByDate: ReadonlyMap<string, CalendarItem[]>;
   onDayPress: (dateKey: string) => void;
+  drag: CalendarDrag;
 };
 
 export function MonthCalendar({
@@ -25,6 +29,7 @@ export function MonthCalendar({
   todayKey,
   itemsByDate,
   onDayPress,
+  drag,
 }: MonthCalendarProps) {
   const days = getMonthGrid(year, month);
   const weeks = Array.from({ length: days.length / DAYS_PER_WEEK }, (_, i) =>
@@ -55,9 +60,12 @@ export function MonthCalendar({
             return (
               <Pressable
                 key={dateKey}
+                ref={drag.zoneRef(dateKey)}
                 accessibilityRole="button"
                 accessibilityLabel={`${date.getMonth() + 1}월 ${date.getDate()}일`}
-                onPress={() => onDayPress(dateKey)}
+                onPress={() => {
+                  if (!drag.isJustDropped()) onDayPress(dateKey);
+                }}
                 className={cn(
                   "min-h-[50px] flex-1 gap-1 border-[0.5px] border-gray-100 px-1 pb-1.5 pt-1",
                   isLastWeek && dayIndex === 0 ? "rounded-bl" : "",
@@ -87,12 +95,17 @@ export function MonthCalendar({
                 </View>
                 <View className="items-start gap-0.5">
                   {itemsByDate.get(dateKey)?.map((item) => (
-                    <CalendarTaskPill
+                    <DraggableCalendarPill
                       key={item.key}
-                      title={item.title}
-                      color={item.color}
-                      variant={item.kind}
-                    />
+                      item={item}
+                      drag={drag}
+                    >
+                      <CalendarTaskPill
+                        title={item.title}
+                        color={item.color}
+                        variant={item.kind}
+                      />
+                    </DraggableCalendarPill>
                   ))}
                 </View>
               </Pressable>

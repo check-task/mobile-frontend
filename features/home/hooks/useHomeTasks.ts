@@ -6,6 +6,7 @@ import {
   HOME_SUB_TASKS,
   HOME_TASKS,
   type HomeSort,
+  type HomeSubTask,
   type HomeTask,
 } from "../components/homeData";
 
@@ -15,9 +16,17 @@ const SORT_COMPARE: Record<HomeSort, (a: HomeTask, b: HomeTask) => number> = {
   PROGRESSRATE: (a, b) => b.progressRate - a.progressRate,
 };
 
+const SUB_TASK_AFTER_TASK_MESSAGE = "마감일 이전 날짜로 설정할 수 없습니다.";
+// 서버 400 reason 과 같은 문구
+const TASK_BEFORE_SUB_TASK_MESSAGE =
+  "세부 과제의 마감일보다 이른 날짜로 변경할 수 없습니다.";
+
 // 폴더 칩 다중 선택, 캘린더·날짜 미지정 TASK 항목, 과제 목록 정렬
 export function useHomeTasks() {
   const [sort, setSort] = useState<HomeSort>("PRIORITY");
+  const [tasks, setTasks] = useState<readonly HomeTask[]>(HOME_TASKS);
+  const [subTasks, setSubTasks] =
+    useState<readonly HomeSubTask[]>(HOME_SUB_TASKS);
   // 비어 있으면 전체 폴더를 보여 준다
   const [selectedFolderIds, setSelectedFolderIds] = useState<
     ReadonlySet<number>
@@ -33,14 +42,14 @@ export function useHomeTasks() {
   };
 
   const folderById = new Map(HOME_FOLDERS.map((folder) => [folder.id, folder]));
-  const taskById = new Map(HOME_TASKS.map((task) => [task.id, task]));
+  const taskById = new Map(tasks.map((task) => [task.id, task]));
   const colorOf = (task: HomeTask) =>
     folderById.get(task.folderId)?.color ?? "sub-null";
   const isVisible = (task: HomeTask) =>
     selectedFolderIds.size === 0 || selectedFolderIds.has(task.folderId);
 
-  const visibleTasks = HOME_TASKS.filter(isVisible);
-  const visibleSubTasks = HOME_SUB_TASKS.flatMap((subTask) => {
+  const visibleTasks = tasks.filter(isVisible);
+  const visibleSubTasks = subTasks.flatMap((subTask) => {
     const parent = taskById.get(subTask.taskId);
     return parent && isVisible(parent) ? [{ subTask, parent }] : [];
   });
@@ -51,6 +60,7 @@ export function useHomeTasks() {
   visibleTasks.forEach((task) =>
     addItem(task.deadline, {
       key: `task-${task.id}`,
+      id: task.id,
       kind: "main",
       title: task.title,
       color: colorOf(task),
@@ -60,6 +70,7 @@ export function useHomeTasks() {
     if (subTask.deadline) {
       addItem(subTask.deadline, {
         key: `sub-${subTask.id}`,
+        id: subTask.id,
         kind: "sub",
         title: subTask.title,
         color: colorOf(parent),
@@ -71,6 +82,7 @@ export function useHomeTasks() {
     .filter(({ subTask }) => subTask.deadline === null)
     .map(({ subTask, parent }) => ({
       key: `sub-${subTask.id}`,
+      id: subTask.id,
       kind: "sub",
       title: subTask.title,
       color: colorOf(parent),
@@ -98,9 +110,48 @@ export function useHomeTasks() {
     }));
 
   // shortcut: 더미라 클라이언트에서 정렬한다. API 연동(#66) 때 GET /task?sort= 결과를 그대로 쓴다.
-  const sortedTasks = [...HOME_TASKS].sort(SORT_COMPARE[sort]);
+  const sortedTasks = [...tasks].sort(SORT_COMPARE[sort]);
+
+  // TODO(api): PATCH /task/{taskId}/deadline {deadline} · PATCH /task/subtask/{subTaskId}/deadline {endDate}
+  //  서버도 같은 경우를 400 으로 거부한다(완료된 세부 task 는 목록에 없어 여기서 못 막음) → 원위치 + 같은 토스트
+  /**
+   * 드롭한 날짜(시간 없음)로 마감일을 바꾼다. `null` 은 날짜 미지정(세부 task 만).
+   * 마감일 순서가 어긋나면 바꾸지 않고 토스트 문구를 돌려준다. 바꿨거나 제자리면 `null`.
+   * 날짜는 YYYY-MM-DD 라 문자열 비교로 순서를 판단한다.
+   */
+  const moveItem = (item: CalendarItem, dateKey: string | null) => {
+    if (item.kind === "main") {
+      // 과제는 마감일이 필수라 미지정 영역에 놓으면 원래 자리로 돌아간다
+      if (dateKey === null) return null;
+      const hasLaterSubTask = subTasks.some(
+        (sub) =>
+          sub.taskId === item.id &&
+          sub.deadline !== null &&
+          sub.deadline > dateKey
+      );
+      if (hasLaterSubTask) return TASK_BEFORE_SUB_TASK_MESSAGE;
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === item.id ? { ...task, deadline: dateKey } : task
+        )
+      );
+      return null;
+    }
+    const subTask = subTasks.find(({ id }) => id === item.id);
+    const parent = subTask && taskById.get(subTask.taskId);
+    if (dateKey !== null && parent && dateKey > parent.deadline) {
+      return SUB_TASK_AFTER_TASK_MESSAGE;
+    }
+    setSubTasks((prev) =>
+      prev.map((sub) =>
+        sub.id === item.id ? { ...sub, deadline: dateKey } : sub
+      )
+    );
+    return null;
+  };
 
   return {
+    moveItem,
     selectedFolderIds,
     toggleFolder,
     itemsByDate,
