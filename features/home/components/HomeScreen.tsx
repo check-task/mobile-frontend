@@ -55,9 +55,8 @@ export function HomeScreen() {
     moveItem,
   } = useHomeTasks();
   const drag = useCalendarDrag((item, zone) => {
-    if (!moveItem(item, zone)) {
-      showToast("fail", "마감일 이전 날짜로 설정할 수 없습니다.");
-    }
+    const error = moveItem(item, zone);
+    if (error) showToast("fail", error);
   });
 
   const openTaskDetail = (task: HomeTask) => {

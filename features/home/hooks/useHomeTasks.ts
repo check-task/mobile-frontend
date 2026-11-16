@@ -16,6 +16,11 @@ const SORT_COMPARE: Record<HomeSort, (a: HomeTask, b: HomeTask) => number> = {
   PROGRESSRATE: (a, b) => b.progressRate - a.progressRate,
 };
 
+const SUB_TASK_AFTER_TASK_MESSAGE = "마감일 이전 날짜로 설정할 수 없습니다.";
+// 서버 400 reason 과 같은 문구
+const TASK_BEFORE_SUB_TASK_MESSAGE =
+  "세부 과제의 마감일보다 이른 날짜로 변경할 수 없습니다.";
+
 // 폴더 칩 다중 선택, 캘린더·날짜 미지정 TASK 항목, 과제 목록 정렬
 export function useHomeTasks() {
   const [sort, setSort] = useState<HomeSort>("PRIORITY");
@@ -108,31 +113,41 @@ export function useHomeTasks() {
   const sortedTasks = [...tasks].sort(SORT_COMPARE[sort]);
 
   // TODO(api): PATCH /task/{taskId}/deadline {deadline} · PATCH /task/subtask/{subTaskId}/deadline {endDate}
+  //  서버도 같은 경우를 400 으로 거부한다(완료된 세부 task 는 목록에 없어 여기서 못 막음) → 원위치 + 같은 토스트
   /**
    * 드롭한 날짜(시간 없음)로 마감일을 바꾼다. `null` 은 날짜 미지정(세부 task 만).
-   * 세부 task 를 부모 과제 마감일 이후로 옮기려 하면 바꾸지 않고 `false`.
+   * 마감일 순서가 어긋나면 바꾸지 않고 토스트 문구를 돌려준다. 바꿨거나 제자리면 `null`.
+   * 날짜는 YYYY-MM-DD 라 문자열 비교로 순서를 판단한다.
    */
   const moveItem = (item: CalendarItem, dateKey: string | null) => {
     if (item.kind === "main") {
       // 과제는 마감일이 필수라 미지정 영역에 놓으면 원래 자리로 돌아간다
-      if (dateKey === null) return true;
+      if (dateKey === null) return null;
+      const hasLaterSubTask = subTasks.some(
+        (sub) =>
+          sub.taskId === item.id &&
+          sub.deadline !== null &&
+          sub.deadline > dateKey
+      );
+      if (hasLaterSubTask) return TASK_BEFORE_SUB_TASK_MESSAGE;
       setTasks((prev) =>
         prev.map((task) =>
           task.id === item.id ? { ...task, deadline: dateKey } : task
         )
       );
-      return true;
+      return null;
     }
     const subTask = subTasks.find(({ id }) => id === item.id);
     const parent = subTask && taskById.get(subTask.taskId);
-    // YYYY-MM-DD 라 문자열 비교로 날짜 순서를 판단한다
-    if (dateKey !== null && parent && dateKey > parent.deadline) return false;
+    if (dateKey !== null && parent && dateKey > parent.deadline) {
+      return SUB_TASK_AFTER_TASK_MESSAGE;
+    }
     setSubTasks((prev) =>
       prev.map((sub) =>
         sub.id === item.id ? { ...sub, deadline: dateKey } : sub
       )
     );
-    return true;
+    return null;
   };
 
   return {
