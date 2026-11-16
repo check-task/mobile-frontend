@@ -10,6 +10,8 @@ export function useSignOut() {
   const router = useRouter();
   return useMutation({
     mutationFn: signOut,
+    // 기본값(online)이면 오프라인에서 실행이 보류돼 토큰이 안 지워진다. 서버에 못 닿아도 이 기기에서는 로그아웃한다
+    networkMode: "always",
     // signOut 은 서버 요청이 실패해도 토큰을 지우므로 항상 로그인 화면으로 보낸다
     onSettled: () => {
       disconnectSocket();

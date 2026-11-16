@@ -35,9 +35,13 @@ export function getSocket() {
   return socket;
 }
 
-/** 로그아웃할 때 이전 계정 토큰으로 붙은 연결을 끊는다. 다음 getSocket 은 새 토큰으로 다시 연결한다 */
+/**
+ * 로그아웃할 때 이전 계정 연결을 끊고 소켓 객체를 버린다.
+ * 같은 객체를 다시 쓰면 끊긴 동안 쌓인 emit 이 다음 계정 연결로 나갈 수 있어서 다음 getSocket 은 새로 만든다
+ */
 export function disconnectSocket() {
   socket?.disconnect();
+  socket = null;
 }
 
 export async function emitWithAck<T>(event: string, payload: unknown) {
