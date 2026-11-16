@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
@@ -26,6 +26,7 @@ export function FindPasswordVerifyScreen() {
   const verifyMutation = useVerifyPasswordResetCodeMutation();
   const resendMutation = useSendPasswordResetCodeMutation();
   const [status, setStatus] = useState<VerificationStatus>("idle");
+  const latestCodeRef = useRef("");
 
   // 웹 새로고침 등으로 이메일이 없으면 처음 단계로
   useEffect(() => {
@@ -43,7 +44,8 @@ export function FindPasswordVerifyScreen() {
         },
         onError: (error) => {
           if (error instanceof ApiError && error.errorCode === "INVALID_CODE") {
-            setStatus("mismatch");
+            // 확인하는 동안 코드를 고쳤으면 새 코드에 불일치를 띄우지 않는다
+            if (latestCodeRef.current === code) setStatus("mismatch");
             return;
           }
           showToast(
@@ -57,20 +59,25 @@ export function FindPasswordVerifyScreen() {
 
   // 재발송 API 가 따로 없어서 발송 API 를 다시 부른다.
   // 서버는 2분 안의 재발송을 200 으로 받고 메일은 안 보내서, 그 안에는 타이머도 그대로 두고 안내만 한다
-  const resend = () => {
+  // 발송에 성공했을 때만 true 를 돌려줘서 그때만 타이머를 다시 시작한다
+  const resend = async () => {
+    if (resendMutation.isPending) return false;
     if (Date.now() - codeSentAt < RESEND_COOLDOWN_MS) {
       showToast("fail", "인증코드는 2분 뒤에 다시 보낼 수 있어요.");
       return false;
     }
-    setStatus("idle");
-    resendMutation.mutate(email, {
-      onSuccess: markCodeSent,
-      onError: (error) =>
-        showToast(
-          "fail",
-          getAuthErrorMessage(error, "인증코드를 다시 보내지 못했어요.")
-        ),
-    });
+    try {
+      await resendMutation.mutateAsync(email);
+      markCodeSent();
+      setStatus("idle");
+      return true;
+    } catch (error) {
+      showToast(
+        "fail",
+        getAuthErrorMessage(error, "인증코드를 다시 보내지 못했어요.")
+      );
+      return false;
+    }
   };
 
   return (
@@ -81,7 +88,10 @@ export function FindPasswordVerifyScreen() {
       status={status}
       onResend={resend}
       onSubmit={submit}
-      onCodeChange={() => setStatus("idle")}
+      onCodeChange={(code) => {
+        latestCodeRef.current = code.trim();
+        setStatus("idle");
+      }}
       isSubmitting={verifyMutation.isPending}
     />
   );
