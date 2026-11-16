@@ -1,8 +1,8 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
+// access/refresh 를 한 레코드(JSON)로 저장한다. 따로 저장하면 하나만 써졌을 때 다른 계정 토큰끼리 섞일 수 있다
+const TOKENS_KEY = "authTokens";
 
 export type AuthTokens = {
   accessToken: string;
@@ -35,15 +35,25 @@ const storage: KeyValueStorage =
 // 요청마다 저장소를 읽지 않게 메모리에 들고 있는다 (undefined = 아직 안 읽음)
 let cachedTokens: AuthTokens | null | undefined;
 
+function isAuthTokens(value: unknown): value is AuthTokens {
+  if (typeof value !== "object" || value === null) return false;
+  const { accessToken, refreshToken } = value as Record<string, unknown>;
+  return (
+    typeof accessToken === "string" &&
+    accessToken.length > 0 &&
+    typeof refreshToken === "string" &&
+    refreshToken.length > 0
+  );
+}
+
 async function readTokens(): Promise<AuthTokens | null> {
   try {
-    const [accessToken, refreshToken] = await Promise.all([
-      storage.get(ACCESS_TOKEN_KEY),
-      storage.get(REFRESH_TOKEN_KEY),
-    ]);
-    return accessToken && refreshToken ? { accessToken, refreshToken } : null;
+    const stored = await storage.get(TOKENS_KEY);
+    if (!stored) return null;
+    const parsed: unknown = JSON.parse(stored);
+    return isAuthTokens(parsed) ? parsed : null;
   } catch {
-    // 저장소를 못 읽으면 로그인 안 된 걸로 본다
+    // 저장소를 못 읽거나 값이 깨졌으면 로그인 안 된 걸로 본다
     return null;
   }
 }
@@ -57,18 +67,14 @@ export async function getTokens() {
   return cachedTokens;
 }
 
+// 저장이 성공한 뒤에 메모리를 바꾼다. 실패하면 이전 세션을 그대로 둔다
 export async function saveTokens(tokens: AuthTokens) {
+  await storage.set(TOKENS_KEY, JSON.stringify(tokens));
   cachedTokens = tokens;
-  await Promise.all([
-    storage.set(ACCESS_TOKEN_KEY, tokens.accessToken),
-    storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken),
-  ]);
 }
 
 export async function clearTokens() {
+  // 삭제는 실패해도 이 앱에서는 로그아웃 상태로 본다
   cachedTokens = null;
-  await Promise.all([
-    storage.remove(ACCESS_TOKEN_KEY),
-    storage.remove(REFRESH_TOKEN_KEY),
-  ]);
+  await storage.remove(TOKENS_KEY);
 }
