@@ -13,7 +13,7 @@ import { FolderFilterItem } from "@/components/common/FolderFilterItem/FolderFil
 import { Filter, Task } from "@/components/icons";
 import { CARD_SHADOW, DROPDOWN_SHADOW } from "@/constants/shadows";
 
-import type { TaskFolder } from "./taskListData";
+import type { TaskFolder } from "../api/taskList.types";
 
 // 필터 버튼과 드롭다운 사이 간격
 const DROPDOWN_GAP = 4;

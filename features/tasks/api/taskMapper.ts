@@ -13,11 +13,14 @@ import type {
   TaskComment,
 } from "../components/TeamSubTaskDetail";
 import type {
+  CompletedTaskDto,
   CreateReferenceParams,
   TaskDetailResponse,
+  TaskListItemDto,
   UpdateReferenceParams,
 } from "./task.types";
 import type { ResourceDraft, TaskFormValue } from "./taskForm.types";
+import type { TaskFolder, TaskListItem } from "./taskList.types";
 
 export type TaskDetail = {
   title: string;
@@ -146,6 +149,49 @@ export function toFolderOptions(folders: MyFolder[]) {
     folderTitle: folder.folderTitle,
     color: toFolderColor(folder.color),
   }));
+}
+
+/** 목록 화면 폴더 필터용 */
+export function toTaskFolders(folders: MyFolder[]): TaskFolder[] {
+  return folders.map((folder) => ({
+    id: String(folder.folderId),
+    name: folder.folderTitle,
+    color: toFolderColor(folder.color),
+  }));
+}
+
+export function toTaskListItem(dto: TaskListItemDto): TaskListItem {
+  return {
+    id: String(dto.taskId),
+    folderId: dto.folderId === null ? null : String(dto.folderId),
+    folderName: dto.folderTitle,
+    folderColor: toFolderColor(dto.foldercolor),
+    title: dto.title,
+    scope: dto.type === "TEAM" ? "team" : "personal",
+    dday: dto.dDay,
+    completedDate: "",
+  };
+}
+
+// 완료 과제 API 는 type 을 한글("개인"/"팀")로 준다
+function toScope(type: string) {
+  return type === "TEAM" || type === "팀" ? "team" : "personal";
+}
+
+/** 완료 과제 = 마감일이 지난 과제라서 마감일을 `2026.10.31` 로 보여준다 */
+export function toCompletedTaskListItem(dto: CompletedTaskDto): TaskListItem {
+  // 날짜만 있는 마감(T23:59:59)이 UTC 로 읽혀 하루 밀리지 않게 상세 화면과 같은 방식으로 읽는다
+  const deadline = toDueDate(dto.deadline).date;
+  return {
+    id: String(dto.taskId),
+    folderId: dto.folderId === null ? null : String(dto.folderId),
+    folderName: dto.folderTitle ?? "",
+    folderColor: toFolderColor(dto.color ?? ""),
+    title: dto.title,
+    scope: toScope(dto.type),
+    dday: "",
+    completedDate: `${deadline.getFullYear()}.${pad(deadline.getMonth() + 1)}.${pad(deadline.getDate())}`,
+  };
 }
 
 /**

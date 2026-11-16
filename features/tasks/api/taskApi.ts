@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import type { NativeFilePart } from "@/types/formData.types";
 
 import type {
+  CompletedTasksResponse,
   CreateReferenceParams,
   CreateTaskRequest,
   CreateTaskResponse,
@@ -10,7 +11,9 @@ import type {
   AddSubTaskRequest,
   AddSubTaskResponse,
   SubTaskStatus,
+  TaskListResponse,
   TaskMembersResponse,
+  TaskType,
   InviteCodeResponse,
   UpdateReferenceParams,
   UpdateTaskRequest,
@@ -18,9 +21,23 @@ import type {
 
 export const taskKeys = {
   all: ["task"] as const,
+  // 과제를 만들거나 고치면 taskKeys.all 을 invalidate 해서 목록도 같이 갱신된다
+  lists: () => ["task", "list"] as const,
+  list: (type: TaskType) => ["task", "list", type] as const,
+  completed: () => ["task", "completed"] as const,
   detail: (taskId: number) => ["task", "detail", taskId] as const,
   members: (taskId: number) => ["task", "members", taskId] as const,
 };
+
+export function getTasks(type: TaskType) {
+  return apiClient.get<TaskListResponse>("/api/v1/task", {
+    params: { type },
+  });
+}
+
+export function getCompletedTasks() {
+  return apiClient.get<CompletedTasksResponse>("/api/v1/task/completed");
+}
 
 export function getTaskDetail(taskId: number) {
   return apiClient.get<TaskDetailResponse>(`/api/v1/task/${taskId}`);

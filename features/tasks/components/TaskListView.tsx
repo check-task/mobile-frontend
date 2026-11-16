@@ -1,18 +1,20 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LogoHeader } from "@/components/common/Header/LogoHeader";
 import { TaskCard } from "@/components/common/TaskCard/TaskCard";
+import { useToast } from "@/hooks/useToast";
 
+import type {
+  TaskFolder,
+  TaskListItem,
+  TaskScope,
+} from "../api/taskList.types";
 import { useFolderFilter } from "../hooks/useFolderFilter";
+import { useTaskFoldersQuery } from "../hooks/useTaskFoldersQuery";
 import { FolderFilter } from "./FolderFilter";
-import {
-  TASK_FOLDERS,
-  type TaskListItem,
-  type TaskScope,
-} from "./taskListData";
 import { TaskScopeTabs } from "./TaskScopeTabs";
 
 // 마지막 카드 아래 여백
@@ -23,23 +25,45 @@ type TaskListViewProps = {
   // ongoing은 D-day, completed는 완료 날짜 표시
   status: "ongoing" | "completed";
   tasks: readonly TaskListItem[];
+  // 처음 불러오는 중이면 로딩 표시
+  isPending?: boolean;
+  // 목록을 못 불러왔으면 토스트로 알린다
+  isError?: boolean;
+  // 불러왔는데 보여줄 과제가 없을 때 안내 문구
+  emptyMessage: string;
   initialScope?: TaskScope;
 };
+
+const NO_FOLDERS: TaskFolder[] = [];
 
 // 내 과제, 완료 과제 공통 레이아웃
 export function TaskListView({
   title,
   status,
   tasks,
+  isPending = false,
+  isError = false,
+  emptyMessage,
   initialScope = "personal",
 }: TaskListViewProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
   const [scope, setScope] = useState<TaskScope>(initialScope);
-  const folderFilter = useFolderFilter(TASK_FOLDERS);
+  const foldersQuery = useTaskFoldersQuery();
+  const folders = foldersQuery.data ?? NO_FOLDERS;
+  const folderFilter = useFolderFilter(folders);
 
-  const filteredTasks = tasks.filter((task) =>
-    folderFilter.selectedIds.has(task.folderId)
+  useEffect(() => {
+    if (isError) showToast("fail", "과제 목록을 불러오지 못했어요.");
+  }, [isError, showToast]);
+
+  // 전체 선택이면 폴더 목록이 아직 없거나 못 불러와도 다 보여준다.
+  // 폴더가 없는 과제는 모든 과제를 볼 때만 보인다
+  const filteredTasks = tasks.filter(
+    (task) =>
+      folderFilter.isAllSelected ||
+      (task.folderId !== null && folderFilter.selectedIds.has(task.folderId))
   );
   const counts: Record<TaskScope, number> = {
     personal: filteredTasks.filter((task) => task.scope === "personal").length,
@@ -54,7 +78,7 @@ export function TaskListView({
         <View className="h-[33px] flex-row items-center justify-between">
           <Text className="text-gray-900 text-h-02">{title}</Text>
           <FolderFilter
-            folders={TASK_FOLDERS}
+            folders={folders}
             selectedIds={folderFilter.selectedIds}
             isAllSelected={folderFilter.isAllSelected}
             firstSelected={folderFilter.firstSelected}
@@ -71,11 +95,19 @@ export function TaskListView({
           paddingBottom: insets.bottom + CONTENT_BOTTOM_OFFSET,
         }}
       >
+        {isPending ? (
+          <View className="pt-10">
+            <ActivityIndicator />
+          </View>
+        ) : !isError && visibleTasks.length === 0 ? (
+          <Text className="pt-10 text-center text-gray-400 text-b-02-r">
+            {emptyMessage}
+          </Text>
+        ) : null}
         {visibleTasks.map((task) => {
-          const folder = TASK_FOLDERS.find(({ id }) => id === task.folderId);
           const common = {
-            folderName: folder?.name ?? "",
-            folderColor: folder?.color,
+            folderName: task.folderName,
+            folderColor: task.folderColor,
             title: task.title,
           };
           return status === "ongoing" ? (
