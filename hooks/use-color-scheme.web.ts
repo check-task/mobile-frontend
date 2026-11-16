@@ -1,20 +1,26 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
+
+import { useThemeStore } from "@/store/themeStore";
+
+const subscribe = () => () => {};
 
 /**
  * To support static rendering, this value needs to be re-calculated on the client side for web
  */
 export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
+  // 서버(정적 렌더링)와 hydration 중에는 false, 클라이언트에서는 true
+  const hasHydrated = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  const colorScheme = useRNColorScheme();
+  const systemScheme = useRNColorScheme();
+  const preference = useThemeStore((state) => state.preference);
 
   if (hasHydrated) {
-    return colorScheme;
+    return preference === "system" ? systemScheme : preference;
   }
 
   return "light";

@@ -49,7 +49,8 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }} />
           <ModalProvider />
           <ToastProvider />
-          <StatusBar style="auto" />
+          {/* auto 는 기기 설정을 따라가서, 앱에서 고른 테마에 맞춘다 */}
+          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
         </View>
       </ThemeProvider>
     </QueryProvider>
