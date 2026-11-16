@@ -20,8 +20,8 @@ type VerificationCodeStepProps = {
   submitLabel: string;
   //인증코드 확인 결과
   status?: VerificationStatus;
-  //넘기면 인증코드 재발송 버튼을 보여줌.
-  onResend?: () => void;
+  //넘기면 인증코드 재발송 버튼을 보여줌. false(또는 false 로 끝나는 Promise)를 돌려주면 못 보낸 거라 타이머를 그대로 둔다
+  onResend?: () => boolean | void | Promise<boolean>;
   onSubmit: (code: string) => void;
   //코드를 고쳐 입력할 때 (불일치 문구 지우기용)
   onCodeChange?: (code: string) => void;
@@ -59,9 +59,10 @@ export function VerificationCodeStep({
     onSubmit(trimmedCode);
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    const sent = await onResend?.();
+    if (sent === false) return;
     countdown.restart();
-    onResend?.();
   };
 
   return (
