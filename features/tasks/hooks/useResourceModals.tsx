@@ -24,12 +24,13 @@ const EMPTY_MEETING_LOG: MeetingLogDraft = {
 
 /** 자료·커뮤니케이션·회의록 추가·수정·삭제 모달. 저장은 넘겨받은 요청으로 하고 실패하면 토스트를 띄운다. */
 export function useResourceModals() {
-  const { openModal, closeModal } = useModal();
+  const { openModal, closeModal, closeModalIf, getCurrentModal } = useModal();
   const { showToast, showSnackbar } = useToast();
   const meetingLogRef = useRef<MeetingLogDraft>(EMPTY_MEETING_LOG);
   const savingRef = useRef(false);
 
   // 성공해야 모달을 닫는다. 실패하면 모달과 입력값이 그대로 남아 다시 저장할 수 있다. 저장 중에는 다시 보내지 않는다.
+  // 요청을 시작한 모달만 닫아서, 그 사이 닫고 새로 연 모달은 건드리지 않는다.
   const run = (
     request: () => Promise<unknown>,
     failMessage: string,
@@ -39,9 +40,10 @@ export function useResourceModals() {
       return;
     }
     savingRef.current = true;
+    const requestModal = getCurrentModal();
     request()
       .then(() => {
-        closeModal();
+        closeModalIf(requestModal);
         if (doneMessage) showSnackbar(doneMessage);
       })
       .catch((error: unknown) =>
