@@ -7,7 +7,7 @@ import { toTaskListItem } from "../api/taskMapper";
 export function useOngoingTasksQuery() {
   return useQueries({
     queries: (["PERSONAL", "TEAM"] as const).map((type) => ({
-      queryKey: taskKeys.list(type),
+      queryKey: taskKeys.myList(type),
       queryFn: () => getTasks(type),
     })),
     combine: (results) => ({
