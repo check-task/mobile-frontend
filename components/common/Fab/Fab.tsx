@@ -9,6 +9,9 @@ export type FabProps = {
   onCreateTask?: () => void;
   onJoinTeamTask?: () => void;
   defaultOpen?: boolean;
+  /** 열림 상태를 밖에서 제어할 때 (예: 화면이 뒤 배경을 어둡게 깔 때). 없으면 내부 상태를 쓴다. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
 };
 
@@ -16,9 +19,17 @@ export function Fab({
   onCreateTask,
   onJoinTeamTask,
   defaultOpen = false,
+  open,
+  onOpenChange,
   className,
 }: FabProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [innerOpen, setInnerOpen] = useState(defaultOpen);
+  const isOpen = open ?? innerOpen;
+
+  function setIsOpen(next: boolean) {
+    setInnerOpen(next);
+    onOpenChange?.(next);
+  }
 
   function handleCreateTask() {
     setIsOpen(false);
@@ -64,7 +75,7 @@ export function Fab({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={isOpen ? "닫기" : "새 과제 만들기"}
-        onPress={() => setIsOpen((prev) => !prev)}
+        onPress={() => setIsOpen(!isOpen)}
         style={FAB_PRIMARY_SHADOW}
         className="size-[60px] items-center justify-center rounded-full bg-blue-500"
       >
