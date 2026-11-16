@@ -111,6 +111,12 @@ export type TaskMember = {
 /** GET /api/v1/task/:taskId/members */
 export type TaskMembersResponse = { members: TaskMember[]; count: number };
 
+/** POST /api/v1/task/:taskId/invitation. 유효한 코드가 있으면 그 코드를 다시 준다 */
+export type InviteCodeResponse = {
+  invite_code: string;
+  invite_expired: string;
+};
+
 export type AddSubTaskRequest = {
   title: string;
   /** ISO 8601 date-time. 미지정이면 null */

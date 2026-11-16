@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { setStringAsync } from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -14,7 +15,12 @@ import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
 
-import { createReference, taskKeys, updateReference } from "../api/taskApi";
+import {
+  createInviteCode,
+  createReference,
+  taskKeys,
+  updateReference,
+} from "../api/taskApi";
 import type { ResourceDraft } from "../api/taskForm.types";
 import {
   type TaskDetail,
@@ -338,6 +344,17 @@ function TeamTaskDetailContent({
   };
   const currentResourceTab = resourceTabs[resourceTab];
 
+  const copyInviteCode = () =>
+    createInviteCode(taskId)
+      .then(({ invite_code }) => setStringAsync(invite_code))
+      .then(() => showToast("success", "팀 과제 초대코드가 복사되었습니다."))
+      .catch((error: unknown) =>
+        showToast(
+          "fail",
+          getErrorMessage(error, "초대코드를 복사하지 못했어요.")
+        )
+      );
+
   const changeCommentDraft = (id: string, draft: string) => {
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
     // 입력을 다 지우면 수정을 그만둔 것으로 본다.
@@ -489,6 +506,7 @@ function TeamTaskDetailContent({
           }
         />
         <TeamMemberSection
+          onInvitePress={copyInviteCode}
           onRetry={isMembersError ? () => refetchMembers() : undefined}
           members={members.map((member) => {
             const canManage = isOwner && member.id !== myUserId;
