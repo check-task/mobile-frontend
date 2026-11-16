@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { FolderReorderRow } from "./FolderReorderRow";
-import type { SettingsFolder } from "./settingsData";
+import type { SettingsFolder } from "../api/settings.types";
 
 // 폴더 행 높이(구분선 1 + 위아래 12 + 아이콘 24). 드래그 시 몇 칸 움직였는지 계산에 쓴다
 const ROW_HEIGHT = 49;

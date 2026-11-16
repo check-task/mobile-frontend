@@ -8,7 +8,7 @@ import { MAX_FOLDER_COUNT } from "@/constants/settings";
 import { cn } from "@/lib/utils";
 
 import { FolderReorderList } from "./FolderReorderList";
-import type { SettingsFolder } from "./settingsData";
+import type { SettingsFolder } from "../api/settings.types";
 import { SettingsCard } from "./SettingsCard";
 
 type FolderSettingsCardProps = {

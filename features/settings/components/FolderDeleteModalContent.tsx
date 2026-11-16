@@ -5,7 +5,7 @@ import { FolderColorDot } from "@/components/common/FolderColorDot/FolderColorDo
 import { FOLDER_TEXT_CLASS } from "@/constants/folderColorClass";
 import { cn } from "@/lib/utils";
 
-import type { SettingsFolder } from "./settingsData";
+import type { SettingsFolder } from "../api/settings.types";
 
 type FolderDeleteModalContentProps = {
   folder: SettingsFolder;

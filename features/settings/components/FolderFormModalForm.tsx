@@ -22,7 +22,8 @@ type FolderFormModalFormProps = {
   initialColor?: FolderColor;
   /** 다른 폴더가 이미 쓰는 색. 고르면 에러 문구를 보여주고 저장을 막는다 */
   usedColors: readonly FolderColor[];
-  onSubmit: (name: string, color: FolderColor) => void;
+  /** 끝날 때까지 버튼을 꺼 둔다 */
+  onSubmit: (name: string, color: FolderColor) => Promise<void>;
 };
 
 export function FolderFormModalForm({
@@ -33,6 +34,8 @@ export function FolderFormModalForm({
 }: FolderFormModalFormProps) {
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState<FolderColor | undefined>(initialColor);
+  // 두 번 눌러 요청이 두 번 가지 않게 한다
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isColorUsed = color !== undefined && usedColors.includes(color);
   const trimmedName = name.trim();
   const isChanged = trimmedName !== initialName || color !== initialColor;
@@ -83,9 +86,15 @@ export function FolderFormModalForm({
       <Button
         label="변경사항 저장"
         size="modal"
-        disabled={!canSave}
-        onPress={() => {
-          if (color) onSubmit(trimmedName, color);
+        disabled={!canSave || isSubmitting}
+        onPress={async () => {
+          if (!color) return;
+          setIsSubmitting(true);
+          try {
+            await onSubmit(trimmedName, color);
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
       />
     </View>
