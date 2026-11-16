@@ -125,3 +125,21 @@ export type ReferenceDto = {
   file_name?: string | null;
   file_url: string | null;
 };
+
+/** PATCH /api/v1/task/:taskId. 전부 선택. 유형(type)은 수정 화면에서 바꾸지 않아 보내지 않는다 */
+export type UpdateTaskRequest = {
+  title?: string;
+  /** null 이면 폴더 해제 */
+  folderId?: number | null;
+  /** ISO 8601 date-time */
+  deadline?: string;
+  /** 스펙은 id 없으면 생성이라지만 실제로는 무시된다. 새 세부 과제는 addSubTask 로 만든다 */
+  subTasks?: { id?: number; title: string; endDate: string | null }[];
+};
+
+/** PATCH /api/v1/reference/data/:taskId/:referenceId (multipart). 파일은 새로 골랐을 때만 보낸다 */
+export type UpdateReferenceParams = {
+  name: string;
+  url?: string;
+  file?: Blob | NativeFilePart;
+};

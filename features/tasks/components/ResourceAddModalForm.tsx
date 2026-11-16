@@ -1,4 +1,3 @@
-import type { DocumentPickerAsset } from "expo-document-picker";
 import { getDocumentAsync } from "expo-document-picker";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -9,16 +8,7 @@ import { Folder, Link } from "@/components/icons";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
 
-export type ResourceType = "file" | "url";
-
-export type ResourceDraft = {
-  type: ResourceType;
-  name: string;
-  /** 파일이면 파일 경로(이름), URL 이면 주소 */
-  path: string;
-  /** 파일 탭에서 고른 파일 */
-  file?: DocumentPickerAsset;
-};
+import type { ResourceDraft, ResourceType } from "../api/taskForm.types";
 
 const TYPE_TABS = [
   { type: "file", label: "파일 업로드", Icon: Folder },

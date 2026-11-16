@@ -61,6 +61,12 @@ type RefreshResponse = {
 // 동시에 여러 요청이 401을 받아도 재발급은 한 번만 보낸다
 let refreshing: Promise<boolean> | null = null;
 
+// 재발급 중에 다른 계정으로 로그인했으면 그 토큰을 건드리지 않는다
+async function isSameSession(refreshToken: string) {
+  const current = await getTokens();
+  return current?.refreshToken === refreshToken;
+}
+
 /** access token 재발급. 성공하면 true */
 function refreshAccessToken() {
   refreshing ??= (async () => {
@@ -78,12 +84,20 @@ function refreshAccessToken() {
         }
       );
       const { accessToken } = unwrap(response.data);
+      // 세션이 바뀌었으면 이전 계정 요청이 새 계정 토큰으로 나가지 않게 재시도하지 않는다
+      if (!(await isSameSession(tokens.refreshToken))) return false;
       await saveTokens({ ...tokens, accessToken });
       return true;
     } catch (error) {
       // refresh token 이 만료됐거나 없으면 다시 로그인해야 해서 지운다. 네트워크 오류면 남겨 둔다
-      const status = axios.isAxiosError(error) ? error.response?.status : null;
-      if (status === 400 || status === 401) await clearTokens();
+      // HTTP 2xx 에 FAIL envelope 가 와도 envelope 의 code 로 판단한다
+      const { status } = toApiError(error);
+      if (
+        (status === 400 || status === 401) &&
+        (await isSameSession(tokens.refreshToken))
+      ) {
+        await clearTokens();
+      }
       return false;
     }
   })().finally(() => {
