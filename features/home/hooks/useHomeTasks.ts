@@ -1,22 +1,16 @@
 import { useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
-import { ApiError } from "@/lib/api/apiError";
-import { getErrorMessage } from "@/lib/errorMessage";
 
 import type { HomeSort, HomeTask } from "../api/home.types";
 import type { CalendarItem } from "../components/homeData";
 
 import { useHomeTasksQuery } from "./useHomeTasksQuery";
 import {
-  type MoveDeadlineInput,
+  SUB_TASK_AFTER_TASK_MESSAGE,
+  TASK_BEFORE_SUB_TASK_MESSAGE,
   useMoveDeadlineMutation,
 } from "./useMoveDeadlineMutation";
-
-const SUB_TASK_AFTER_TASK_MESSAGE = "마감일 이전 날짜로 설정할 수 없습니다.";
-// 서버 400 reason 과 같은 문구
-const TASK_BEFORE_SUB_TASK_MESSAGE =
-  "세부 과제의 마감일보다 이른 날짜로 변경할 수 없습니다.";
 
 const EMPTY: never[] = [];
 
@@ -108,22 +102,6 @@ export function useHomeTasks() {
       color: task.color,
     }));
 
-  const save = (input: MoveDeadlineInput) =>
-    moveDeadline(input, {
-      // 완료된 세부 task 는 목록에 없어 서버만 막을 수 있다 → 원위치(mutation) + 토스트.
-      // 과제 충돌은 서버 reason 이 TASK_BEFORE_SUB_TASK_MESSAGE 와 같다
-      onError: (error) => {
-        const isSubTaskAfterTask =
-          error instanceof ApiError && error.errorCode === "INVALID_DEADLINE";
-        showToast(
-          "fail",
-          isSubTaskAfterTask
-            ? SUB_TASK_AFTER_TASK_MESSAGE
-            : getErrorMessage(error, "마감일을 바꾸지 못했습니다.")
-        );
-      },
-    });
-
   /**
    * 드롭한 날짜(시간 없음)로 마감일을 바꾼다. `null` 은 날짜 미지정(세부 task 만).
    * 마감일 순서가 어긋나면 바꾸지 않고 토스트를 띄운다.
@@ -145,7 +123,7 @@ export function useHomeTasks() {
         showToast("fail", TASK_BEFORE_SUB_TASK_MESSAGE);
         return;
       }
-      save({ kind: "main", id: item.id, dateKey });
+      moveDeadline({ kind: "main", id: item.id, dateKey });
       return;
     }
     const subTask = subTasks.find(({ id }) => id === item.id);
@@ -155,7 +133,7 @@ export function useHomeTasks() {
       showToast("fail", SUB_TASK_AFTER_TASK_MESSAGE);
       return;
     }
-    save({ kind: "sub", id: item.id, dateKey });
+    moveDeadline({ kind: "sub", id: item.id, dateKey });
   };
 
   return {
