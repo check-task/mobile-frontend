@@ -75,31 +75,38 @@ export function SubTaskList({
       </View>
 
       <View style={cardShadow} className="gap-4 rounded-xl bg-bg px-3 py-4">
-        <View className="gap-4">
-          {visibleItems.map((item) => {
-            const isExpanded = expandedIds?.includes(item.id) ?? false;
+        {/* 비어 있을 때 빈 목록 View 가 gap 을 한 번 더 먹어 `세부과제 추가`가 내려가므로, 목록 대신 안내 문구를 둔다 */}
+        {items.length === 0 ? (
+          <Text className="text-gray-400 text-b-04-r">
+            등록된 TASK가 없습니다.
+          </Text>
+        ) : (
+          <View className="gap-4">
+            {visibleItems.map((item) => {
+              const isExpanded = expandedIds?.includes(item.id) ?? false;
 
-            return (
-              <View key={item.id} className="gap-3">
-                <SubTaskRow
-                  title={item.title}
-                  dueDate={item.dueDate}
-                  done={item.done}
-                  alarm={item.alarm}
-                  onToggle={onToggle ? () => onToggle(item.id) : undefined}
-                  onAlarmPress={
-                    onAlarmPress ? () => onAlarmPress(item.id) : undefined
-                  }
-                  expanded={isExpanded}
-                  onExpandPress={
-                    onExpandPress ? () => onExpandPress(item.id) : undefined
-                  }
-                />
-                {isExpanded && renderExpanded ? renderExpanded(item) : null}
-              </View>
-            );
-          })}
-        </View>
+              return (
+                <View key={item.id} className="gap-3">
+                  <SubTaskRow
+                    title={item.title}
+                    dueDate={item.dueDate}
+                    done={item.done}
+                    alarm={item.alarm}
+                    onToggle={onToggle ? () => onToggle(item.id) : undefined}
+                    onAlarmPress={
+                      onAlarmPress ? () => onAlarmPress(item.id) : undefined
+                    }
+                    expanded={isExpanded}
+                    onExpandPress={
+                      onExpandPress ? () => onExpandPress(item.id) : undefined
+                    }
+                  />
+                  {isExpanded && renderExpanded ? renderExpanded(item) : null}
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {isCollapsed ? (
           <ExpandButton onPress={() => setExpanded(true)} />

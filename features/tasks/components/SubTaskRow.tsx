@@ -2,6 +2,7 @@ import { Pressable, Text, View } from "react-native";
 
 import {
   Bottom,
+  Box,
   Calendar,
   CheckBox,
   Clock,
@@ -66,7 +67,7 @@ export function SubTaskRow({
           {done ? (
             <CheckBox variant="lg" className="text-gray-400" />
           ) : (
-            <View className="h-4 w-4 rounded-[1px] border border-gray-900" />
+            <Box variant="lg" className="text-gray-900" />
           )}
         </Pressable>
         <Text
@@ -84,7 +85,10 @@ export function SubTaskRow({
       <View className="flex-row items-center gap-1">
         <View className="w-20 flex-row items-center gap-1">
           <Calendar variant="lg" className={metaColorClass} />
-          <Text className={cn(metaColorClass, "text-b-04-r")}>{dueDate}</Text>
+          {/* 달력 아이콘은 상자가 아래쪽(y 6~20)에 있어, 가운데 둔 글자가 위로 떠 보인다. 상자 가운데에 맞춰 1px 내린다. */}
+          <Text className={cn(metaColorClass, "translate-y-px text-b-04-r")}>
+            {dueDate}
+          </Text>
         </View>
         <Pressable
           accessibilityRole={onAlarmPress ? "button" : undefined}

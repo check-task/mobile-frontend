@@ -25,6 +25,7 @@ import type { ResourceDraft } from "../api/taskForm.types";
 import {
   type TaskDetail,
   toReferenceParams,
+  toImageUrl,
   toServerDate,
   toUpdateReferenceParams,
 } from "../api/taskMapper";
@@ -40,6 +41,7 @@ import { useTaskRoom } from "../hooks/useTaskRoom";
 import { ResourceSection } from "./ResourceSection";
 import { SubTaskList } from "./SubTaskList";
 import { TaskDetailHeader } from "./TaskDetailHeader";
+import { MemberAvatar } from "./MemberAvatar";
 import { type AnchorRect, MenuPopover } from "./MenuPopover";
 import { TaskDetailStatus } from "./TaskDetailStatus";
 import { TeamMemberSection } from "./TeamMemberSection";
@@ -142,6 +144,7 @@ function TeamTaskDetailContent({
   } | null>(null);
 
   const doneToggle = useSubTaskToggle({
+    taskId,
     field: "done",
     submit: (subTaskId, done) =>
       emitAndRefresh("updateSubtaskStatus", {
@@ -152,6 +155,7 @@ function TeamTaskDetailContent({
     failMessage: "완료 상태를 바꾸지 못했어요.",
   });
   const alarmToggle = useSubTaskToggle({
+    taskId,
     field: "alarm",
     submit: (subTaskId, isAlarm) =>
       emitAndRefresh("subtask:update", {
@@ -542,6 +546,7 @@ function TeamTaskDetailContent({
             return {
               id: String(member.id),
               name: member.nickname,
+              avatarUrl: toImageUrl(member.profileImage),
               role: toMemberRole(member, myUserId),
               onRolePress: canManage
                 ? (anchor: AnchorRect) => setMemberMenu({ member, anchor })
@@ -562,7 +567,12 @@ function TeamTaskDetailContent({
               member.id === myUserId
                 ? `${member.nickname}(you)`
                 : member.nickname,
-            leading: <View className="h-4 w-4 rounded-full bg-blue-100" />,
+            leading: (
+              <MemberAvatar
+                uri={toImageUrl(member.profileImage)}
+                className="h-4 w-4 bg-blue-100"
+              />
+            ),
           }))}
           onSelect={(key) =>
             assigneeMenu && toggleAssignee(assigneeMenu.subTaskId, Number(key))

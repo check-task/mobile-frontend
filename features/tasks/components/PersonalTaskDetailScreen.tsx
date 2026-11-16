@@ -98,6 +98,7 @@ function PersonalTaskDetailContent({
   const updateStatusMutation = useUpdateSubTaskStatusMutation(taskId);
   const updateAlarmMutation = useUpdateSubTaskAlarmMutation(taskId);
   const doneToggle = useSubTaskToggle({
+    taskId,
     field: "done",
     submit: (subTaskId, done) =>
       updateStatusMutation.mutateAsync({
@@ -107,6 +108,7 @@ function PersonalTaskDetailContent({
     failMessage: "완료 상태를 바꾸지 못했어요.",
   });
   const alarmToggle = useSubTaskToggle({
+    taskId,
     field: "alarm",
     submit: (subTaskId, isAlarm) =>
       updateAlarmMutation.mutateAsync({ subTaskId, isAlarm }),

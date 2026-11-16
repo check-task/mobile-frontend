@@ -53,7 +53,7 @@ export function SubTaskAddForm({
             onChange={onChangeDueDate}
             allowNoDate
             maxDate={maxDate}
-            placeholder="미지정"
+            placeholder="지정안함"
             size="sm"
           />
         </View>
