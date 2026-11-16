@@ -5,20 +5,22 @@ import { Button } from "@/components/common/Button/Button";
 import { Chip } from "@/components/common/Chip/Chip";
 import { Input } from "@/components/common/Input/Input";
 
-import type { HomeFolder } from "./homeData";
+import { useHomeFoldersQuery } from "../hooks/useHomeFoldersQuery";
 
 type JoinTeamTaskModalFormProps = {
-  folders: readonly HomeFolder[];
-  /** 폴더를 고르지 않으면 `null` (서버 기본 폴더) */
-  onSubmit: (inviteCode: string, folderId: number | null) => void;
+  /** 폴더를 고르지 않으면 `null` (서버 기본 폴더). 끝날 때까지 버튼을 꺼 둔다 */
+  onSubmit: (inviteCode: string, folderId: number | null) => Promise<void>;
 };
 
 export function JoinTeamTaskModalForm({
-  folders,
   onSubmit,
 }: JoinTeamTaskModalFormProps) {
+  // 모달 내용은 열 때 고정되므로 props 대신 직접 조회해야 열린 뒤 도착한 폴더도 보인다
+  const folders = useHomeFoldersQuery().data ?? [];
   const [folderId, setFolderId] = useState<number | null>(null);
   const [inviteCode, setInviteCode] = useState("");
+  // 두 번 눌러 참여 요청이 두 번 가지 않게 한다
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const trimmedCode = inviteCode.trim();
 
   return (
@@ -54,8 +56,15 @@ export function JoinTeamTaskModalForm({
         label="팀 과제 참여"
         size="modal"
         className="mt-2"
-        disabled={trimmedCode === ""}
-        onPress={() => onSubmit(trimmedCode, folderId)}
+        disabled={trimmedCode === "" || isSubmitting}
+        onPress={async () => {
+          setIsSubmitting(true);
+          try {
+            await onSubmit(trimmedCode, folderId);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
       />
     </View>
   );

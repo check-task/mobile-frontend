@@ -22,7 +22,7 @@ export type CreateTaskRequest = {
 
 export type CreateTaskResponse = { taskId: number };
 
-/** GET /api/v1/task 의 과제 항목 (완료된 과제는 빠진다) */
+/** GET /api/v1/task 의 과제 항목 */
 export type TaskListItemDto = {
   taskId: number;
   folderId: number | null;
@@ -58,19 +58,6 @@ export type CompletedTaskDto = {
 
 export type CompletedTasksResponse = {
   tasks: CompletedTaskDto[];
-};
-
-export type MyFolder = {
-  folderId: number;
-  folderTitle: string;
-  /** hex 문자열. taskMapper 에서 FolderColor 토큰으로 바꾼다 */
-  color: string;
-};
-
-/** GET /api/v1/user/me 중 과제 등록에 쓰는 필드만 */
-export type MyInfoResponse = {
-  userId: number;
-  folders: MyFolder[];
 };
 
 export type CreateReferenceParams =

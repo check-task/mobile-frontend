@@ -27,10 +27,15 @@ instance.interceptors.request.use(async (config) => {
   return config;
 });
 
-function unwrap<T>(body: ApiEnvelope<T>): T {
+function unwrap<T>(body: ApiEnvelope<T>, httpStatus = 0): T {
   if ("resultType" in body) {
     if (body.resultType === "SUCCESS") return body.data;
-    throw new ApiError(body.code, body.errorCode, body.reason);
+    const detail = body.error ?? body;
+    throw new ApiError(
+      body.code ?? httpStatus,
+      detail.errorCode ?? null,
+      detail.reason ?? "요청을 처리하지 못했습니다."
+    );
   }
   if (body.isSuccess) return body.data;
   throw new ApiError(body.status, body.code, body.message);
@@ -43,7 +48,7 @@ function toApiError(error: unknown): ApiError {
     const body = error.response?.data;
     if (body && typeof body === "object") {
       try {
-        unwrap(body);
+        unwrap(body, status);
       } catch (apiError) {
         if (apiError instanceof ApiError) return apiError;
       }
@@ -117,7 +122,7 @@ function shouldRefresh(error: unknown, config: AxiosRequestConfig) {
 
 async function send<T>(config: AxiosRequestConfig) {
   const response = await instance.request<ApiEnvelope<T>>(config);
-  return unwrap(response.data);
+  return unwrap(response.data, response.status);
 }
 
 async function request<T>(config: AxiosRequestConfig): Promise<T> {

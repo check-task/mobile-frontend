@@ -1,8 +1,10 @@
 import { Platform } from "react-native";
 
 import { type DueDate, formatShortDate } from "@/lib/dueDate";
+import { toFolderColor } from "@/lib/folderColor";
 import type { FolderColor } from "@/types/folder.types";
 import type { NativeFilePart } from "@/types/formData.types";
+import type { MyFolder } from "@/types/user.types";
 
 import type { Resource } from "../components/ResourceSection";
 import type { SubTask } from "../components/SubTaskRow";
@@ -13,26 +15,12 @@ import type {
 import type {
   CompletedTaskDto,
   CreateReferenceParams,
-  MyFolder,
   TaskDetailResponse,
   TaskListItemDto,
   UpdateReferenceParams,
 } from "./task.types";
 import type { ResourceDraft, TaskFormValue } from "./taskForm.types";
 import type { TaskFolder, TaskListItem } from "./taskList.types";
-
-// 디자인 토큰(constants/theme-vars.ts 라이트 값)과 hex 가 같을 때만 매핑한다.
-const FOLDER_COLOR_BY_HEX: Record<string, FolderColor> = {
-  "#F55757": "sub-01",
-  "#FFC93F": "sub-02",
-  "#6EC77B": "sub-03",
-  "#A177E2": "sub-04",
-  "#081221": "sub-05",
-};
-
-export function toFolderColor(hex: string): FolderColor {
-  return FOLDER_COLOR_BY_HEX[hex.toUpperCase()] ?? "sub-null";
-}
 
 export type TaskDetail = {
   title: string;
