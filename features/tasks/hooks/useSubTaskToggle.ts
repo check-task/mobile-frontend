@@ -1,44 +1,50 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
 
+import { taskKeys } from "../api/taskApi";
 import type { SubTask } from "../components/SubTaskRow";
+import { useTaskDetailQuery } from "./useTaskDetailQuery";
 
 type UseSubTaskToggleParams = {
-  /** 조회 결과의 세부 과제 목록. 저장한 값이 여기에 반영되면 덮어 쓴 값을 뺀다. */
-  serverSubTasks: readonly SubTask[];
+  taskId: number;
   field: "done" | "alarm";
   submit: (subTaskId: number, value: boolean) => Promise<unknown>;
   failMessage: string;
 };
 
-/** settled: 저장은 끝났고 조회 결과에 반영되기를 기다리는 중 */
-type Pending = Readonly<Record<string, { value: boolean; settled: boolean }>>;
+/** savedAt: 저장이 끝났을 때 캐시에 들어 있던 상세 조회 시각. 화면이 이 조회를 그리면 덮어 쓴 값을 뺀다. */
+type Pending = Readonly<
+  Record<string, { value: boolean; savedAt: number | null }>
+>;
 
 // 누른 값을 기억해 조회 결과 위에 덮어 그린다.
 // 같은 항목의 요청은 하나씩 보내서, 연달아 눌러도 서버에 마지막으로 누른 값이 남게 한다.
-// 저장이 끝나도 조회 결과가 그 값으로 바뀐 뒤에 빼야 한다. 바로 빼면 한 프레임 예전 값이 보여 아이콘이 흔들린다.
+// submit 은 저장한 뒤 상세를 다시 받아 오고 끝나므로, 그때 캐시의 조회 시각(dataUpdatedAt)이 저장 이후 조회다.
+// 화면이 그 조회를 그린 뒤에 뺀다. 바로 빼면 화면이 아직 예전 조회를 그리고 있어 한 프레임 예전 값이 보인다.
+// 값이 같은지가 아니라 조회 시각으로 판단하므로, 그 사이 팀원이 바꾼 값도 가리지 않고 그대로 보여 준다.
 export function useSubTaskToggle({
-  serverSubTasks,
+  taskId,
   field,
   submit,
   failMessage,
 }: UseSubTaskToggleParams) {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const { dataUpdatedAt } = useTaskDetailQuery(taskId);
   const [pending, setPending] = useState<Pending>({});
   // 항목별로 마지막으로 누른 값. 요청 중인 항목만 들어 있다.
   const desiredRef = useRef<Record<string, boolean>>({});
 
-  // 조회 결과나 덮어 쓴 값이 바뀐 렌더에서 바로, 저장이 끝나 조회 결과에 반영된 항목을 뺀다.
-  // 조회가 저장 완료 표시보다 먼저 끝나는 경우도 있어서 둘 중 하나만 바뀌어도 다시 본다.
-  const [synced, setSynced] = useState({ server: serverSubTasks, pending });
-  if (synced.server !== serverSubTasks || synced.pending !== pending) {
-    setSynced({ server: serverSubTasks, pending });
+  // 그리는 조회나 덮어 쓴 값이 바뀐 렌더에서 바로, 저장 이후 조회가 그려진 항목을 뺀다.
+  const [synced, setSynced] = useState({ dataUpdatedAt, pending });
+  if (synced.dataUpdatedAt !== dataUpdatedAt || synced.pending !== pending) {
+    setSynced({ dataUpdatedAt, pending });
     const reflected = Object.keys(pending).filter((id) => {
-      const entry = pending[id];
-      const server = serverSubTasks.find((subTask) => subTask.id === id);
-      return entry.settled && server?.[field] === entry.value;
+      const { savedAt } = pending[id];
+      return savedAt !== null && dataUpdatedAt >= savedAt;
     });
     if (reflected.length > 0) {
       const next = { ...pending };
@@ -62,9 +68,11 @@ export function useSubTaskToggle({
         await submit(Number(id), sent);
       } while (desiredRef.current[id] !== sent);
       delete desiredRef.current[id];
+      const savedAt =
+        queryClient.getQueryState(taskKeys.detail(taskId))?.dataUpdatedAt ?? 0;
       setPending((current) =>
         current[id]
-          ? { ...current, [id]: { ...current[id], settled: true } }
+          ? { ...current, [id]: { ...current[id], savedAt } }
           : current
       );
     } catch (error: unknown) {
@@ -80,7 +88,7 @@ export function useSubTaskToggle({
       return;
     }
     const value = !target[field];
-    setPending((current) => ({ ...current, [id]: { value, settled: false } }));
+    setPending((current) => ({ ...current, [id]: { value, savedAt: null } }));
     const inFlight = id in desiredRef.current;
     desiredRef.current[id] = value;
     // 요청 중이면 값만 바꿔 두고, 진행 중인 요청이 끝난 뒤 이어서 보낸다.
