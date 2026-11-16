@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/common/Button/Button";
 import { Input } from "@/components/common/Input/Input";
+import { useToast } from "@/hooks/useToast";
+import { ApiError } from "@/lib/api/apiError";
+
+import { useSignInMutation } from "../hooks/useSignInMutation";
 
 import { LegalDocumentModal } from "./LegalDocumentModal";
 import { PRIVACY_POLICY, TERMS_OF_SERVICE } from "./legalDocuments";
@@ -23,14 +27,40 @@ const LEGAL_DOCUMENTS = {
 
 type LegalDocumentKey = keyof typeof LEGAL_DOCUMENTS;
 
+function getSignInErrorMessage(error: Error) {
+  // 401은 서버 문구(이메일 또는 비밀번호가 올바르지 않습니다.)를 그대로 보여준다
+  if (error instanceof ApiError && error.status === 401) {
+    return error.reason;
+  }
+  return "로그인하지 못했어요. 잠시 후 다시 시도해 주세요.";
+}
+
 export function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
+  const signInMutation = useSignInMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [openedDocument, setOpenedDocument] = useState<LegalDocumentKey | null>(
     null
   );
+
+  const submit = () => {
+    if (signInMutation.isPending) return;
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      showToast("fail", "이메일과 비밀번호를 입력해 주세요.");
+      return;
+    }
+    signInMutation.mutate(
+      { email: trimmedEmail, password },
+      {
+        onSuccess: () => router.replace("/"),
+        onError: (error) => showToast("fail", getSignInErrorMessage(error)),
+      }
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-0">
@@ -100,7 +130,7 @@ export function LoginScreen() {
           </View>
         </View>
 
-        <Button label="이메일로 로그인" className="mt-7" />
+        <Button label="이메일로 로그인" onPress={submit} className="mt-7" />
 
         <View className="mt-5 flex-row items-center gap-2">
           <View className="h-px flex-1 bg-gray-400" />
