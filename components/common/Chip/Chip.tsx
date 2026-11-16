@@ -74,6 +74,8 @@ export type ChipProps = {
   variant?: ChipVariant;
   /** 칩을 탭했을 때 */
   onPress?: () => void;
+  /** 선택 상태. 화면마다 선택을 나타내는 variant 가 달라 스크린리더용으로 따로 받는다. */
+  selected?: boolean;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
 };
@@ -87,11 +89,13 @@ export function Chip({
   color = "sub-null",
   variant = "default",
   onPress,
+  selected,
   className,
 }: ChipProps) {
   return (
     <Pressable
       accessibilityRole={onPress ? "button" : undefined}
+      accessibilityState={selected === undefined ? undefined : { selected }}
       onPress={onPress}
       className={cn(
         "flex-row items-center gap-0.5 rounded-full border px-2 py-1",
