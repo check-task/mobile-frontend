@@ -40,7 +40,7 @@ const CONTENT_BOTTOM_OFFSET = 40;
 export function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { openModal, closeModal } = useModal();
+  const { openModal, closeModal, closeModalIf, getCurrentModal } = useModal();
   const { showToast } = useToast();
   const { preference: themePreference, setPreference: setThemePreference } =
     useThemePreference();
@@ -61,20 +61,18 @@ export function SettingsScreen() {
   const showFail = (error: unknown, fallback: string) =>
     showToast("fail", getErrorMessage(error, fallback));
 
-  const changeAlarm = (kind: AlarmKind, hours: number) => {
+  // mutate 의 개별 콜백은 마지막 호출에만 불려서, 요청마다 실패를 처리하려고 mutateAsync 를 쓴다
+  const changeAlarm = async (kind: AlarmKind, hours: number) => {
     setAlarmDraft((prev) => ({ ...prev, [kind]: hours }));
-    updateAlarmMutation.mutate(
-      { kind, hours },
-      {
-        onError: (error) => {
-          // 그사이 다른 값을 고르지 않았을 때만 서버 값으로 되돌린다
-          setAlarmDraft((prev) =>
-            prev[kind] === hours ? { ...prev, [kind]: undefined } : prev
-          );
-          showFail(error, "알림 시간을 저장하지 못했습니다.");
-        },
-      }
-    );
+    try {
+      await updateAlarmMutation.mutateAsync({ kind, hours });
+    } catch (error) {
+      // 그사이 다른 값을 고르지 않았을 때만 서버 값으로 되돌린다
+      setAlarmDraft((prev) =>
+        prev[kind] === hours ? { ...prev, [kind]: undefined } : prev
+      );
+      showFail(error, "알림 시간을 저장하지 못했습니다.");
+    }
   };
 
   const openFolderForm = (folders: SettingsFolder[], folder?: SettingsFolder) =>
@@ -90,6 +88,7 @@ export function SettingsScreen() {
             .map((other) => other.color)}
           onSubmit={async (name, color) => {
             const body = { folderTitle: name, color: toFolderHex(color) };
+            const requestModal = getCurrentModal();
             try {
               if (folder) {
                 await updateFolderMutation.mutateAsync({
@@ -99,7 +98,8 @@ export function SettingsScreen() {
               } else {
                 await createFolderMutation.mutateAsync(body);
               }
-              closeModal();
+              // 그사이 닫고 다른 모달을 열었으면 그 모달은 닫지 않는다
+              closeModalIf(requestModal);
             } catch (error) {
               showFail(error, "폴더를 저장하지 못했습니다.");
             }
@@ -135,11 +135,12 @@ export function SettingsScreen() {
         <ProfileEditModalForm
           initialProfile={initialProfile}
           onSubmit={async (profile, photo) => {
+            const requestModal = getCurrentModal();
             try {
               await updateProfileMutation.mutateAsync(
                 toUpdateProfileRequest(initialProfile, profile, photo)
               );
-              closeModal();
+              closeModalIf(requestModal);
             } catch (error) {
               showFail(error, "내 정보를 저장하지 못했습니다.");
             }
@@ -148,7 +149,7 @@ export function SettingsScreen() {
       ),
     });
 
-  // 비밀번호 변경·회원탈퇴·알림 설정 API 는 인증/알림 담당자가 연결한다
+  // 비밀번호 변경·회원탈퇴 API 는 인증 담당자가 연결한다
   const openPasswordChange = () =>
     openModal({
       title: "비밀번호 변경",
@@ -255,7 +256,10 @@ export function SettingsScreen() {
                   onEdit={(folder) => openFolderForm(user.folders, folder)}
                   onDelete={openFolderDelete}
                   onReorderStart={() => setReordering(true)}
-                  onReorderCancel={() => setReordering(false)}
+                  // 저장 중에 취소·재진입하면 이전 저장 완료가 새 편집을 끝내서 막는다
+                  onReorderCancel={() => {
+                    if (!reorderFoldersMutation.isPending) setReordering(false);
+                  }}
                   onReorderSave={saveFolderOrder}
                   onHandleHoldChange={setScrollLocked}
                 />

@@ -72,9 +72,10 @@ export function ProfileEditModalForm({
             <PhotoActionButton
               label="사진삭제"
               icon={<Cancel variant="sm" className="text-gray-400" />}
+              // 서버가 사진 삭제를 지원하지 않아(#90) 새로 고른 사진만 취소한다
               onPress={() => {
                 setPhoto(null);
-                update({ profileImage: null });
+                update({ profileImage: initialProfile.profileImage });
               }}
             />
           </View>

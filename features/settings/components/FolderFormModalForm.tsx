@@ -33,7 +33,10 @@ export function FolderFormModalForm({
   onSubmit,
 }: FolderFormModalFormProps) {
   const [name, setName] = useState(initialName);
-  const [color, setColor] = useState<FolderColor | undefined>(initialColor);
+  // 팔레트에 없는 색(sub-null)은 고른 것으로 보지 않아 새 색을 골라야 저장된다
+  const [color, setColor] = useState<FolderColor | undefined>(
+    initialColor === "sub-null" ? undefined : initialColor
+  );
   // 두 번 눌러 요청이 두 번 가지 않게 한다
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isColorUsed = color !== undefined && usedColors.includes(color);
