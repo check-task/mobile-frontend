@@ -12,11 +12,13 @@ export type DeleteConfirmModalContentProps = DeleteConfirmQuestion & {
   description: string;
   /** 확인 버튼 문구. (기본값: `삭제`) */
   confirmLabel?: string;
+  /** 취소 버튼 문구. (기본값: `취소`) */
+  cancelLabel?: string;
   /** `true`면 `취소`가 확인 버튼 위에 놓인다. (기본값: `false`) */
   cancelFirst?: boolean;
   /** 확인 버튼을 눌렀을 때 */
   onConfirm: () => void;
-  /** `취소`를 눌렀을 때 */
+  /** 취소 버튼을 눌렀을 때 */
   onCancel: () => void;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
   className?: string;
@@ -27,6 +29,7 @@ export function DeleteConfirmModalContent({
   targetName,
   description,
   confirmLabel = "삭제",
+  cancelLabel = "취소",
   cancelFirst = false,
   onConfirm,
   onCancel,
@@ -41,7 +44,12 @@ export function DeleteConfirmModalContent({
     />
   );
   const cancelButton = (
-    <Button label="취소" variant="gray" size="modal" onPress={onCancel} />
+    <Button
+      label={cancelLabel}
+      variant="gray"
+      size="modal"
+      onPress={onCancel}
+    />
   );
 
   return (

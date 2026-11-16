@@ -52,3 +52,14 @@ export const CustomConfirmLabel: Story = {
     confirmLabel: "팀원 삭제",
   },
 };
+
+/** 확인·취소 문구를 모두 바꾼 경우 (회원탈퇴 `예`/`아니오`). */
+export const CustomCancelLabel: Story = {
+  args: {
+    heading: "회원탈퇴를 진행하시겠습니까?",
+    description:
+      "탈퇴 시 계정은 즉시 비활성화되며, 회원 정보는 4일간 보관 후 영구 삭제됩니다. 보관 기간 내에는 계정 복구가 가능합니다.",
+    confirmLabel: "예",
+    cancelLabel: "아니오",
+  },
+};

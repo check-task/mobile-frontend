@@ -27,7 +27,11 @@ export function MenuScreen() {
       icon: TaskHistory,
       onPress: () => router.navigate("/tasks/completed"),
     },
-    { label: "내 정보", icon: User },
+    {
+      label: "내 정보",
+      icon: User,
+      onPress: () => router.navigate("/settings"),
+    },
     {
       label: "공지사항",
       icon: Notice,
