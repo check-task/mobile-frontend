@@ -10,6 +10,7 @@ const meta = {
   tags: ["autodocs"],
   argTypes: {
     defaultOpen: { control: "boolean" },
+    open: { control: "boolean" },
   },
   decorators: [
     (Story) => (
@@ -28,4 +29,9 @@ export const Default: Story = {};
 
 export const Open: Story = {
   args: { defaultOpen: true },
+};
+
+/** `open`을 넘기면 열림 상태를 호출부가 정한다(예: 홈 화면이 뒤 배경을 어둡게 깔 때). */
+export const Controlled: Story = {
+  args: { open: true },
 };
