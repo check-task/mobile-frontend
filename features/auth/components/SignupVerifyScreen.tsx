@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
@@ -21,6 +21,7 @@ export function SignupVerifyScreen() {
   const verifyMutation = useVerifyEmailCodeMutation();
   const resendMutation = useResendEmailCodeMutation();
   const [status, setStatus] = useState<VerificationStatus>("idle");
+  const latestCodeRef = useRef("");
 
   // 웹 새로고침 등으로 이메일이 없으면 처음 단계로
   useEffect(() => {
@@ -37,7 +38,8 @@ export function SignupVerifyScreen() {
         },
         onError: (error) => {
           if (error instanceof ApiError && error.errorCode === "INVALID_CODE") {
-            setStatus("mismatch");
+            // 확인하는 동안 코드를 고쳤으면 새 코드에 불일치를 띄우지 않는다
+            if (latestCodeRef.current === code) setStatus("mismatch");
             return;
           }
           showToast(
@@ -49,15 +51,20 @@ export function SignupVerifyScreen() {
     );
   };
 
-  const resend = () => {
-    setStatus("idle");
-    resendMutation.mutate(email, {
-      onError: (error) =>
-        showToast(
-          "fail",
-          getAuthErrorMessage(error, "인증코드를 다시 보내지 못했어요.")
-        ),
-    });
+  // 발송에 성공했을 때만 true 를 돌려줘서 그때만 타이머를 다시 시작한다
+  const resend = async () => {
+    if (resendMutation.isPending) return false;
+    try {
+      await resendMutation.mutateAsync(email);
+      setStatus("idle");
+      return true;
+    } catch (error) {
+      showToast(
+        "fail",
+        getAuthErrorMessage(error, "인증코드를 다시 보내지 못했어요.")
+      );
+      return false;
+    }
   };
 
   return (
@@ -68,7 +75,10 @@ export function SignupVerifyScreen() {
       status={status}
       onResend={resend}
       onSubmit={submit}
-      onCodeChange={() => setStatus("idle")}
+      onCodeChange={(code) => {
+        latestCodeRef.current = code.trim();
+        setStatus("idle");
+      }}
       isSubmitting={verifyMutation.isPending}
     />
   );
