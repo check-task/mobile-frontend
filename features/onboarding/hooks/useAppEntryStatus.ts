@@ -8,6 +8,7 @@ import {
 import {
   getOnboardingSeen,
   loadOnboardingSeen,
+  markOnboardingSeen,
   subscribeOnboardingSeen,
 } from "@/lib/onboardingStorage";
 
@@ -37,6 +38,13 @@ export function useAppEntryStatus() {
     getTokens();
     loadOnboardingSeen();
   }, []);
+
+  // 온보딩 기록이 없던 때부터 로그인해 있던 사용자도 로그아웃하면 온보딩이 아니라 로그인 화면으로 가게 한다
+  useEffect(() => {
+    if (isSignedIn === true && hasSeenOnboarding === false) {
+      markOnboardingSeen();
+    }
+  }, [isSignedIn, hasSeenOnboarding]);
 
   return {
     isLoading: isSignedIn === undefined || hasSeenOnboarding === undefined,

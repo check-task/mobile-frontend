@@ -18,7 +18,7 @@ import "@/global.css";
 
 import { themeVars } from "@/constants/theme-vars";
 import { SplashScreen } from "@/features/onboarding/components/SplashScreen";
-import { useAppEntryStatus } from "@/hooks/useAppEntryStatus";
+import { useAppEntryStatus } from "@/features/onboarding/hooks/useAppEntryStatus";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ModalProvider } from "@/providers/ModalProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
