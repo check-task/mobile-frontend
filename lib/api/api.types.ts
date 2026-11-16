@@ -6,9 +6,11 @@ export type ApiSuccess<T> = {
 
 export type ApiFailure = {
   resultType: "FAIL";
-  code: number;
-  errorCode: string;
-  reason: string;
+  code?: number;
+  errorCode?: string;
+  reason?: string;
+  /** 일부 API(예: 과제 마감일 변경)는 실패 내용을 error 로 감싸서 준다 */
+  error?: { errorCode: string; reason: string };
   data: null;
 };
 
