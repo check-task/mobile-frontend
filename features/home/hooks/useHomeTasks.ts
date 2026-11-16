@@ -167,7 +167,10 @@ export function useHomeTasks() {
     getDayItems,
     sort,
     setSort,
-    // 서버가 sort 대로 정렬해서 준다
-    sortedTasks: tasks,
+    // 서버가 sort 대로 정렬해서 준다. 진척도순만 서버가 낮은 순이라 높은 순으로 뒤집는다(같은 값은 서버 순서 유지)
+    sortedTasks:
+      sort === "PROGRESSRATE"
+        ? [...tasks].sort((a, b) => b.progressRate - a.progressRate)
+        : tasks,
   };
 }
