@@ -8,8 +8,9 @@ import type {
 } from "./home.types";
 
 export const homeKeys = {
-  // taskKeys.all(["task"]) 아래에 두어 과제 생성·수정·삭제 후 함께 다시 불러온다
-  lists: () => ["task", "list"] as const,
+  // tasks 의 taskKeys.all 과 같은 값이어야 과제 생성·수정·삭제 후 홈 목록도 다시 불러온다
+  all: ["task"] as const,
+  lists: () => [...homeKeys.all, "list"] as const,
   list: (params: TaskListParams) => [...homeKeys.lists(), params] as const,
 };
 

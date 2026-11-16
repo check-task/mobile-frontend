@@ -53,6 +53,6 @@ export function useMoveDeadlineMutation() {
       );
     },
     // 과제 상세의 마감일·D-day 도 바뀌므로 과제 전체를 다시 불러온다
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["task"] }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: homeKeys.all }),
   });
 }
