@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { Button } from "@/components/common/Button/Button";
+import { PasswordCriteria } from "@/components/common/PasswordCriteria/PasswordCriteria";
+import { isValidPassword } from "@/lib/password";
 
 import { AuthFormField, AuthInput } from "./AuthFormField";
 import {
@@ -8,7 +10,6 @@ import {
   AuthStepHeading,
   AuthStepLayout,
 } from "./AuthStepLayout";
-import { isValidPassword, PasswordCriteria } from "./PasswordCriteria";
 
 type PasswordStepProps = {
   description: string;
