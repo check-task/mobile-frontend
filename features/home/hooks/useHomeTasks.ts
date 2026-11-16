@@ -4,7 +4,8 @@ import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
 import { getErrorMessage } from "@/lib/errorMessage";
 
-import type { CalendarItem, HomeSort, HomeTask } from "../components/homeData";
+import type { HomeSort, HomeTask } from "../api/home.types";
+import type { CalendarItem } from "../components/homeData";
 
 import { useHomeTasksQuery } from "./useHomeTasksQuery";
 import {

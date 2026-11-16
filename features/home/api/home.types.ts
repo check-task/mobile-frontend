@@ -1,8 +1,50 @@
-import type { HomeSort } from "../components/homeData";
+import type { FolderColor } from "@/types/folder.types";
+
+// ── 화면용 타입 (mapper 가 서버 응답을 이 형태로 바꾼다) ──
+
+export type HomeSort = "PRIORITY" | "DEADLINE" | "PROGRESSRATE";
+
+export type HomeFolder = {
+  id: number;
+  name: string;
+  color: FolderColor;
+};
+
+export type HomeTask = {
+  id: number;
+  /** `null` 이면 미지정 폴더 */
+  folderId: number | null;
+  folderName: string;
+  color: FolderColor;
+  title: string;
+  type: "PERSONAL" | "TEAM";
+  /** `YYYY-MM-DD` */
+  deadline: string;
+  dDay: string;
+  progressRate: number;
+};
+
+export type HomeSubTask = {
+  id: number;
+  taskId: number;
+  title: string;
+  /** `YYYY-MM-DD`. `null` 이면 날짜 미지정 */
+  deadline: string | null;
+};
+
+export type HomeTasks = {
+  tasks: HomeTask[];
+  subTasks: HomeSubTask[];
+};
+
+// ── 서버 DTO ──
 
 export type TaskListParams = { sort: HomeSort };
 
-/** 날짜는 `2026.06.30` 형식으로 온다 */
+/**
+ * 마감은 타임존 없는 UTC 시각(`2026-11-19T01:00:00`)으로 온다.
+ * 날짜만 지정한 마감은 `T23:59:59` 라 시간대 변환 없이 날짜를 그대로 쓴다 (homeMapper `toDateKey`).
+ */
 export type TaskListResponse = {
   task: {
     taskId: number;

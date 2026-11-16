@@ -5,7 +5,7 @@ import {
   updateSubTaskDeadline,
   updateTaskDeadline,
 } from "../api/homeApi";
-import type { HomeTasks } from "../components/homeData";
+import type { HomeTasks } from "../api/home.types";
 
 /** 과제는 마감일이 필수, 세부 task 는 `null`(날짜 미지정) 가능 */
 export type MoveDeadlineInput =

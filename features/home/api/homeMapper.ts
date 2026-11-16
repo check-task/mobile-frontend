@@ -2,9 +2,7 @@ import { toDateKey as toLocalDateKey } from "@/lib/calendarDate";
 import { toFolderColor } from "@/lib/folderColor";
 import type { MyFolder } from "@/types/user.types";
 
-import type { HomeFolder, HomeTasks } from "../components/homeData";
-
-import type { TaskListResponse } from "./home.types";
+import type { HomeFolder, HomeTasks, TaskListResponse } from "./home.types";
 
 /**
  * 서버 마감 → 캘린더 날짜 키(`YYYY-MM-DD`, 로컬).

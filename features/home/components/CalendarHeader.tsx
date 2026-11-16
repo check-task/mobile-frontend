@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { Chip } from "@/components/common/Chip/Chip";
 import { Left, Right } from "@/components/icons";
 
-import type { HomeFolder } from "./homeData";
+import type { HomeFolder } from "../api/home.types";
 
 type CalendarHeaderProps = {
   year: number;

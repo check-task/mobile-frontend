@@ -5,12 +5,9 @@ import { Bottom } from "@/components/icons";
 import { DROPDOWN_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
 
-import {
-  HOME_SORT_LABEL,
-  HOME_SORTS,
-  type HomeSort,
-  type HomeTask,
-} from "./homeData";
+import type { HomeSort, HomeTask } from "../api/home.types";
+
+import { HOME_SORT_LABEL, HOME_SORTS } from "./homeData";
 import { HomeTaskCard } from "./HomeTaskCard";
 
 type HomeTaskListProps = {

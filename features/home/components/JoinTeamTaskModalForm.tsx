@@ -5,7 +5,7 @@ import { Button } from "@/components/common/Button/Button";
 import { Chip } from "@/components/common/Chip/Chip";
 import { Input } from "@/components/common/Input/Input";
 
-import type { HomeFolder } from "./homeData";
+import type { HomeFolder } from "../api/home.types";
 
 type JoinTeamTaskModalFormProps = {
   folders: readonly HomeFolder[];

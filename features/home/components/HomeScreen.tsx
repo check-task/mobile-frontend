@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { formatDayTitle, toDateKey } from "@/lib/calendarDate";
 import { getErrorMessage } from "@/lib/errorMessage";
 
+import type { HomeTask } from "../api/home.types";
 import { useCalendarDrag } from "../hooks/useCalendarDrag";
 import { useHomeFoldersQuery } from "../hooks/useHomeFoldersQuery";
 import { useHomeTasks } from "../hooks/useHomeTasks";
@@ -19,7 +20,6 @@ import { useJoinTeamTaskMutation } from "../hooks/useJoinTeamTaskMutation";
 import { CalendarDragOverlay } from "./CalendarDragOverlay";
 import { CalendarHeader } from "./CalendarHeader";
 import { DayTasksModalContent } from "./DayTasksModalContent";
-import type { HomeTask } from "./homeData";
 import { HomeTaskList } from "./HomeTaskList";
 import { JoinTeamTaskModalForm } from "./JoinTeamTaskModalForm";
 import { MonthCalendar } from "./MonthCalendar";
