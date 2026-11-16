@@ -347,7 +347,11 @@ function TeamTaskDetailContent({
   const copyInviteCode = () =>
     createInviteCode(taskId)
       .then(({ invite_code }) => setStringAsync(invite_code))
-      .then(() => showToast("success", "팀 과제 초대코드가 복사되었습니다."))
+      .then((copied) =>
+        copied
+          ? showToast("success", "팀 과제 초대코드가 복사되었습니다.")
+          : showToast("fail", "초대코드를 복사하지 못했어요.")
+      )
       .catch((error: unknown) =>
         showToast(
           "fail",
