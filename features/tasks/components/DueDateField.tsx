@@ -10,32 +10,13 @@ import {
 
 import { DatePicker } from "@/components/common/DatePicker/DatePicker";
 import { Calendar } from "@/components/icons";
-import { type DueDate, toDueDateTime } from "@/lib/dueDate";
-
-// 시간 추가를 켰을 때 Figma 처럼 오전 00:00 부터 시작하도록 자정으로 맞춘다.
-function today(): DueDate {
-  const now = new Date();
-  return {
-    date: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-    hasTime: false,
-  };
-}
-
-function formatDate(date: Date) {
-  const yy = String(date.getFullYear() % 100).padStart(2, "0");
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  return `${yy}.${mm}.${dd}`;
-}
-
-function formatTime(date: Date) {
-  const hours = date.getHours();
-  const period = hours < 12 ? "오전" : "오후";
-  const minute = String(date.getMinutes()).padStart(2, "0");
-  // 피커 시간 칩과 같은 00~11 표기 (자정 = 오전 00:00)
-  const hour = String(hours % 12).padStart(2, "0");
-  return `${period} ${hour}:${minute}`;
-}
+import {
+  type DueDate,
+  formatDueTime,
+  formatShortDate,
+  todayDueDate,
+  toDueDateTime,
+} from "@/lib/dueDate";
 
 export type DueDateFieldProps = {
   /** 선택된 마감일. `null`이면 미지정. */
@@ -66,11 +47,11 @@ export function DueDateField({
 }: DueDateFieldProps) {
   const textClass = size === "sm" ? "text-b-04-r" : "text-b-02-r";
   const [isOpen, setIsOpen] = useState(false);
-  const [draft, setDraft] = useState<DueDate>(today);
+  const [draft, setDraft] = useState<DueDate>(todayDueDate);
   const [draftNoDate, setDraftNoDate] = useState(false);
 
   const open = () => {
-    setDraft(value ?? today());
+    setDraft(value ?? todayDueDate());
     setDraftNoDate(allowNoDate && value === null);
     setIsOpen(true);
   };
@@ -99,7 +80,7 @@ export function DueDateField({
           <Calendar variant="lg" className="text-gray-600" />
           {value ? (
             <Text className={`text-gray-600 ${textClass}`}>
-              {formatDate(value.date)}
+              {formatShortDate(value.date)}
             </Text>
           ) : (
             <Text className={`text-gray-400 ${textClass}`}>{placeholder}</Text>
@@ -109,7 +90,7 @@ export function DueDateField({
           <>
             <View className="h-4 w-px bg-gray-600" />
             <Text className={`text-gray-600 ${textClass}`}>
-              {formatTime(value.date)}
+              {formatDueTime(value.date)}
             </Text>
           </>
         ) : null}

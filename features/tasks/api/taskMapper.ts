@@ -1,8 +1,8 @@
 import { Platform } from "react-native";
 
+import { type DueDate, formatShortDate } from "@/lib/dueDate";
 import type { FolderColor } from "@/types/folder.types";
 import type { NativeFilePart } from "@/types/formData.types";
-import type { DueDate } from "@/lib/dueDate";
 
 import type { Resource } from "../components/ResourceSection";
 import type { SubTask } from "../components/SubTaskRow";
@@ -53,11 +53,6 @@ function parseServerDate(value: string) {
   return new Date(/(Z|[+-]\d\d:\d\d)$/i.test(value) ? value : `${value}Z`);
 }
 
-/** `25.10.22` */
-function formatDate(date: Date) {
-  return `${pad(date.getFullYear() % 100)}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
-}
-
 function formatTime(date: Date) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
@@ -72,7 +67,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
       id: String(subTask.subTaskId),
       title: subTask.title,
       dueDate: subTask.deadline
-        ? formatDate(parseServerDate(subTask.deadline))
+        ? formatShortDate(parseServerDate(subTask.deadline))
         : "미지정",
       done: subTask.status === "COMPLETED",
       alarm: subTask.isAlarm,
@@ -90,7 +85,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
             return {
               id: String(comment.commentId),
               author: comment.writer,
-              date: formatDate(createdAt),
+              date: formatShortDate(createdAt),
               time: formatTime(createdAt),
               body: comment.content,
             };
@@ -105,7 +100,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
     })),
     meetingLogs: data.meetingLogs.map((log) => ({
       id: String(log.id),
-      title: formatDate(parseServerDate(log.date)),
+      title: formatShortDate(parseServerDate(log.date)),
       link: log.agenda ?? "",
     })),
     references: data.references.map((reference) => ({
