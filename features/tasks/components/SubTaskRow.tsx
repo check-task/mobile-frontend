@@ -2,6 +2,7 @@ import { Pressable, Text, View } from "react-native";
 
 import {
   Bottom,
+  Box,
   Calendar,
   CheckBox,
   Clock,
@@ -66,7 +67,7 @@ export function SubTaskRow({
           {done ? (
             <CheckBox variant="lg" className="text-gray-400" />
           ) : (
-            <View className="h-4 w-4 rounded-[1px] border border-gray-900" />
+            <Box variant="lg" className="text-gray-900" />
           )}
         </Pressable>
         <Text
