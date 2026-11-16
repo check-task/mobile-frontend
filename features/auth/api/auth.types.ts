@@ -29,6 +29,17 @@ export type VerifyEmailCodeRequest = {
   code: string;
 };
 
+/** POST /api/v1/auth/password/reset/verify 응답 */
+export type VerifyPasswordResetCodeResponse = {
+  /** 새 비밀번호 설정에 쓰는 일회용 토큰 (10분 유효) */
+  resetToken: string;
+};
+
+export type ConfirmPasswordResetRequest = {
+  resetToken: string;
+  newPassword: string;
+};
+
 /** POST /api/v1/auth/signup (multipart) */
 export type SignUpRequest = {
   email: string;

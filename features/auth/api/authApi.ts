@@ -2,10 +2,12 @@ import { apiClient } from "@/lib/api/client";
 
 import type {
   CheckEmailResponse,
+  ConfirmPasswordResetRequest,
   SignInRequest,
   SignInResponse,
   SignUpRequest,
   VerifyEmailCodeRequest,
+  VerifyPasswordResetCodeResponse,
 } from "./auth.types";
 
 export function signIn(body: SignInRequest) {
@@ -42,4 +44,20 @@ export function signUp({ profileImage, ...fields }: SignUpRequest) {
     else form.append("profileImage", profileImage);
   }
   return apiClient.post<null>("/api/v1/auth/signup", form);
+}
+
+// 가입 안 된 이메일이어도 서버는 200 을 준다 (가입 여부를 숨기려고)
+export function sendPasswordResetCode(email: string) {
+  return apiClient.post<null>("/api/v1/auth/password/reset/send", { email });
+}
+
+export function verifyPasswordResetCode(body: VerifyEmailCodeRequest) {
+  return apiClient.post<VerifyPasswordResetCodeResponse>(
+    "/api/v1/auth/password/reset/verify",
+    body
+  );
+}
+
+export function confirmPasswordReset(body: ConfirmPasswordResetRequest) {
+  return apiClient.post<null>("/api/v1/auth/password/reset/confirm", body);
 }
