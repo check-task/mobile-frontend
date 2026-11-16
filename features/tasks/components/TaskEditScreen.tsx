@@ -7,7 +7,7 @@ import { DeleteConfirmModalContent } from "@/components/common/DeleteConfirmModa
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
-import { ApiError } from "@/lib/api/apiError";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 import type { TaskFormValue } from "../api/taskForm.types";
 
@@ -22,9 +22,6 @@ import { TaskForm } from "./TaskForm";
 export type TaskEditScreenProps = {
   taskId: string;
 };
-
-const errorReason = (error: unknown, fallback: string) =>
-  error instanceof ApiError ? error.reason : fallback;
 
 export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
   const router = useRouter();
@@ -72,7 +69,7 @@ export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
               onError: (error) =>
                 showToast(
                   "fail",
-                  errorReason(error, "과제를 삭제하지 못했어요.")
+                  getErrorMessage(error, "과제를 삭제하지 못했어요.")
                 ),
             });
           }}
@@ -96,7 +93,10 @@ export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
           router.back();
         },
         onError: (error) =>
-          showToast("fail", errorReason(error, "과제를 저장하지 못했어요.")),
+          showToast(
+            "fail",
+            getErrorMessage(error, "과제를 저장하지 못했어요.")
+          ),
       }
     );
   };

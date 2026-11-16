@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/components/common/Button/Button";
 import { useToast } from "@/hooks/useToast";
-import { ApiError } from "@/lib/api/apiError";
+import { getErrorMessage } from "@/lib/errorMessage";
 import { toDueDateTime } from "@/lib/dueDate";
 
 import type { TaskFormValue } from "../api/taskForm.types";
@@ -68,9 +68,7 @@ export function TaskCreateScreen() {
         onError: (error) =>
           showToast(
             "fail",
-            error instanceof ApiError
-              ? error.reason
-              : "과제를 등록하지 못했어요."
+            getErrorMessage(error, "과제를 등록하지 못했어요.")
           ),
       }
     );
