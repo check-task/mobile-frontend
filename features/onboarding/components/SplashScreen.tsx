@@ -1,30 +1,21 @@
 import { Image, type ImageStyle } from "expo-image";
-import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { View } from "react-native";
-
-import { getTokens } from "@/lib/api/tokenStorage";
 
 const SPLASH_DURATION_MS = 1500;
 
 const LOGO_STYLE = { width: 285.411, height: 50.529 } satisfies ImageStyle;
 
-export function SplashScreen() {
-  const router = useRouter();
+type SplashScreenProps = {
+  // 보여준 뒤 부른다. 어느 화면으로 갈지는 app/_layout 이 로그인 여부로 정한다
+  onFinish: () => void;
+};
 
+export function SplashScreen({ onFinish }: SplashScreenProps) {
   useEffect(() => {
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      // 저장된 로그인 토큰이 있으면 온보딩·로그인을 건너뛴다
-      const tokens = await getTokens();
-      if (!cancelled) router.replace(tokens ? "/" : "/onboarding");
-    }, SPLASH_DURATION_MS);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [router]);
+    const timer = setTimeout(onFinish, SPLASH_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [onFinish]);
 
   return (
     <View className="flex-1 items-center justify-center bg-primary">

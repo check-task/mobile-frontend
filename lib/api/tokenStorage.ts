@@ -1,5 +1,4 @@
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+import { keyValueStorage as storage } from "@/lib/keyValueStorage";
 
 // access/refresh 를 한 레코드(JSON)로 저장한다. 따로 저장하면 하나만 써졌을 때 다른 계정 토큰끼리 섞일 수 있다
 const TOKENS_KEY = "authTokens";
@@ -9,31 +8,28 @@ export type AuthTokens = {
   refreshToken: string;
 };
 
-type KeyValueStorage = {
-  get: (key: string) => Promise<string | null>;
-  set: (key: string, value: string) => Promise<void>;
-  remove: (key: string) => Promise<void>;
-};
-
-// SecureStore는 웹을 지원하지 않아서 웹(개발 확인용)은 localStorage에 둔다
-const storage: KeyValueStorage =
-  Platform.OS === "web"
-    ? {
-        get: async (key) =>
-          typeof localStorage === "undefined"
-            ? null
-            : localStorage.getItem(key),
-        set: async (key, value) => localStorage.setItem(key, value),
-        remove: async (key) => localStorage.removeItem(key),
-      }
-    : {
-        get: (key) => SecureStore.getItemAsync(key),
-        set: (key, value) => SecureStore.setItemAsync(key, value),
-        remove: (key) => SecureStore.deleteItemAsync(key),
-      };
-
 // 요청마다 저장소를 읽지 않게 메모리에 들고 있는다 (undefined = 아직 안 읽음)
 let cachedTokens: AuthTokens | null | undefined;
+
+// 로그인 여부로 화면을 막는 곳(app/_layout)이 토큰이 바뀐 걸 알 수 있게 알린다
+const listeners = new Set<() => void>();
+
+function setCachedTokens(tokens: AuthTokens | null) {
+  cachedTokens = tokens;
+  listeners.forEach((listener) => listener());
+}
+
+export function subscribeTokens(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** 메모리에 있는 토큰. 아직 저장소를 안 읽었으면 undefined */
+export function getCachedTokens() {
+  return cachedTokens;
+}
 
 function isAuthTokens(value: unknown): value is AuthTokens {
   if (typeof value !== "object" || value === null) return false;
@@ -62,7 +58,7 @@ export async function getTokens() {
   if (cachedTokens === undefined) {
     const stored = await readTokens();
     // 읽는 동안 저장/삭제가 먼저 끝났으면 그 값을 쓴다
-    if (cachedTokens === undefined) cachedTokens = stored;
+    if (cachedTokens === undefined) setCachedTokens(stored);
   }
   return cachedTokens;
 }
@@ -86,13 +82,13 @@ export function saveTokens(tokens: AuthTokens) {
     // 차례를 기다리는 동안 로그아웃했으면 저장하지 않는다
     if (clearCount !== clearCountAtStart) return;
     await storage.set(TOKENS_KEY, JSON.stringify(tokens));
-    if (clearCount === clearCountAtStart) cachedTokens = tokens;
+    if (clearCount === clearCountAtStart) setCachedTokens(tokens);
   });
 }
 
 export function clearTokens() {
   clearCount += 1;
   // 삭제는 실패해도 이 앱에서는 로그아웃 상태로 본다
-  cachedTokens = null;
+  setCachedTokens(null);
   return enqueue(() => storage.remove(TOKENS_KEY));
 }

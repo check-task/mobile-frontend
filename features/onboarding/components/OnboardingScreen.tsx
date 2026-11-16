@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/common/Button/Button";
+import { markOnboardingSeen } from "@/lib/onboardingStorage";
 import { cn } from "@/lib/utils";
 
 type OnboardingSlide = {
@@ -59,6 +60,8 @@ export function OnboardingScreen() {
   };
 
   const finishOnboarding = () => {
+    // 다음부터는 온보딩 없이 로그인 화면으로 간다
+    markOnboardingSeen();
     router.replace("/login");
   };
 
