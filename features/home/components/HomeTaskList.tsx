@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import {
   HOME_SORT_LABEL,
   HOME_SORTS,
-  type HomeFolder,
   type HomeSort,
   type HomeTask,
 } from "./homeData";
@@ -16,7 +15,6 @@ import { HomeTaskCard } from "./HomeTaskCard";
 
 type HomeTaskListProps = {
   tasks: readonly HomeTask[];
-  folders: readonly HomeFolder[];
   sort: HomeSort;
   onSortChange: (sort: HomeSort) => void;
   onTaskPress: (task: HomeTask) => void;
@@ -24,7 +22,6 @@ type HomeTaskListProps = {
 
 export function HomeTaskList({
   tasks,
-  folders,
   sort,
   onSortChange,
   onTaskPress,
@@ -50,21 +47,18 @@ export function HomeTaskList({
       </View>
 
       <View className="gap-3">
-        {tasks.map((task) => {
-          const folder = folders.find(({ id }) => id === task.folderId);
-          return (
-            <HomeTaskCard
-              key={task.id}
-              folderName={folder?.name ?? ""}
-              color={folder?.color ?? "sub-null"}
-              title={task.title}
-              typeLabel={task.type === "TEAM" ? "팀" : "개인"}
-              dDay={task.dDay}
-              progressRate={task.progressRate}
-              onPress={() => onTaskPress(task)}
-            />
-          );
-        })}
+        {tasks.map((task) => (
+          <HomeTaskCard
+            key={task.id}
+            folderName={task.folderName}
+            color={task.color}
+            title={task.title}
+            typeLabel={task.type === "TEAM" ? "팀" : "개인"}
+            dDay={task.dDay}
+            progressRate={task.progressRate}
+            onPress={() => onTaskPress(task)}
+          />
+        ))}
       </View>
 
       {/* 카드 위에 겹치도록 마지막에 둔다. 섹션 안쪽이라 안드로이드에서도 터치가 들어온다. */}
