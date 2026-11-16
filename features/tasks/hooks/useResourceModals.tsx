@@ -27,20 +27,29 @@ export function useResourceModals() {
   const { openModal, closeModal } = useModal();
   const { showToast, showSnackbar } = useToast();
   const meetingLogRef = useRef<MeetingLogDraft>(EMPTY_MEETING_LOG);
+  const savingRef = useRef(false);
 
+  // 성공해야 모달을 닫는다. 실패하면 모달과 입력값이 그대로 남아 다시 저장할 수 있다. 저장 중에는 다시 보내지 않는다.
   const run = (
     request: () => Promise<unknown>,
     failMessage: string,
     doneMessage?: string
   ) => {
-    closeModal();
+    if (savingRef.current) {
+      return;
+    }
+    savingRef.current = true;
     request()
       .then(() => {
+        closeModal();
         if (doneMessage) showSnackbar(doneMessage);
       })
       .catch((error: unknown) =>
         showToast("fail", getErrorMessage(error, failMessage))
-      );
+      )
+      .finally(() => {
+        savingRef.current = false;
+      });
   };
 
   const openReference = (
