@@ -142,6 +142,7 @@ function TeamTaskDetailContent({
   } | null>(null);
 
   const doneToggle = useSubTaskToggle({
+    serverSubTasks: detail.subTasks,
     field: "done",
     submit: (subTaskId, done) =>
       emitAndRefresh("updateSubtaskStatus", {
@@ -152,6 +153,7 @@ function TeamTaskDetailContent({
     failMessage: "완료 상태를 바꾸지 못했어요.",
   });
   const alarmToggle = useSubTaskToggle({
+    serverSubTasks: detail.subTasks,
     field: "alarm",
     submit: (subTaskId, isAlarm) =>
       emitAndRefresh("subtask:update", {
