@@ -431,13 +431,25 @@ function TeamTaskDetailContent({
 
   const deleteComment = (subTaskId: string, commentId: string) => {
     setCommentMenu(null);
+    // 수정 중이던 댓글을 지운 경우에만 수정 상태와 입력을 정리한다. 그 사이 새로 입력했으면 두는 건 전송과 같다.
+    const wasEditing = editingCommentIds[subTaskId] === commentId;
+    const sentVersion = draftVersionsRef.current[subTaskId] ?? 0;
     emitAndRefresh("comment:delete", {
       taskId,
       subTaskId: Number(subTaskId),
       commentId: Number(commentId),
-    }).catch((error: unknown) =>
-      showToast("fail", getErrorMessage(error, "댓글을 삭제하지 못했어요."))
-    );
+    })
+      .then(() => {
+        if (
+          wasEditing &&
+          (draftVersionsRef.current[subTaskId] ?? 0) === sentVersion
+        ) {
+          changeCommentDraft(subTaskId, "");
+        }
+      })
+      .catch((error: unknown) =>
+        showToast("fail", getErrorMessage(error, "댓글을 삭제하지 못했어요."))
+      );
   };
 
   const toggleExpanded = (id: string) => {
