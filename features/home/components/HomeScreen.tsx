@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,14 +9,17 @@ import { LogoHeader } from "@/components/common/Header/LogoHeader";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
 import { formatDayTitle, toDateKey } from "@/lib/calendarDate";
+import { getErrorMessage } from "@/lib/errorMessage";
 
+import type { HomeTask } from "../api/home.types";
 import { useCalendarDrag } from "../hooks/useCalendarDrag";
+import { useHomeFoldersQuery } from "../hooks/useHomeFoldersQuery";
 import { useHomeTasks } from "../hooks/useHomeTasks";
+import { useJoinTeamTaskMutation } from "../hooks/useJoinTeamTaskMutation";
 
 import { CalendarDragOverlay } from "./CalendarDragOverlay";
 import { CalendarHeader } from "./CalendarHeader";
 import { DayTasksModalContent } from "./DayTasksModalContent";
-import { DUMMY_JOINED_TASK_ID, HOME_FOLDERS, type HomeTask } from "./homeData";
 import { HomeTaskList } from "./HomeTaskList";
 import { JoinTeamTaskModalForm } from "./JoinTeamTaskModalForm";
 import { MonthCalendar } from "./MonthCalendar";
@@ -43,7 +46,10 @@ export function HomeScreen() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isFabOpen, setIsFabOpen] = useState(false);
 
+  const folders = useHomeFoldersQuery().data ?? [];
+  const { mutateAsync: joinTeamTask } = useJoinTeamTaskMutation();
   const {
+    isError,
     selectedFolderIds,
     toggleFolder,
     itemsByDate,
@@ -54,10 +60,7 @@ export function HomeScreen() {
     sortedTasks,
     moveItem,
   } = useHomeTasks();
-  const drag = useCalendarDrag((item, zone) => {
-    const error = moveItem(item, zone);
-    if (error) showToast("fail", error);
-  });
+  const drag = useCalendarDrag(moveItem);
 
   const openTaskDetail = (task: HomeTask) => {
     router.push(
@@ -97,10 +100,20 @@ export function HomeScreen() {
       headerIcon: "cancel",
       children: (
         <JoinTeamTaskModalForm
-          folders={HOME_FOLDERS}
-          onSubmit={() => {
-            closeModal();
-            router.push(`/tasks/team/${DUMMY_JOINED_TASK_ID}`);
+          onSubmit={async (inviteCode, folderId) => {
+            try {
+              const { task_id } = await joinTeamTask({
+                inviteCode,
+                folderId: folderId ?? undefined,
+              });
+              closeModal();
+              router.push(`/tasks/team/${task_id}`);
+            } catch (error) {
+              showToast(
+                "fail",
+                getErrorMessage(error, "팀 과제에 참여하지 못했습니다.")
+              );
+            }
           }}
         />
       ),
@@ -128,7 +141,7 @@ export function HomeScreen() {
               month={viewMonth.month}
               onTitlePress={() => setIsMonthPickerOpen(true)}
               onMonthMove={moveMonth}
-              folders={HOME_FOLDERS}
+              folders={folders}
               selectedFolderIds={selectedFolderIds}
               onToggleFolder={toggleFolder}
             />
@@ -145,9 +158,13 @@ export function HomeScreen() {
             </View>
           </View>
 
+          {isError ? (
+            <Text className="text-center text-gray-600 text-b-04-r">
+              과제를 불러오지 못했습니다.
+            </Text>
+          ) : null}
           <HomeTaskList
             tasks={sortedTasks}
-            folders={HOME_FOLDERS}
             sort={sort}
             onSortChange={setSort}
             onTaskPress={openTaskDetail}

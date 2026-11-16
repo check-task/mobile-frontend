@@ -5,7 +5,6 @@ import type {
   CreateReferenceParams,
   CreateTaskRequest,
   CreateTaskResponse,
-  MyInfoResponse,
   ReferenceDto,
   TaskDetailResponse,
   AddSubTaskRequest,
@@ -19,7 +18,6 @@ import type {
 
 export const taskKeys = {
   all: ["task"] as const,
-  myInfo: () => ["user", "me"] as const,
   detail: (taskId: number) => ["task", "detail", taskId] as const,
   members: (taskId: number) => ["task", "members", taskId] as const,
 };
@@ -67,10 +65,6 @@ export function addSubTask(taskId: number, body: AddSubTaskRequest) {
 
 export function createTask(body: CreateTaskRequest) {
   return apiClient.post<CreateTaskResponse>("/api/v1/task", body);
-}
-
-export function getMyInfo() {
-  return apiClient.get<MyInfoResponse>("/api/v1/user/me");
 }
 
 function toReferenceForm({
