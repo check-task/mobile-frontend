@@ -113,6 +113,8 @@ export function HomeScreen() {
       <View className="flex-1 bg-gray-0" style={{ paddingTop: insets.top }}>
         <LogoHeader onMenuPress={() => router.navigate("/menu")} />
         <ScrollView
+          // drag 속성을 ref 에 바로 넘기면 react-hooks 린트가 drag 전체를 ref 로 본다
+          ref={(view) => drag.registerViewport(view)}
           // 끄는 동안 드롭 영역 좌표가 바뀌지 않게 스크롤을 막는다
           scrollEnabled={drag.dragging === null}
           contentContainerClassName="gap-7 px-4 pt-5"
