@@ -9,17 +9,20 @@ import {
   Bottom,
   Cancel,
   Home,
+  Logout,
   Notice,
   Task,
   TaskHistory,
   Top,
   User,
 } from "@/components/icons";
+import { useSignOut } from "@/hooks/useSignOut";
 
 export function MenuScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [tasksOpen, setTasksOpen] = useState(false);
+  const signOut = useSignOut();
 
   const items = [
     {
@@ -97,6 +100,12 @@ export function MenuScreen() {
         {items.map(({ label, icon, onPress }) => (
           <MenuRow key={label} label={label} icon={icon} onPress={onPress} />
         ))}
+        {/* 피그마에 로그아웃 위치가 없어서 임시로 메뉴 맨 아래에 둔다 */}
+        <MenuRow
+          label="로그아웃"
+          icon={Logout}
+          onPress={signOut.isPending ? undefined : () => signOut.mutate()}
+        />
       </ScrollView>
       <View className="gap-3 px-4">
         <Pressable
