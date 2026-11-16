@@ -6,7 +6,8 @@ export function getErrorMessage(error: unknown, fallback: string) {
     return error.reason;
   }
   if (error instanceof SocketError) {
-    return error.message;
+    // 서버가 실패 이유를 보내지 않으면 메시지가 비어 있다.
+    return error.message || fallback;
   }
   return fallback;
 }

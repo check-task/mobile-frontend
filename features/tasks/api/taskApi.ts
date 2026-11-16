@@ -15,6 +15,7 @@ import type {
   TaskListResponse,
   TaskMembersResponse,
   TaskType,
+  InviteCodeResponse,
   UpdateReferenceParams,
   UpdateTaskRequest,
 } from "./task.types";
@@ -46,6 +47,12 @@ export function getTaskDetail(taskId: number) {
 
 export function getTaskMembers(taskId: number) {
   return apiClient.get<TaskMembersResponse>(`/api/v1/task/${taskId}/members`);
+}
+
+export function createInviteCode(taskId: number) {
+  return apiClient.post<InviteCodeResponse>(
+    `/api/v1/task/${taskId}/invitation`
+  );
 }
 
 export function removeTaskMember(taskId: number, userId: number) {

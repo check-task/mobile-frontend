@@ -58,9 +58,10 @@ export function ResourceAddModalForm({
   const { showToast } = useToast();
   const copy = FIELD_COPY[type];
   // 파일은 이름이 선택 사항, URL 은 이름·주소 모두 필수 (POST /reference/data 규칙)
+  // 이미 올린 파일을 수정할 때는 새 파일 없이 경로(파일명)만 있어도 저장할 수 있다.
   const canSave =
     type === "file"
-      ? file !== undefined
+      ? file !== undefined || path.length > 0
       : path.trim().length > 0 && name.trim().length > 0;
 
   const changeType = (next: ResourceType) => {
