@@ -35,6 +35,11 @@ export function getSocket() {
   return socket;
 }
 
+/** 로그아웃할 때 이전 계정 토큰으로 붙은 연결을 끊는다. 다음 getSocket 은 새 토큰으로 다시 연결한다 */
+export function disconnectSocket() {
+  socket?.disconnect();
+}
+
 export async function emitWithAck<T>(event: string, payload: unknown) {
   const ack: SocketAck<T> = await getSocket()
     .timeout(ACK_TIMEOUT_MS)

@@ -111,6 +111,28 @@ function refreshAccessToken() {
   return refreshing;
 }
 
+/**
+ * 로그아웃. 서버에 refresh token 폐기를 요청하고 이 기기 토큰을 지운다.
+ * 서버 요청이 실패해도(네트워크 등) 이 기기에서는 로그아웃한다
+ */
+export async function signOut() {
+  const tokens = await getTokens();
+  try {
+    if (tokens) {
+      // 재발급과 같이 refresh token 을 헤더로 보낸다. instance 인터셉터가 덮어쓰지 않게 axios 로 직접 보낸다
+      await axios.post("/api/v1/auth/logout", undefined, {
+        baseURL: BASE_URL,
+        timeout: TIMEOUT_MS,
+        headers: { Authorization: `Bearer ${tokens.refreshToken}` },
+      });
+    }
+  } catch {
+    // 서버에서 못 지운 refresh token 은 만료되면 끝난다
+  } finally {
+    await clearTokens();
+  }
+}
+
 // 로그인·재발급 같은 인증 API의 401은 토큰 만료가 아니라서 재발급하지 않는다
 function shouldRefresh(error: unknown, config: AxiosRequestConfig) {
   return (
