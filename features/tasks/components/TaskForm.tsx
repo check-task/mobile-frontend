@@ -128,6 +128,7 @@ export function TaskForm({
                     label={folder.folderTitle}
                     color={folder.color}
                     variant={folder.folderId === folderId ? "fill" : "default"}
+                    selected={folder.folderId === folderId}
                     onPress={() => form.toggleFolder(folder.folderId)}
                   />
                 ))}
