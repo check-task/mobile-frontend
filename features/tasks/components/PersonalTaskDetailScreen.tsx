@@ -1,12 +1,24 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
 
-import type { TaskDetail } from "../api/taskMapper";
+import {
+  createReference,
+  deleteReference,
+  taskKeys,
+  updateReference,
+} from "../api/taskApi";
+import type { ResourceDraft } from "../api/taskForm.types";
+import {
+  type TaskDetail,
+  toReferenceParams,
+  toUpdateReferenceParams,
+} from "../api/taskMapper";
 import { useAddSubTaskMutation } from "../hooks/useAddSubTaskMutation";
-import { useResourceActions } from "../hooks/useResourceActions";
+import { useResourceModals } from "../hooks/useResourceModals";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
 import { useUpdateSubTaskAlarmMutation } from "../hooks/useUpdateSubTaskAlarmMutation";
@@ -47,9 +59,36 @@ function PersonalTaskDetailContent({
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { resources, editResource, deleteResource } = useResourceActions(
-    detail.references
-  );
+  const queryClient = useQueryClient();
+  const resourceModals = useResourceModals();
+  const refreshDetail = () =>
+    queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+
+  const saveReference = async (draft: ResourceDraft, referenceId?: string) => {
+    if (referenceId) {
+      await updateReference(
+        taskId,
+        Number(referenceId),
+        toUpdateReferenceParams(draft)
+      );
+    } else {
+      const params = toReferenceParams(draft);
+      if (!params) {
+        throw new Error("파일을 선택해 주세요.");
+      }
+      await createReference(taskId, params);
+    }
+    await refreshDetail();
+  };
+
+  const removeReference = (id: string) => {
+    const item = detail.references.find((it) => it.id === id);
+    if (!item) return;
+    resourceModals.confirmDelete("자료", item.title, async () => {
+      await deleteReference(taskId, Number(id));
+      await refreshDetail();
+    });
+  };
   const addSubTaskMutation = useAddSubTaskMutation(taskId);
   const addForm = useSubTaskAddForm({
     taskDeadline: detail.deadline,
@@ -110,9 +149,17 @@ function PersonalTaskDetailContent({
           addForm={addForm.form}
         />
         <ResourceSection
-          items={resources}
-          onEdit={editResource}
-          onDelete={deleteResource}
+          items={detail.references}
+          onAddPress={() =>
+            resourceModals.openReference((draft) => saveReference(draft))
+          }
+          onEdit={(id) =>
+            resourceModals.openReference(
+              (draft) => saveReference(draft, id),
+              detail.referenceDrafts[id]
+            )
+          }
+          onDelete={removeReference}
           collapsedCount={RESOURCE_COLLAPSED_COUNT}
         />
       </View>

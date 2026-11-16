@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { setStringAsync } from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,12 +15,23 @@ import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
 
-import { taskKeys } from "../api/taskApi";
-import type { TaskDetail } from "../api/taskMapper";
+import {
+  createInviteCode,
+  createReference,
+  taskKeys,
+  updateReference,
+} from "../api/taskApi";
+import type { ResourceDraft } from "../api/taskForm.types";
+import {
+  type TaskDetail,
+  toReferenceParams,
+  toServerDate,
+  toUpdateReferenceParams,
+} from "../api/taskMapper";
 import type { AddSubTaskRequest, TaskMember } from "../api/task.types";
 import { useMyUserIdQuery } from "../hooks/useMyUserIdQuery";
 import { useRemoveTaskMemberMutation } from "../hooks/useRemoveTaskMemberMutation";
-import { useResourceActions } from "../hooks/useResourceActions";
+import { useResourceModals } from "../hooks/useResourceModals";
 import { useSubTaskAddForm } from "../hooks/useSubTaskAddForm";
 import { useSubTaskToggle } from "../hooks/useSubTaskToggle";
 import { useTaskDetailQuery } from "../hooks/useTaskDetailQuery";
@@ -103,19 +115,31 @@ function TeamTaskDetailContent({
     submit: (data: AddSubTaskRequest) =>
       emitWithAck("subtask:create", { taskId, data }),
   });
-  const resourceActions = {
-    커뮤니케이션: useResourceActions(detail.communications),
-    회의록: useResourceActions(detail.meetingLogs),
-    자료: useResourceActions(detail.references),
-  };
+  const resourceModals = useResourceModals();
   const [expandedIds, setExpandedIds] = useState<readonly string[]>([]);
   const [resourceTab, setResourceTab] =
     useState<(typeof RESOURCE_TABS)[number]>("커뮤니케이션");
   const [commentDrafts, setCommentDrafts] = useState<
     Readonly<Record<string, string>>
   >({});
-  const { resources, editResource, deleteResource } =
-    resourceActions[resourceTab];
+  // 세부 과제별로 수정 중인 댓글 id. 있으면 전송이 새 댓글 대신 그 댓글을 고친다.
+  const [editingCommentIds, setEditingCommentIds] = useState<
+    Readonly<Record<string, string>>
+  >({});
+  const [sendingCommentIds, setSendingCommentIds] = useState<readonly string[]>(
+    []
+  );
+  // 세부 과제별 입력 변경 횟수. 전송이 끝났을 때 그 사이 새로 입력했으면 지우지 않으려고 센다.
+  const draftVersionsRef = useRef<Record<string, number>>({});
+  const bumpDraftVersion = (subTaskId: string) => {
+    draftVersionsRef.current[subTaskId] =
+      (draftVersionsRef.current[subTaskId] ?? 0) + 1;
+  };
+  const [commentMenu, setCommentMenu] = useState<{
+    subTaskId: string;
+    commentId: string;
+    anchor: AnchorRect;
+  } | null>(null);
 
   const doneToggle = useSubTaskToggle({
     field: "done",
@@ -203,8 +227,229 @@ function TeamTaskDetailContent({
     });
   };
 
+  const refreshDetail = () =>
+    queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+
+  // URL 자료는 소켓으로 보내 팀원에게 바로 알린다. 파일 자료는 소켓이 지원하지 않아 REST 로 보낸다.
+  const saveReference = async (draft: ResourceDraft, referenceId?: string) => {
+    if (draft.type === "url") {
+      await (referenceId
+        ? emitAndRefresh("reference:update", {
+            taskId,
+            referenceId: Number(referenceId),
+            name: draft.name,
+            url: draft.path,
+          })
+        : emitAndRefresh("reference:create", {
+            taskId,
+            type: "url",
+            item: { name: draft.name, url: draft.path },
+          }));
+      return;
+    }
+    if (referenceId) {
+      await updateReference(
+        taskId,
+        Number(referenceId),
+        toUpdateReferenceParams(draft)
+      );
+    } else {
+      const params = toReferenceParams(draft);
+      if (!params) {
+        throw new Error("파일을 선택해 주세요.");
+      }
+      await createReference(taskId, params);
+    }
+    await refreshDetail();
+  };
+
+  const resourceTabs = {
+    커뮤니케이션: {
+      items: detail.communications,
+      add: () =>
+        resourceModals.openCommunication((value) =>
+          emitAndRefresh("communication:create", { taskId, ...value })
+        ),
+      edit: (id: string) => {
+        const item = detail.communications.find((it) => it.id === id);
+        if (!item) return;
+        resourceModals.openCommunication(
+          (value) =>
+            emitAndRefresh("communication:update", {
+              taskId,
+              communicationId: Number(id),
+              ...value,
+            }),
+          { name: item.title, url: item.link }
+        );
+      },
+      remove: (id: string) => {
+        const item = detail.communications.find((it) => it.id === id);
+        if (!item) return;
+        resourceModals.confirmDelete("커뮤니케이션", item.title, () =>
+          emitAndRefresh("communication:delete", {
+            taskId,
+            communicationId: Number(id),
+          })
+        );
+      },
+    },
+    회의록: {
+      items: detail.meetingLogs,
+      add: () => {
+        const today = new Date();
+        resourceModals.openMeetingLog(today, (value) =>
+          emitAndRefresh("log:create", {
+            taskId,
+            date: toServerDate(today),
+            ...value,
+          })
+        );
+      },
+      edit: (id: string) => {
+        const log = detail.meetingLogValues[id];
+        if (!log) return;
+        resourceModals.openMeetingLog(
+          log.date,
+          (value) =>
+            emitAndRefresh("log:update", {
+              taskId,
+              logId: Number(id),
+              ...value,
+            }),
+          log
+        );
+      },
+      remove: (id: string) => {
+        const item = detail.meetingLogs.find((it) => it.id === id);
+        if (!item) return;
+        resourceModals.confirmDelete("회의록", item.title, () =>
+          emitAndRefresh("log:delete", { taskId, logId: Number(id) })
+        );
+      },
+    },
+    자료: {
+      items: detail.references,
+      add: () => resourceModals.openReference((draft) => saveReference(draft)),
+      edit: (id: string) =>
+        resourceModals.openReference(
+          (draft) => saveReference(draft, id),
+          detail.referenceDrafts[id]
+        ),
+      remove: (id: string) => {
+        const item = detail.references.find((it) => it.id === id);
+        if (!item) return;
+        resourceModals.confirmDelete("자료", item.title, () =>
+          emitAndRefresh("reference:delete", {
+            taskId,
+            referenceId: Number(id),
+          })
+        );
+      },
+    },
+  };
+  const currentResourceTab = resourceTabs[resourceTab];
+
+  const copyInviteCode = () =>
+    createInviteCode(taskId)
+      .then(({ invite_code }) => setStringAsync(invite_code))
+      .then((copied) =>
+        copied
+          ? showToast("success", "팀 과제 초대코드가 복사되었습니다.")
+          : showToast("fail", "초대코드를 복사하지 못했어요.")
+      )
+      .catch((error: unknown) =>
+        showToast(
+          "fail",
+          getErrorMessage(error, "초대코드를 복사하지 못했어요.")
+        )
+      );
+
   const changeCommentDraft = (id: string, draft: string) => {
+    bumpDraftVersion(id);
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
+    // 입력을 다 지우면 수정을 그만둔 것으로 본다.
+    if (draft.length === 0) {
+      setEditingCommentIds(({ [id]: _cancelled, ...rest }) => rest);
+    }
+  };
+
+  const sendComment = (subTaskId: string) => {
+    const content = (commentDrafts[subTaskId] ?? "").trim();
+    if (content.length === 0 || sendingCommentIds.includes(subTaskId)) {
+      return;
+    }
+    const editingId = editingCommentIds[subTaskId];
+    const sentVersion = draftVersionsRef.current[subTaskId] ?? 0;
+    setSendingCommentIds((ids) => [...ids, subTaskId]);
+    const request = editingId
+      ? emitAndRefresh("comment:update", {
+          taskId,
+          subTaskId: Number(subTaskId),
+          commentId: Number(editingId),
+          content,
+        })
+      : emitAndRefresh("comment:create", {
+          taskId,
+          subTaskId: Number(subTaskId),
+          content,
+        });
+    request
+      .then(() => {
+        if ((draftVersionsRef.current[subTaskId] ?? 0) === sentVersion) {
+          changeCommentDraft(subTaskId, "");
+        }
+      })
+      .catch((error: unknown) =>
+        showToast(
+          "fail",
+          getErrorMessage(
+            error,
+            editingId
+              ? "댓글을 수정하지 못했어요."
+              : "댓글을 등록하지 못했어요."
+          )
+        )
+      )
+      .finally(() =>
+        setSendingCommentIds((ids) => ids.filter((id) => id !== subTaskId))
+      );
+  };
+
+  const startEditComment = (subTaskId: string, commentId: string) => {
+    setCommentMenu(null);
+    const comment = detail.subTaskExtras[subTaskId]?.comments.find(
+      (item) => item.id === commentId
+    );
+    if (!comment) {
+      return;
+    }
+    bumpDraftVersion(subTaskId);
+    setEditingCommentIds((current) => ({ ...current, [subTaskId]: commentId }));
+    setCommentDrafts((current) => ({ ...current, [subTaskId]: comment.body }));
+  };
+
+  const deleteComment = (subTaskId: string, commentId: string) => {
+    setCommentMenu(null);
+    // 수정 중이던 댓글을 지운 경우에만 수정 상태와 입력을 정리한다. 그 사이 새로 입력했으면 두는 건 전송과 같다.
+    const wasEditing = editingCommentIds[subTaskId] === commentId;
+    const sentVersion = draftVersionsRef.current[subTaskId] ?? 0;
+    emitAndRefresh("comment:delete", {
+      taskId,
+      subTaskId: Number(subTaskId),
+      commentId: Number(commentId),
+    })
+      .then(() => {
+        if (
+          wasEditing &&
+          (draftVersionsRef.current[subTaskId] ?? 0) === sentVersion
+        ) {
+          changeCommentDraft(subTaskId, "");
+        }
+      })
+      .catch((error: unknown) =>
+        showToast("fail", getErrorMessage(error, "댓글을 삭제하지 못했어요."))
+      );
   };
 
   const toggleExpanded = (id: string) => {
@@ -261,7 +506,10 @@ function TeamTaskDetailContent({
                 onChangeCommentDraft={(draft) =>
                   changeCommentDraft(item.id, draft)
                 }
-                onSendComment={() => changeCommentDraft(item.id, "")}
+                onSendComment={() => sendComment(item.id)}
+                onCommentMenuPress={(commentId, anchor) =>
+                  setCommentMenu({ subTaskId: item.id, commentId, anchor })
+                }
                 onAssigneePress={
                   savingAssigneeIds.includes(item.id)
                     ? undefined
@@ -273,9 +521,11 @@ function TeamTaskDetailContent({
           }}
         />
         <ResourceSection
-          items={resources}
-          onEdit={editResource}
-          onDelete={deleteResource}
+          items={currentResourceTab.items}
+          addLabel={`${resourceTab} 추가`}
+          onAddPress={currentResourceTab.add}
+          onEdit={currentResourceTab.edit}
+          onDelete={currentResourceTab.remove}
           tabs={
             <Tabs
               items={RESOURCE_TABS}
@@ -285,6 +535,7 @@ function TeamTaskDetailContent({
           }
         />
         <TeamMemberSection
+          onInvitePress={copyInviteCode}
           onRetry={isMembersError ? () => refetchMembers() : undefined}
           members={members.map((member) => {
             const canManage = isOwner && member.id !== myUserId;
@@ -316,6 +567,29 @@ function TeamTaskDetailContent({
           onSelect={(key) =>
             assigneeMenu && toggleAssignee(assigneeMenu.subTaskId, Number(key))
           }
+        />
+      </MenuPopover>
+      <MenuPopover
+        anchor={commentMenu?.anchor ?? null}
+        align="right"
+        onClose={() => setCommentMenu(null)}
+      >
+        <DropdownMenu
+          variant="comment"
+          items={[
+            { key: "edit", label: "댓글 수정" },
+            { key: "delete", label: "댓글 삭제" },
+          ]}
+          onSelect={(key) => {
+            if (!commentMenu) {
+              return;
+            }
+            if (key === "edit") {
+              startEditComment(commentMenu.subTaskId, commentMenu.commentId);
+            } else {
+              deleteComment(commentMenu.subTaskId, commentMenu.commentId);
+            }
+          }}
         />
       </MenuPopover>
       <MenuPopover

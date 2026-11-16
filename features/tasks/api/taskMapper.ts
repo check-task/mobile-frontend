@@ -12,7 +12,11 @@ import type {
   TaskAssignee,
   TaskComment,
 } from "../components/TeamSubTaskDetail";
-import type { CreateReferenceParams, TaskDetailResponse } from "./task.types";
+import type {
+  CreateReferenceParams,
+  TaskDetailResponse,
+  UpdateReferenceParams,
+} from "./task.types";
 import type { ResourceDraft, TaskFormValue } from "./taskForm.types";
 
 export type TaskDetail = {
@@ -29,7 +33,30 @@ export type TaskDetail = {
   communications: Resource[];
   meetingLogs: Resource[];
   references: Resource[];
+  /** 자료 수정 모달 초기값. 키는 자료 id */
+  referenceDrafts: Record<string, ResourceDraft>;
+  /** 회의록 수정 모달 초기값. 키는 회의록 id */
+  meetingLogValues: Record<string, MeetingLogValue>;
 };
+
+export type MeetingLogValue = {
+  date: Date;
+  agenda: string;
+  conclusion: string;
+  discussion: string;
+};
+
+function toReferenceDraft(
+  reference: TaskDetailResponse["references"][number]
+): ResourceDraft {
+  return reference.url
+    ? { type: "url", name: reference.name, path: reference.url }
+    : {
+        type: "file",
+        name: reference.name,
+        path: reference.fileName ?? reference.fileUrl ?? "",
+      };
+}
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -93,6 +120,23 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
       title: reference.name,
       link: reference.url ?? reference.fileName ?? reference.fileUrl ?? "",
     })),
+    referenceDrafts: Object.fromEntries(
+      data.references.map((reference) => [
+        String(reference.id),
+        toReferenceDraft(reference),
+      ])
+    ),
+    meetingLogValues: Object.fromEntries(
+      data.meetingLogs.map((log) => [
+        String(log.id),
+        {
+          date: parseServerDate(log.date),
+          agenda: log.agenda ?? "",
+          conclusion: log.conclusion ?? "",
+          discussion: log.discussion ?? "",
+        },
+      ])
+    ),
   };
 }
 
@@ -136,21 +180,10 @@ export function toTaskFormValue(data: TaskDetailResponse): TaskFormValue {
       title: subTask.title,
       dueDate: subTask.deadline ? toDueDate(subTask.deadline) : null,
     })),
-    resources: data.references.map((reference) =>
-      reference.url
-        ? {
-            id: String(reference.id),
-            type: "url" as const,
-            name: reference.name,
-            path: reference.url,
-          }
-        : {
-            id: String(reference.id),
-            type: "file" as const,
-            name: reference.name,
-            path: reference.fileName ?? reference.fileUrl ?? "",
-          }
-    ),
+    resources: data.references.map((reference) => ({
+      id: String(reference.id),
+      ...toReferenceDraft(reference),
+    })),
   };
 }
 
@@ -176,4 +209,21 @@ export function toReferenceParams({
   if (type === "url") return { type, name, url: path };
   if (!file) return null;
   return { type, name: name || undefined, file: toFilePart(file) };
+}
+
+/** 자료 수정 요청. 파일 자료는 새 파일을 골랐을 때만 파일을 보낸다 */
+export function toUpdateReferenceParams({
+  type,
+  name,
+  path,
+  file,
+}: ResourceDraft): UpdateReferenceParams {
+  if (type === "url") return { name, url: path };
+  return { name, ...(file ? { file: toFilePart(file) } : {}) };
+}
+
+/** 회의록 날짜. 서버는 `YYYY-MM-DD`를 받는다 */
+export function toServerDate(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
