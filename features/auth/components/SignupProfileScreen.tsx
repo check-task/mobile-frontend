@@ -1,9 +1,18 @@
-import { launchImageLibraryAsync } from "expo-image-picker";
+import {
+  type ImagePickerAsset,
+  launchImageLibraryAsync,
+} from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Platform, Text, View } from "react-native";
 
 import { Button } from "@/components/common/Button/Button";
+import { useToast } from "@/hooks/useToast";
+
+import type { SignUpRequest } from "../api/auth.types";
+import { getAuthErrorMessage } from "../api/authErrorMessage";
+import { useSignUpMutation } from "../hooks/useSignUpMutation";
+import { useSignupDraft } from "../hooks/useSignupDraft";
 
 import { AuthFormField, AuthInput, FieldMessage } from "./AuthFormField";
 import {
@@ -25,12 +34,32 @@ function formatPhoneNumber(text: string) {
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
+// web 은 File 객체, native 는 uri 파트로 보낸다
+function toProfileImage(
+  asset: ImagePickerAsset
+): SignUpRequest["profileImage"] {
+  if (Platform.OS === "web" && asset.file) return asset.file;
+  return {
+    uri: asset.uri,
+    name: asset.fileName ?? "profile.jpg",
+    type: asset.mimeType ?? "image/jpeg",
+  };
+}
+
 export function SignupProfileScreen() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { email, password } = useSignupDraft();
+  const signUpMutation = useSignUpMutation();
   const [nickname, setNickname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<ImagePickerAsset | null>(null);
   const [photoError, setPhotoError] = useState(false);
+
+  // 웹 새로고침 등으로 앞 단계 값이 없으면 처음 단계로
+  useEffect(() => {
+    if (!email || !password) router.replace("/signup");
+  }, [email, password, router]);
   // 연속 클릭 작업 꼬임 방지 (늦게 끝난 이전 요청 무시)
   const latestPhotoRequestRef = useRef(0);
 
@@ -47,7 +76,7 @@ export function SignupProfileScreen() {
       });
       if (requestId !== latestPhotoRequestRef.current) return;
       const asset = result.canceled ? undefined : result.assets[0];
-      if (asset) setPhotoUri(asset.uri);
+      if (asset) setPhoto(asset);
     } catch {
       if (requestId === latestPhotoRequestRef.current) setPhotoError(true);
     }
@@ -56,11 +85,31 @@ export function SignupProfileScreen() {
   const removePhoto = () => {
     latestPhotoRequestRef.current += 1;
     setPhotoError(false);
-    setPhotoUri(null);
+    setPhoto(null);
   };
 
   const handleSubmit = () => {
-    router.dismissTo("/login");
+    const phoneDigits = phoneNumber.replace(/\D/g, "");
+    signUpMutation.mutate(
+      {
+        email,
+        password,
+        nickname: nickname.trim(),
+        ...(phoneDigits && { phoneNum: phoneDigits }),
+        ...(photo && { profileImage: toProfileImage(photo) }),
+      },
+      {
+        onSuccess: () => {
+          showToast("success", "회원가입이 완료되었어요.");
+          router.dismissTo("/login");
+        },
+        onError: (error) =>
+          showToast(
+            "fail",
+            getAuthErrorMessage(error, "회원가입하지 못했어요.")
+          ),
+      }
+    );
   };
 
   return (
@@ -68,7 +117,7 @@ export function SignupProfileScreen() {
       footer={
         <Button
           label="회원가입"
-          disabled={nickname.trim().length === 0}
+          disabled={nickname.trim().length === 0 || signUpMutation.isPending}
           onPress={handleSubmit}
         />
       }
@@ -112,7 +161,7 @@ export function SignupProfileScreen() {
           }
         >
           <ProfilePhotoField
-            photoUri={photoUri}
+            photoUri={photo?.uri ?? null}
             onUpload={pickPhoto}
             onChange={pickPhoto}
             onRemove={removePhoto}

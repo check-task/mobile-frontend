@@ -23,6 +23,10 @@ type VerificationCodeStepProps = {
   //넘기면 인증코드 재발송 버튼을 보여줌.
   onResend?: () => void;
   onSubmit: (code: string) => void;
+  //코드를 고쳐 입력할 때 (불일치 문구 지우기용)
+  onCodeChange?: (code: string) => void;
+  //확인 요청 중이면 버튼을 막는다
+  isSubmitting?: boolean;
 };
 
 // 이메일로 받은 인증코드를 입력하는 단계
@@ -33,12 +37,22 @@ export function VerificationCodeStep({
   status = "idle",
   onResend,
   onSubmit,
+  onCodeChange,
+  isSubmitting = false,
 }: VerificationCodeStepProps) {
   const [code, setCode] = useState("");
   const countdown = useCountdown(CODE_VALID_SECONDS);
   const trimmedCode = code.trim();
   const canSubmit =
-    trimmedCode.length > 0 && status !== "mismatch" && !countdown.isExpired;
+    trimmedCode.length > 0 &&
+    status !== "mismatch" &&
+    !countdown.isExpired &&
+    !isSubmitting;
+
+  const changeCode = (next: string) => {
+    setCode(next);
+    onCodeChange?.(next);
+  };
 
   const handleSubmit = () => {
     if (countdown.checkExpired()) return;
@@ -87,7 +101,7 @@ export function VerificationCodeStep({
           shape="box-timer"
           timerLabel={countdown.label}
           value={code}
-          onChangeText={setCode}
+          onChangeText={changeCode}
           placeholder="인증코드를 입력하세요."
           autoCapitalize="characters"
           autoComplete="one-time-code"
