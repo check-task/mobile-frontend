@@ -7,7 +7,7 @@ export function MyTasksScreen({
 }: {
   initialScope?: TaskScope;
 }) {
-  const { tasks, isError } = useOngoingTasksQuery();
+  const { tasks, isPending, isError } = useOngoingTasksQuery();
 
   return (
     <TaskListView
@@ -15,7 +15,9 @@ export function MyTasksScreen({
       title="내 과제"
       status="ongoing"
       tasks={tasks}
+      isPending={isPending}
       isError={isError}
+      emptyMessage="진행 중인 과제가 없어요."
       initialScope={initialScope}
     />
   );

@@ -151,7 +151,8 @@ function toScope(type: string) {
 
 /** 완료 과제 = 마감일이 지난 과제라서 마감일을 `2026.10.31` 로 보여준다 */
 export function toCompletedTaskListItem(dto: CompletedTaskDto): TaskListItem {
-  const deadline = parseServerDate(dto.deadline);
+  // 날짜만 있는 마감(T23:59:59)이 UTC 로 읽혀 하루 밀리지 않게 상세 화면과 같은 방식으로 읽는다
+  const deadline = toDueDate(dto.deadline).date;
   return {
     id: String(dto.taskId),
     folderId: dto.folderId === null ? null : String(dto.folderId),

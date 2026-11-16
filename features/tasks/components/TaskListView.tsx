@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LogoHeader } from "@/components/common/Header/LogoHeader";
@@ -25,8 +25,12 @@ type TaskListViewProps = {
   // ongoing은 D-day, completed는 완료 날짜 표시
   status: "ongoing" | "completed";
   tasks: readonly TaskListItem[];
+  // 처음 불러오는 중이면 로딩 표시
+  isPending?: boolean;
   // 목록을 못 불러왔으면 토스트로 알린다
   isError?: boolean;
+  // 불러왔는데 보여줄 과제가 없을 때 안내 문구
+  emptyMessage: string;
   initialScope?: TaskScope;
 };
 
@@ -37,7 +41,9 @@ export function TaskListView({
   title,
   status,
   tasks,
+  isPending = false,
   isError = false,
+  emptyMessage,
   initialScope = "personal",
 }: TaskListViewProps) {
   const router = useRouter();
@@ -52,11 +58,12 @@ export function TaskListView({
     if (isError) showToast("fail", "과제 목록을 불러오지 못했어요.");
   }, [isError, showToast]);
 
-  // 폴더가 없는 과제는 모든 과제를 볼 때만 보여준다
-  const filteredTasks = tasks.filter((task) =>
-    task.folderId === null
-      ? folderFilter.isAllSelected
-      : folderFilter.selectedIds.has(task.folderId)
+  // 전체 선택이면 폴더 목록이 아직 없거나 못 불러와도 다 보여준다.
+  // 폴더가 없는 과제는 모든 과제를 볼 때만 보인다
+  const filteredTasks = tasks.filter(
+    (task) =>
+      folderFilter.isAllSelected ||
+      (task.folderId !== null && folderFilter.selectedIds.has(task.folderId))
   );
   const counts: Record<TaskScope, number> = {
     personal: filteredTasks.filter((task) => task.scope === "personal").length,
@@ -88,6 +95,15 @@ export function TaskListView({
           paddingBottom: insets.bottom + CONTENT_BOTTOM_OFFSET,
         }}
       >
+        {isPending ? (
+          <View className="pt-10">
+            <ActivityIndicator />
+          </View>
+        ) : !isError && visibleTasks.length === 0 ? (
+          <Text className="pt-10 text-center text-gray-400 text-b-02-r">
+            {emptyMessage}
+          </Text>
+        ) : null}
         {visibleTasks.map((task) => {
           const common = {
             folderName: task.folderName,
