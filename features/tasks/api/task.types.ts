@@ -84,7 +84,13 @@ export type TaskDetailResponse = {
   progressRate: number;
   subTasks: SubTaskDto[];
   communications: { id: number; name: string; url: string }[];
-  meetingLogs: { id: number; date: string; agenda: string | null }[];
+  meetingLogs: {
+    id: number;
+    date: string;
+    agenda: string | null;
+    conclusion: string | null;
+    discussion: string | null;
+  }[];
   references: {
     id: number;
     name: string;
@@ -104,6 +110,12 @@ export type TaskMember = {
 
 /** GET /api/v1/task/:taskId/members */
 export type TaskMembersResponse = { members: TaskMember[]; count: number };
+
+/** POST /api/v1/task/:taskId/invitation. 유효한 코드가 있으면 그 코드를 다시 준다 */
+export type InviteCodeResponse = {
+  invite_code: string;
+  invite_expired: string;
+};
 
 export type AddSubTaskRequest = {
   title: string;

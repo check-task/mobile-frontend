@@ -33,8 +33,8 @@ export type TeamSubTaskDetailProps = {
   onChangeCommentDraft: (text: string) => void;
   /** 전송 아이콘을 눌렀을 때 */
   onSendComment: () => void;
-  /** 댓글 더보기 아이콘을 눌렀을 때 */
-  onCommentMenuPress?: (id: string) => void;
+  /** 댓글 더보기 아이콘을 눌렀을 때. 메뉴를 붙일 수 있게 아이콘의 화면 좌표를 넘긴다. */
+  onCommentMenuPress?: (id: string, anchor: AnchorRect) => void;
   /** `TASK 담당` 줄을 눌렀을 때. 메뉴를 붙일 수 있게 줄의 화면 좌표를 넘긴다. */
   onAssigneePress?: (anchor: AnchorRect) => void;
   /** 바깥 여백 등 레이아웃 보정용. 너비는 부모가 결정한다. */
@@ -117,18 +117,13 @@ export function TeamSubTaskDetail({
                     {comment.time}
                   </Text>
                 </View>
-                <Pressable
-                  accessibilityRole={onCommentMenuPress ? "button" : undefined}
-                  accessibilityLabel="댓글 메뉴"
-                  hitSlop={8}
+                <CommentMenuButton
                   onPress={
                     onCommentMenuPress
-                      ? () => onCommentMenuPress(comment.id)
+                      ? (anchor) => onCommentMenuPress(comment.id, anchor)
                       : undefined
                   }
-                >
-                  <Menu className="text-gray-400" />
-                </Pressable>
+                />
               </View>
             </View>
             <Text className="pl-6 text-gray-700 text-b-04-r">
@@ -138,5 +133,32 @@ export function TeamSubTaskDetail({
         ))}
       </View>
     </View>
+  );
+}
+
+function CommentMenuButton({
+  onPress,
+}: {
+  onPress?: (anchor: AnchorRect) => void;
+}) {
+  const ref = useRef<ComponentRef<typeof View>>(null);
+
+  return (
+    <Pressable
+      ref={ref}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel="댓글 메뉴"
+      hitSlop={8}
+      onPress={
+        onPress
+          ? () =>
+              ref.current?.measureInWindow((x, y, width, height) =>
+                onPress({ x, y, width, height })
+              )
+          : undefined
+      }
+    >
+      <Menu className="text-gray-400" />
+    </Pressable>
   );
 }
