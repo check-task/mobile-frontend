@@ -13,3 +13,12 @@ const FOLDER_COLOR_BY_HEX: Record<string, FolderColor> = {
 export function toFolderColor(hex: string): FolderColor {
   return FOLDER_COLOR_BY_HEX[hex.toUpperCase()] ?? "sub-null";
 }
+
+/** 폴더 색 토큰 → 서버에 보낼 hex. `sub-null` 은 `지정안함` 전용이라 고를 수 없다 */
+export function toFolderHex(color: FolderColor) {
+  const hex = Object.keys(FOLDER_COLOR_BY_HEX).find(
+    (key) => FOLDER_COLOR_BY_HEX[key] === color
+  );
+  if (!hex) throw new Error(`hex 가 없는 폴더 색: ${color}`);
+  return hex;
+}

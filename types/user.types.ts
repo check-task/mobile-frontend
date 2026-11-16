@@ -5,8 +5,18 @@ export type MyFolder = {
   color: string;
 };
 
-/** GET /api/v1/user/me 중 앱에서 쓰는 필드만 */
+export type LoginType = "LOCAL" | "KAKAO";
+
+/** GET /api/v1/user/me */
 export type MyInfoResponse = {
   userId: number;
+  nickname: string;
+  // 카카오 가입자는 연락처·이메일·사진이 없을 수 있다
+  phoneNum: string | null;
+  email: string | null;
+  profileImage: string | null;
+  loginType: LoginType;
+  deadlineAlarm: number;
+  taskAlarm: number;
   folders: MyFolder[];
 };
