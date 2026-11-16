@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { setStringAsync } from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -129,6 +129,12 @@ function TeamTaskDetailContent({
   const [sendingCommentIds, setSendingCommentIds] = useState<readonly string[]>(
     []
   );
+  // 세부 과제별 입력 변경 횟수. 전송이 끝났을 때 그 사이 새로 입력했으면 지우지 않으려고 센다.
+  const draftVersionsRef = useRef<Record<string, number>>({});
+  const bumpDraftVersion = (subTaskId: string) => {
+    draftVersionsRef.current[subTaskId] =
+      (draftVersionsRef.current[subTaskId] ?? 0) + 1;
+  };
   const [commentMenu, setCommentMenu] = useState<{
     subTaskId: string;
     commentId: string;
@@ -360,6 +366,7 @@ function TeamTaskDetailContent({
       );
 
   const changeCommentDraft = (id: string, draft: string) => {
+    bumpDraftVersion(id);
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
     // 입력을 다 지우면 수정을 그만둔 것으로 본다.
     if (draft.length === 0) {
@@ -373,6 +380,7 @@ function TeamTaskDetailContent({
       return;
     }
     const editingId = editingCommentIds[subTaskId];
+    const sentVersion = draftVersionsRef.current[subTaskId] ?? 0;
     setSendingCommentIds((ids) => [...ids, subTaskId]);
     const request = editingId
       ? emitAndRefresh("comment:update", {
@@ -387,7 +395,11 @@ function TeamTaskDetailContent({
           content,
         });
     request
-      .then(() => changeCommentDraft(subTaskId, ""))
+      .then(() => {
+        if ((draftVersionsRef.current[subTaskId] ?? 0) === sentVersion) {
+          changeCommentDraft(subTaskId, "");
+        }
+      })
       .catch((error: unknown) =>
         showToast(
           "fail",
@@ -412,6 +424,7 @@ function TeamTaskDetailContent({
     if (!comment) {
       return;
     }
+    bumpDraftVersion(subTaskId);
     setEditingCommentIds((current) => ({ ...current, [subTaskId]: commentId }));
     setCommentDrafts((current) => ({ ...current, [subTaskId]: comment.body }));
   };
