@@ -20,6 +20,7 @@ export function ProfileEditModalForm({
   onSubmit,
 }: ProfileEditModalFormProps) {
   const [profile, setProfile] = useState(initialProfile);
+  const [photoError, setPhotoError] = useState(false);
   const update = (patch: Partial<SettingsProfile>) =>
     setProfile((prev) => ({ ...prev, ...patch }));
 
@@ -30,14 +31,20 @@ export function ProfileEditModalForm({
     profile.profileImage !== initialProfile.profileImage;
   const canSave = isChanged && profile.nickname.trim() !== "";
 
+  // 실패하면 기존 사진은 그대로 두고 문구로 알린다 (토스트는 모달 아래에 깔린다)
   const pickPhoto = async () => {
-    const result = await launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-    const asset = result.canceled ? undefined : result.assets[0];
-    if (asset) update({ profileImage: asset.uri });
+    setPhotoError(false);
+    try {
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+      const asset = result.canceled ? undefined : result.assets[0];
+      if (asset) update({ profileImage: asset.uri });
+    } catch {
+      setPhotoError(true);
+    }
   };
 
   return (
@@ -57,6 +64,11 @@ export function ProfileEditModalForm({
               onPress={() => update({ profileImage: null })}
             />
           </View>
+          {photoError ? (
+            <Text className="text-sub-01 text-b-04-r">
+              사진을 불러오지 못했어요. 다시 시도해 주세요.
+            </Text>
+          ) : null}
         </View>
         <View className="mx-3 h-px bg-gray-200" />
         <Field label="닉네임">

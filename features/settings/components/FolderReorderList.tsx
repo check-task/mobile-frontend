@@ -39,10 +39,15 @@ export function FolderReorderList({
       isDragging={drag?.index === index}
       onDragStart={() => setDrag({ index, dy: 0 })}
       onDragMove={(dy) => setDrag({ index, dy })}
-      onDragEnd={(dy) => {
-        onChange(moveItem(folders, index, targetOf(index, dy)));
+      onDragEnd={(dy, canceled) => {
+        if (!canceled) onChange(moveItem(folders, index, targetOf(index, dy)));
         setDrag(null);
       }}
+      onMove={(delta) =>
+        onChange(
+          moveItem(folders, index, clamp(index + delta, 0, folders.length - 1))
+        )
+      }
       onHoldChange={onHoldChange}
     />
   ));

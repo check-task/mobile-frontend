@@ -15,7 +15,10 @@ type FolderReorderRowProps = {
   isDragging: boolean;
   onDragStart: () => void;
   onDragMove: (dy: number) => void;
-  onDragEnd: (dy: number) => void;
+  /** 시스템이 제스처를 끊으면 `canceled` 가 true */
+  onDragEnd: (dy: number, canceled: boolean) => void;
+  /** 스크린리더의 위로/아래로 이동 동작 (-1 위, +1 아래) */
+  onMove: (delta: -1 | 1) => void;
   /** 핸들을 누르고 있는 동안 true. 부모 스크롤을 잠그는 데 쓴다 */
   onHoldChange: (holding: boolean) => void;
 };
@@ -28,6 +31,7 @@ export function FolderReorderRow({
   onDragMove,
   onDragEnd,
   onHoldChange,
+  onMove,
 }: FolderReorderRowProps) {
   // translationY 는 플랫폼에 따라 활성화 시점부터 세서, 누른 지점 기준으로 직접 잰다
   const startY = useRef(0);
@@ -41,7 +45,7 @@ export function FolderReorderRow({
     onFinalize: () => onHoldChange(false),
     onActivate: onDragStart,
     onUpdate: (e) => onDragMove(e.absoluteY - startY.current),
-    onDeactivate: (e) => onDragEnd(e.absoluteY - startY.current),
+    onDeactivate: (e) => onDragEnd(e.absoluteY - startY.current, e.canceled),
   });
 
   return (
@@ -58,8 +62,16 @@ export function FolderReorderRow({
       </View>
       <GestureDetector gesture={gesture}>
         <View
+          accessible
           accessibilityLabel={`${folder.name} 순서 이동`}
           accessibilityHint="위아래로 끌어 순서를 바꿉니다"
+          accessibilityActions={[
+            { name: "moveUp", label: "위로 이동" },
+            { name: "moveDown", label: "아래로 이동" },
+          ]}
+          onAccessibilityAction={(e) =>
+            onMove(e.nativeEvent.actionName === "moveUp" ? -1 : 1)
+          }
           hitSlop={8}
           className="size-6 items-center justify-center rounded-full bg-gray-100"
         >
