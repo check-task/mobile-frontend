@@ -47,7 +47,7 @@ export function HomeScreen() {
   const [isFabOpen, setIsFabOpen] = useState(false);
 
   const folders = useHomeFoldersQuery().data ?? [];
-  const { mutate: joinTeamTask } = useJoinTeamTaskMutation();
+  const { mutateAsync: joinTeamTask } = useJoinTeamTaskMutation();
   const {
     isError,
     selectedFolderIds,
@@ -101,22 +101,21 @@ export function HomeScreen() {
       children: (
         <JoinTeamTaskModalForm
           folders={folders}
-          onSubmit={(inviteCode, folderId) =>
-            joinTeamTask(
-              { inviteCode, folderId: folderId ?? undefined },
-              {
-                onSuccess: ({ task_id }) => {
-                  closeModal();
-                  router.push(`/tasks/team/${task_id}`);
-                },
-                onError: (error) =>
-                  showToast(
-                    "fail",
-                    getErrorMessage(error, "팀 과제에 참여하지 못했습니다.")
-                  ),
-              }
-            )
-          }
+          onSubmit={async (inviteCode, folderId) => {
+            try {
+              const { task_id } = await joinTeamTask({
+                inviteCode,
+                folderId: folderId ?? undefined,
+              });
+              closeModal();
+              router.push(`/tasks/team/${task_id}`);
+            } catch (error) {
+              showToast(
+                "fail",
+                getErrorMessage(error, "팀 과제에 참여하지 못했습니다.")
+              );
+            }
+          }}
         />
       ),
     });
