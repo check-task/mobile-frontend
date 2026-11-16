@@ -31,7 +31,7 @@ export function CalendarHeader({
       <View className="flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="월 선택"
+          accessibilityLabel={`${year}년 ${month + 1}월, 월 선택`}
           onPress={onTitlePress}
         >
           <Text className="text-gray-900 text-h-01">{`${year}년 ${month + 1}월`}</Text>
@@ -60,20 +60,21 @@ export function CalendarHeader({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2"
       >
-        {folders.map((folder) => (
-          <Chip
-            key={folder.id}
-            label={folder.name}
-            color={folder.color}
-            // 홈은 default 가 선택, muted 가 해제 상태다
-            variant={
-              selectedFolderIds.size === 0 || selectedFolderIds.has(folder.id)
-                ? "default"
-                : "muted"
-            }
-            onPress={() => onToggleFolder(folder.id)}
-          />
-        ))}
+        {folders.map((folder) => {
+          const isSelected =
+            selectedFolderIds.size === 0 || selectedFolderIds.has(folder.id);
+          return (
+            <Chip
+              key={folder.id}
+              label={folder.name}
+              color={folder.color}
+              // 홈은 default 가 선택, muted 가 해제 상태다
+              variant={isSelected ? "default" : "muted"}
+              selected={isSelected}
+              onPress={() => onToggleFolder(folder.id)}
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
