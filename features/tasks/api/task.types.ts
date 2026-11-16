@@ -22,6 +22,44 @@ export type CreateTaskRequest = {
 
 export type CreateTaskResponse = { taskId: number };
 
+/** GET /api/v1/task 의 과제 항목 (완료된 과제는 빠진다) */
+export type TaskListItemDto = {
+  taskId: number;
+  folderId: number | null;
+  /** hex 문자열 */
+  foldercolor: string;
+  folderTitle: string;
+  title: string;
+  type: TaskType;
+  /** `2026.06.30` */
+  deadline: string;
+  /** `D-140` */
+  dDay: string;
+  progressRate: number;
+};
+
+/** GET /api/v1/task. 목록 화면은 task 만 쓴다 */
+export type TaskListResponse = {
+  task: TaskListItemDto[];
+};
+
+/** GET /api/v1/task/completed 의 과제 항목 */
+export type CompletedTaskDto = {
+  taskId: number;
+  title: string;
+  /** ISO date-time (마감일) */
+  deadline: string;
+  type: string;
+  folderId: number | null;
+  folderTitle: string | null;
+  /** hex 문자열 */
+  color: string | null;
+};
+
+export type CompletedTasksResponse = {
+  tasks: CompletedTaskDto[];
+};
+
 export type MyFolder = {
   folderId: number;
   folderTitle: string;
