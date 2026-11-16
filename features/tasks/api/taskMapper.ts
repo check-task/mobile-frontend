@@ -94,12 +94,14 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
           assignees: subTask.assignees.map((assignee) => ({
             id: String(assignee.userId),
             name: assignee.nickname,
+            avatarUrl: toImageUrl(assignee.profileImage),
           })),
           comments: subTask.comments.map((comment) => {
             const createdAt = parseServerDate(comment.createdAt);
             return {
               id: String(comment.commentId),
               author: comment.writer,
+              avatarUrl: toImageUrl(comment.profileImage),
               date: formatShortDate(createdAt),
               time: formatTime(createdAt),
               body: comment.content,
@@ -272,4 +274,9 @@ export function toUpdateReferenceParams({
 export function toServerDate(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** iOS 는 http 이미지를 막는다. 카카오 프로필 등 http 로 오는 주소는 https 로 바꿔 부른다 */
+export function toImageUrl(url: string | null) {
+  return url ? url.replace(/^http:\/\//, "https://") : null;
 }

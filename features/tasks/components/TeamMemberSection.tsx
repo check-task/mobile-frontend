@@ -5,11 +5,13 @@ import { Button } from "@/components/common/Button/Button";
 import { BottomFill, Share } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
+import { MemberAvatar } from "./MemberAvatar";
 import type { AnchorRect } from "./MenuPopover";
 
 export type TeamMember = {
   id: string;
   name: string;
+  avatarUrl: string | null;
   /** 역할 라벨 (예: `Owner`, `member(you)`) */
   role: string;
   /** 역할 옆 화살표를 눌렀을 때. 넘기면 화살표를 그린다 (팀장이 다른 팀원을 볼 때). 메뉴를 붙일 수 있게 화면 좌표를 넘긴다. */
@@ -67,7 +69,10 @@ export function TeamMemberSection({
             className="flex-row items-center justify-between"
           >
             <View className="flex-row items-center gap-1">
-              <View className="h-4 w-4 rounded-full bg-blue-200" />
+              <MemberAvatar
+                uri={member.avatarUrl}
+                className="h-4 w-4 bg-blue-200"
+              />
               <Text className="text-gray-800 text-b-04-r">{member.name}</Text>
             </View>
             {member.onRolePress ? (

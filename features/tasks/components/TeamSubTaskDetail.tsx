@@ -5,16 +5,19 @@ import { Input } from "@/components/common/Input/Input";
 import { Menu } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
+import { MemberAvatar } from "./MemberAvatar";
 import type { AnchorRect } from "./MenuPopover";
 
 export type TaskAssignee = {
   id: string;
   name: string;
+  avatarUrl: string | null;
 };
 
 export type TaskComment = {
   id: string;
   author: string;
+  avatarUrl: string | null;
   date: string;
   time: string;
   body: string;
@@ -77,7 +80,10 @@ export function TeamSubTaskDetail({
                 key={assignee.id}
                 className="flex-row items-center gap-0.5 rounded-[40px] bg-blue-50 p-1"
               >
-                <View className="h-4 w-4 rounded-full bg-blue-200" />
+                <MemberAvatar
+                  uri={assignee.avatarUrl}
+                  className="h-4 w-4 bg-blue-200"
+                />
                 <Text className="text-gray-800 text-caption">
                   {assignee.name}
                 </Text>
@@ -103,7 +109,10 @@ export function TeamSubTaskDetail({
           <View key={comment.id} className="gap-1">
             <View className="flex-row items-start justify-between">
               <View className="flex-row items-center gap-1">
-                <View className="h-5 w-5 rounded-full bg-blue-100" />
+                <MemberAvatar
+                  uri={comment.avatarUrl}
+                  className="h-5 w-5 bg-blue-100"
+                />
                 <Text className="text-gray-700 text-b-04-m">
                   {comment.author}
                 </Text>
