@@ -1,8 +1,14 @@
 import { useState } from "react";
 
-import { ResourceEditModalContent } from "./ResourceEditModalContent";
+import {
+  ResourceEditModalContent,
+  type ResourceEditModalContentProps,
+} from "./ResourceEditModalContent";
 
-export type ResourceEditModalFormProps = {
+export type ResourceEditModalFormProps = Pick<
+  ResourceEditModalContentProps,
+  "nameLabel" | "namePlaceholder" | "pathLabel" | "pathPlaceholder"
+> & {
   /** 처음 채워 둘 이름 */
   initialName: string;
   /** 처음 채워 둘 경로 */
@@ -15,6 +21,7 @@ export function ResourceEditModalForm({
   initialName,
   initialPath,
   onSave,
+  ...labels
 }: ResourceEditModalFormProps) {
   const [name, setName] = useState(initialName);
   const [path, setPath] = useState(initialPath);
@@ -26,6 +33,7 @@ export function ResourceEditModalForm({
       filePath={path}
       onChangeFilePath={setPath}
       onSave={() => onSave(name, path)}
+      {...labels}
     />
   );
 }

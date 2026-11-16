@@ -84,7 +84,13 @@ export type TaskDetailResponse = {
   progressRate: number;
   subTasks: SubTaskDto[];
   communications: { id: number; name: string; url: string }[];
-  meetingLogs: { id: number; date: string; agenda: string | null }[];
+  meetingLogs: {
+    id: number;
+    date: string;
+    agenda: string | null;
+    conclusion: string | null;
+    discussion: string | null;
+  }[];
   references: {
     id: number;
     name: string;

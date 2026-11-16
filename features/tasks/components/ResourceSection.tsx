@@ -20,8 +20,10 @@ export type ResourceSectionProps = {
   onEdit?: (id: string) => void;
   /** 삭제 아이콘을 눌렀을 때 */
   onDelete?: (id: string) => void;
-  /** `자료추가`를 눌렀을 때 */
+  /** 추가 버튼을 눌렀을 때 */
   onAddPress?: () => void;
+  /** 추가 버튼 문구. (기본값: `자료추가`) */
+  addLabel?: string;
   /** 처음에 보여 줄 개수. 넘기면 초과분은 `펼쳐보기`를 누를 때까지 숨긴다. */
   collapsedCount?: number;
   /** 제목 아래에 그릴 탭 등 */
@@ -35,6 +37,7 @@ export function ResourceSection({
   onEdit,
   onDelete,
   onAddPress,
+  addLabel = "자료추가",
   collapsedCount,
   tabs,
   className,
@@ -71,7 +74,7 @@ export function ResourceSection({
           className="h-10 flex-row items-center gap-1 rounded-lg bg-gray-0 p-2"
         >
           <Add variant="sm" className="text-gray-600" />
-          <Text className="text-gray-600 text-b-04-m">자료추가</Text>
+          <Text className="text-gray-600 text-b-04-m">{addLabel}</Text>
         </Pressable>
       </View>
     </View>
