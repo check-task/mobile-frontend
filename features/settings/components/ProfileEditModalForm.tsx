@@ -1,4 +1,7 @@
-import { launchImageLibraryAsync } from "expo-image-picker";
+import {
+  type ImagePickerAsset,
+  launchImageLibraryAsync,
+} from "expo-image-picker";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -8,11 +11,15 @@ import { Input } from "@/components/common/Input/Input";
 import { Cancel, Swap } from "@/components/icons";
 
 import { ProfileAvatar } from "./ProfileAvatar";
-import type { SettingsProfile } from "./settingsData";
+import type { SettingsProfile } from "../api/settings.types";
 
 type ProfileEditModalFormProps = {
   initialProfile: SettingsProfile;
-  onSubmit: (profile: SettingsProfile) => void;
+  /** `photo` 는 새로 고른 사진(없으면 null). 끝날 때까지 버튼을 꺼 둔다 */
+  onSubmit: (
+    profile: SettingsProfile,
+    photo: ImagePickerAsset | null
+  ) => Promise<void>;
 };
 
 export function ProfileEditModalForm({
@@ -20,14 +27,15 @@ export function ProfileEditModalForm({
   onSubmit,
 }: ProfileEditModalFormProps) {
   const [profile, setProfile] = useState(initialProfile);
+  const [photo, setPhoto] = useState<ImagePickerAsset | null>(null);
   const [photoError, setPhotoError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const update = (patch: Partial<SettingsProfile>) =>
     setProfile((prev) => ({ ...prev, ...patch }));
 
   const isChanged =
     profile.nickname !== initialProfile.nickname ||
     profile.phoneNum !== initialProfile.phoneNum ||
-    profile.email !== initialProfile.email ||
     profile.profileImage !== initialProfile.profileImage;
   const canSave = isChanged && profile.nickname.trim() !== "";
 
@@ -41,7 +49,10 @@ export function ProfileEditModalForm({
         aspect: [1, 1],
       });
       const asset = result.canceled ? undefined : result.assets[0];
-      if (asset) update({ profileImage: asset.uri });
+      if (asset) {
+        setPhoto(asset);
+        update({ profileImage: asset.uri });
+      }
     } catch {
       setPhotoError(true);
     }
@@ -61,7 +72,11 @@ export function ProfileEditModalForm({
             <PhotoActionButton
               label="사진삭제"
               icon={<Cancel variant="sm" className="text-gray-400" />}
-              onPress={() => update({ profileImage: null })}
+              // 서버가 사진 삭제를 지원하지 않아(#90) 새로 고른 사진만 취소한다
+              onPress={() => {
+                setPhoto(null);
+                update({ profileImage: initialProfile.profileImage });
+              }}
             />
           </View>
           {photoError ? (
@@ -89,23 +104,31 @@ export function ProfileEditModalForm({
           />
         </Field>
         <Field label="이메일">
+          {/* 이메일은 로그인 계정이라 바꾸지 않는다 */}
           <Input
             shape="modal"
             value={profile.email}
-            onChangeText={(email) => update({ email })}
-            placeholder="checktask@ct.kr"
-            keyboardType="email-address"
-            autoCapitalize="none"
+            onChangeText={() => {}}
+            placeholder=""
+            editable={false}
           />
         </Field>
       </View>
       <Button
         label="변경사항 저장"
         size="modal"
-        disabled={!canSave}
-        onPress={() =>
-          onSubmit({ ...profile, nickname: profile.nickname.trim() })
-        }
+        disabled={!canSave || isSubmitting}
+        onPress={async () => {
+          setIsSubmitting(true);
+          try {
+            await onSubmit(
+              { ...profile, nickname: profile.nickname.trim() },
+              photo
+            );
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
       />
     </View>
   );

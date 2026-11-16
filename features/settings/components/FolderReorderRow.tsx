@@ -6,7 +6,7 @@ import { FolderColorDot } from "@/components/common/FolderColorDot/FolderColorDo
 import { Align } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-import type { SettingsFolder } from "./settingsData";
+import type { SettingsFolder } from "../api/settings.types";
 
 type FolderReorderRowProps = {
   folder: SettingsFolder;
