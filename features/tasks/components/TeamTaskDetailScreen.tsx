@@ -493,7 +493,7 @@ function TeamTaskDetailContent({
         />
         <ResourceSection
           items={currentResourceTab.items}
-          addLabel={`${resourceTab}추가`}
+          addLabel={`${resourceTab} 추가`}
           onAddPress={currentResourceTab.add}
           onEdit={currentResourceTab.edit}
           onDelete={currentResourceTab.remove}
