@@ -40,6 +40,8 @@ export const HOME_SORT_LABEL: Record<HomeSort, string> = {
 /** 캘린더 칸·날짜 미지정 영역에 그리는 항목 */
 export type CalendarItem = {
   key: string;
+  /** `kind` 에 따라 과제 id 또는 세부 task id */
+  id: number;
   kind: "main" | "sub";
   title: string;
   color: FolderColor;
