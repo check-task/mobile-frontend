@@ -21,9 +21,9 @@ import type {
 
 export const taskKeys = {
   all: ["task"] as const,
-  // 과제를 만들거나 고치면 taskKeys.all 을 invalidate 해서 목록도 같이 갱신된다
-  lists: () => ["task", "list"] as const,
-  list: (type: TaskType) => ["task", "list", type] as const,
+  // 과제를 만들거나 고치면 taskKeys.all 을 invalidate 해서 목록도 같이 갱신된다.
+  // 홈 목록 key(["task", "list", ...])와 캐시 모양이 달라서 겹치지 않게 "myList" 로 둔다
+  myList: (type: TaskType) => ["task", "myList", type] as const,
   completed: () => ["task", "completed"] as const,
   detail: (taskId: number) => ["task", "detail", taskId] as const,
   members: (taskId: number) => ["task", "members", taskId] as const,
