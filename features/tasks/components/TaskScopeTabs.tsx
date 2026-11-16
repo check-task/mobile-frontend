@@ -2,7 +2,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { cn } from "@/lib/utils";
 
-import type { TaskScope } from "./taskListData";
+import type { TaskScope } from "../api/taskList.types";
 
 const SCOPE_LABEL: Record<TaskScope, string> = {
   personal: "개인과제",
