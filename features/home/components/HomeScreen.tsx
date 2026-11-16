@@ -100,7 +100,6 @@ export function HomeScreen() {
       headerIcon: "cancel",
       children: (
         <JoinTeamTaskModalForm
-          folders={folders}
           onSubmit={async (inviteCode, folderId) => {
             try {
               const { task_id } = await joinTeamTask({
