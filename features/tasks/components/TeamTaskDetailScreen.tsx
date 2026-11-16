@@ -116,6 +116,18 @@ function TeamTaskDetailContent({
   >({});
   const { resources, editResource, deleteResource } =
     resourceActions[resourceTab];
+  // 세부 과제별로 수정 중인 댓글 id. 있으면 전송이 새 댓글 대신 그 댓글을 고친다.
+  const [editingCommentIds, setEditingCommentIds] = useState<
+    Readonly<Record<string, string>>
+  >({});
+  const [sendingCommentIds, setSendingCommentIds] = useState<readonly string[]>(
+    []
+  );
+  const [commentMenu, setCommentMenu] = useState<{
+    subTaskId: string;
+    commentId: string;
+    anchor: AnchorRect;
+  } | null>(null);
 
   const doneToggle = useSubTaskToggle({
     field: "done",
@@ -205,6 +217,70 @@ function TeamTaskDetailContent({
 
   const changeCommentDraft = (id: string, draft: string) => {
     setCommentDrafts((current) => ({ ...current, [id]: draft }));
+    // 입력을 다 지우면 수정을 그만둔 것으로 본다.
+    if (draft.length === 0) {
+      setEditingCommentIds(({ [id]: _cancelled, ...rest }) => rest);
+    }
+  };
+
+  const sendComment = (subTaskId: string) => {
+    const content = (commentDrafts[subTaskId] ?? "").trim();
+    if (content.length === 0 || sendingCommentIds.includes(subTaskId)) {
+      return;
+    }
+    const editingId = editingCommentIds[subTaskId];
+    setSendingCommentIds((ids) => [...ids, subTaskId]);
+    const request = editingId
+      ? emitAndRefresh("comment:update", {
+          taskId,
+          subTaskId: Number(subTaskId),
+          commentId: Number(editingId),
+          content,
+        })
+      : emitAndRefresh("comment:create", {
+          taskId,
+          subTaskId: Number(subTaskId),
+          content,
+        });
+    request
+      .then(() => changeCommentDraft(subTaskId, ""))
+      .catch((error: unknown) =>
+        showToast(
+          "fail",
+          getErrorMessage(
+            error,
+            editingId
+              ? "댓글을 수정하지 못했어요."
+              : "댓글을 등록하지 못했어요."
+          )
+        )
+      )
+      .finally(() =>
+        setSendingCommentIds((ids) => ids.filter((id) => id !== subTaskId))
+      );
+  };
+
+  const startEditComment = (subTaskId: string, commentId: string) => {
+    setCommentMenu(null);
+    const comment = detail.subTaskExtras[subTaskId]?.comments.find(
+      (item) => item.id === commentId
+    );
+    if (!comment) {
+      return;
+    }
+    setEditingCommentIds((current) => ({ ...current, [subTaskId]: commentId }));
+    setCommentDrafts((current) => ({ ...current, [subTaskId]: comment.body }));
+  };
+
+  const deleteComment = (subTaskId: string, commentId: string) => {
+    setCommentMenu(null);
+    emitAndRefresh("comment:delete", {
+      taskId,
+      subTaskId: Number(subTaskId),
+      commentId: Number(commentId),
+    }).catch((error: unknown) =>
+      showToast("fail", getErrorMessage(error, "댓글을 삭제하지 못했어요."))
+    );
   };
 
   const toggleExpanded = (id: string) => {
@@ -261,7 +337,11 @@ function TeamTaskDetailContent({
                 onChangeCommentDraft={(draft) =>
                   changeCommentDraft(item.id, draft)
                 }
-                onSendComment={() => changeCommentDraft(item.id, "")}
+                onSendComment={() => sendComment(item.id)}
+                onCommentMenuPress={(commentId, anchor) =>
+                  setCommentMenu({ subTaskId: item.id, commentId, anchor })
+                }
+
                 onAssigneePress={
                   savingAssigneeIds.includes(item.id)
                     ? undefined
@@ -316,6 +396,29 @@ function TeamTaskDetailContent({
           onSelect={(key) =>
             assigneeMenu && toggleAssignee(assigneeMenu.subTaskId, Number(key))
           }
+        />
+      </MenuPopover>
+      <MenuPopover
+        anchor={commentMenu?.anchor ?? null}
+        align="right"
+        onClose={() => setCommentMenu(null)}
+      >
+        <DropdownMenu
+          variant="comment"
+          items={[
+            { key: "edit", label: "댓글 수정" },
+            { key: "delete", label: "댓글 삭제" },
+          ]}
+          onSelect={(key) => {
+            if (!commentMenu) {
+              return;
+            }
+            if (key === "edit") {
+              startEditComment(commentMenu.subTaskId, commentMenu.commentId);
+            } else {
+              deleteComment(commentMenu.subTaskId, commentMenu.commentId);
+            }
+          }}
         />
       </MenuPopover>
       <MenuPopover

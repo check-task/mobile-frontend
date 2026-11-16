@@ -4,8 +4,10 @@ import { getAccessToken } from "@/lib/api/client";
 
 const ACK_TIMEOUT_MS = 15_000;
 
+// 실패 이유는 이벤트에 따라 reason 또는 message 로 온다 (댓글 수정·삭제는 message).
 type SocketAck<T> =
-  { success: true; data: T } | { success: false; reason: string };
+  | { success: true; data: T }
+  | { success: false; reason?: string; message?: string };
 
 export class SocketError extends Error {}
 
@@ -40,5 +42,5 @@ export async function emitWithAck<T>(event: string, payload: unknown) {
   if (ack.success) {
     return ack.data;
   }
-  throw new SocketError(ack.reason);
+  throw new SocketError(ack.reason ?? ack.message ?? "");
 }
