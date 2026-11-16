@@ -67,14 +67,32 @@ export async function getTokens() {
   return cachedTokens;
 }
 
-// 저장이 성공한 뒤에 메모리를 바꾼다. 실패하면 이전 세션을 그대로 둔다
-export async function saveTokens(tokens: AuthTokens) {
-  await storage.set(TOKENS_KEY, JSON.stringify(tokens));
-  cachedTokens = tokens;
+// 저장·삭제를 부른 순서대로 저장소에 쓴다. 저장 중에 로그아웃해도 삭제가 그 뒤에 실행된다
+let writeQueue: Promise<unknown> = Promise.resolve();
+
+function enqueue<T>(task: () => Promise<T>) {
+  const run = writeQueue.then(task, task);
+  writeQueue = run.catch(() => undefined);
+  return run;
 }
 
-export async function clearTokens() {
+// 삭제할 때마다 올린다. 삭제 전에 시작한 저장이 늦게 끝나도 이전 토큰으로 되돌리지 않게 한다
+let clearCount = 0;
+
+// 저장이 성공한 뒤에 메모리를 바꾼다. 실패하면 이전 세션을 그대로 둔다
+export function saveTokens(tokens: AuthTokens) {
+  const clearCountAtStart = clearCount;
+  return enqueue(async () => {
+    // 차례를 기다리는 동안 로그아웃했으면 저장하지 않는다
+    if (clearCount !== clearCountAtStart) return;
+    await storage.set(TOKENS_KEY, JSON.stringify(tokens));
+    if (clearCount === clearCountAtStart) cachedTokens = tokens;
+  });
+}
+
+export function clearTokens() {
+  clearCount += 1;
   // 삭제는 실패해도 이 앱에서는 로그아웃 상태로 본다
   cachedTokens = null;
-  await storage.remove(TOKENS_KEY);
+  return enqueue(() => storage.remove(TOKENS_KEY));
 }
