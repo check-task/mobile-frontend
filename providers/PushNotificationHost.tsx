@@ -81,14 +81,20 @@ export function PushNotificationHost() {
       if (!active) {
         return;
       }
-      // 앱을 쓰는 중에 띄운 알림을 누른 경우
+      // expo-notifications 가 띄운 알림으로 앱을 켜면 Firebase 는 모르므로 따로 확인한다
+      const lastResponse = Notifications.getLastNotificationResponse();
+      const launchedId = lastResponse?.notification.request.identifier;
+      // 앱을 쓰는 중에 띄운 알림을 누른 경우. 앱을 켠 알림은 아래에서 한 번만 연다
       const subscription =
-        Notifications.addNotificationResponseReceivedListener(
-          openNotificationList
-        );
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          if (response.notification.request.identifier !== launchedId) {
+            openNotificationList();
+          }
+        });
       cleanups.push(() => subscription.remove());
-      if (initial) {
+      if (initial || lastResponse) {
         openNotificationList();
+        Notifications.clearLastNotificationResponse();
       }
 
       if (await getTokens()) {
