@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152299560096",
+    "project_id": "checktask-c2864",
+    "storage_bucket": "checktask-c2864.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152299560096:android:27bc5f0eebc4e13e1cfdc5",
+        "android_client_info": {
+          "package_name": "kr.checktask.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA33LrOibwfVBauNWotKtcFbdgVe6Ipj3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
