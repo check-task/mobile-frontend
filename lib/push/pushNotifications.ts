@@ -30,7 +30,7 @@ export async function registerPushToken() {
     // Android 13 이상은 채널이 하나라도 있어야 권한 창이 뜬다
     await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
       name: "기본 알림",
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
     });
   }
 
