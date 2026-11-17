@@ -78,15 +78,15 @@ export function PushNotificationHost() {
       );
       // 앱이 꺼져 있을 때 알림을 눌러 켠 경우
       const initial = await Messaging.getInitialNotification(instance);
+      if (!active) {
+        return;
+      }
       // 앱을 쓰는 중에 띄운 알림을 누른 경우
       const subscription =
         Notifications.addNotificationResponseReceivedListener(
           openNotificationList
         );
       cleanups.push(() => subscription.remove());
-      if (!active) {
-        return;
-      }
       if (initial) {
         openNotificationList();
       }
