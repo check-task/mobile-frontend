@@ -19,6 +19,7 @@ import "@/global.css";
 import { themeVars } from "@/constants/theme-vars";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ModalProvider } from "@/providers/ModalProvider";
+import { PushNotificationHost } from "@/providers/PushNotificationHost";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 
@@ -49,6 +50,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }} />
           <ModalProvider />
           <ToastProvider />
+          <PushNotificationHost />
           {/* auto 는 기기 설정을 따라가서, 앱에서 고른 테마에 맞춘다 */}
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
         </View>
