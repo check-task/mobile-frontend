@@ -31,6 +31,11 @@ export const NotPressable: Story = {
   args: { checked: true, onPress: undefined },
 };
 
+/** 비활성 상태. 흐린 회색으로 그리고 누를 수 없다 (팀 과제 수정의 `팀프로젝트`). */
+export const Disabled: Story = {
+  args: { checked: true, disabled: true },
+};
+
 function ToggleDemo() {
   const [checked, setChecked] = useState(false);
   return (

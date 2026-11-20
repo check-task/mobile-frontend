@@ -14,6 +14,8 @@ export type CheckboxProps = {
   onPress?: () => void;
   /** 스크린 리더용 설명. 옆에 보이는 라벨 텍스트가 없을 때만 넘긴다. */
   accessibilityLabel?: string;
+  /** 비활성 상태. 테두리와 체크 표시를 흐린 회색(gray-400)으로 그리고 누를 수 없다. */
+  disabled?: boolean;
   /** 바깥 여백 등 레이아웃 보정용. */
   className?: string;
 };
@@ -27,6 +29,7 @@ export function Checkbox({
   checked,
   onPress,
   accessibilityLabel,
+  disabled = false,
   className,
 }: CheckboxProps) {
   const [checkedOpacity] = useState(() => new Animated.Value(checked ? 1 : 0));
@@ -42,13 +45,19 @@ export function Checkbox({
   return (
     <Pressable
       accessibilityRole={onPress ? "checkbox" : undefined}
-      accessibilityState={{ checked }}
+      accessibilityState={{ checked, disabled }}
       accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
       hitSlop={8}
       onPress={onPress}
       className={cn("h-6 w-6 items-center justify-center", className)}
     >
-      <View className="h-4 w-4 rounded-[1px] border border-gray-600" />
+      <View
+        className={cn(
+          "h-4 w-4 rounded-[1px] border",
+          disabled ? "border-gray-400" : "border-gray-600"
+        )}
+      />
       {/* Animated.View는 nativewind의 cssInterop이 등록돼 있지 않아 className이 먹지 않는다. */}
       <Animated.View
         style={{
@@ -62,7 +71,10 @@ export function Checkbox({
           opacity: checkedOpacity,
         }}
       >
-        <CheckBoxMark variant="lg" className="text-gray-600" />
+        <CheckBoxMark
+          variant="lg"
+          className={disabled ? "text-gray-400" : "text-gray-600"}
+        />
       </Animated.View>
     </Pressable>
   );

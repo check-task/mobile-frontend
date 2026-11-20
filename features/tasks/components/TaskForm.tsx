@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/common/Checkbox/Checkbox";
 import { Chip } from "@/components/common/Chip/Chip";
 import { BackHeader } from "@/components/common/Header/BackHeader";
 import { Input } from "@/components/common/Input/Input";
+import { cn } from "@/lib/utils";
 
 import type { TaskFormValue } from "../api/taskForm.types";
 import { useMyFoldersQuery } from "../hooks/useMyFoldersQuery";
@@ -33,23 +34,32 @@ function LabeledCheckbox({
   label,
   checked,
   onPress,
+  disabled = false,
 }: {
   label: string;
   checked: boolean;
-  /** 없으면 값만 보여주고 누를 수 없다 */
-  onPress?: () => void;
+  onPress: () => void;
+  /** Figma 팀 과제 수정처럼 박스와 라벨을 흐린 회색으로 그리고 누를 수 없게 한다 */
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="checkbox"
-      accessibilityState={{ checked, disabled: !onPress }}
-      disabled={!onPress}
+      accessibilityState={{ checked, disabled }}
+      disabled={disabled}
       onPress={onPress}
       className="flex-row items-center gap-1"
     >
       {/* 박스를 직접 눌러도 토글되게 넘긴다. 안 넘기면 Checkbox 가 터치만 먹고 아무것도 안 한다. */}
-      <Checkbox checked={checked} onPress={onPress} />
-      <Text className="text-gray-600 text-b-02-m">{label}</Text>
+      <Checkbox checked={checked} onPress={onPress} disabled={disabled} />
+      <Text
+        className={cn(
+          disabled ? "text-gray-400" : "text-gray-600",
+          "text-b-02-m"
+        )}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -59,7 +69,7 @@ export type TaskFormProps = {
   heading: string;
   /** 수정 화면에서 채워 둘 기존 값 */
   initialValue?: TaskFormValue;
-  /** 수정 화면: 과제 유형 변경 막기, TASK `전체삭제`, TASK 개별 삭제 `되돌리기` 스낵바, 자료 영역 숨김 */
+  /** 수정 화면: 팀 → 개인 변경 막기, TASK `전체삭제`, TASK 개별 삭제 `되돌리기` 스낵바, 자료 영역 숨김 */
   isEdit?: boolean;
   /** 하단 버튼 영역. 현재 입력값을 받아 제출한다. */
   footer: (value: TaskFormValue) => ReactNode;
@@ -92,8 +102,9 @@ export function TaskForm({
           <LabeledCheckbox
             label="팀프로젝트"
             checked={isTeam}
-            // shortcut: 수정 화면은 유형 변경을 임시로 막는다, convert-to-team 연동이 정해지면 연다
-            onPress={isEdit ? undefined : form.toggleTeam}
+            // 수정 화면에서는 개인 → 팀만 바꿀 수 있다. 팀 → 개인은 서버가 지원하지 않는다
+            onPress={form.toggleTeam}
+            disabled={isEdit && initialValue.isTeam}
           />
           {/* 웬투밋 연동 전까지 잠시 숨긴다
           <LabeledCheckbox
