@@ -4,6 +4,7 @@ import { Pressable, Text, View, type ViewStyle } from "react-native";
 import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
 import { Add } from "@/components/icons";
 import { CARD_SHADOW } from "@/constants/shadows";
+import type { DueDate } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
 
 import { type SubTask, SubTaskRow } from "./SubTaskRow";
@@ -15,6 +16,10 @@ export type SubTaskListProps = {
   onToggle?: (id: string) => void;
   /** 알림 아이콘을 눌렀을 때 */
   onAlarmPress?: (id: string) => void;
+  /** 날짜 피커에서 `저장`을 눌렀을 때. 넘기면 달력 아이콘과 날짜를 눌러 마감일을 바꿀 수 있다. */
+  onDueDateChange?: (id: string, value: DueDate | null) => void;
+  /** 날짜 피커에서 이 마감일보다 늦게 고를 수 없다 (과제 마감일) */
+  maxDate?: DueDate | null;
   /** `세부과제 추가`를 눌렀을 때 */
   onAddPress?: () => void;
   /** 넘기면 `세부과제 추가` 줄 대신 이 입력 폼을 보여 준다. */
@@ -37,6 +42,8 @@ export function SubTaskList({
   items,
   onToggle,
   onAlarmPress,
+  onDueDateChange,
+  maxDate,
   onAddPress,
   addForm,
   collapsedCount,
@@ -83,6 +90,13 @@ export function SubTaskList({
                     onAlarmPress={
                       onAlarmPress ? () => onAlarmPress(item.id) : undefined
                     }
+                    onDueDateChange={
+                      onDueDateChange
+                        ? (value) => onDueDateChange(item.id, value)
+                        : undefined
+                    }
+                    deadline={item.deadline}
+                    maxDate={maxDate}
                     expanded={isExpanded}
                     onExpandPress={
                       onExpandPress ? () => onExpandPress(item.id) : undefined

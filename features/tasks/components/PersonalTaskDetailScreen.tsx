@@ -4,12 +4,16 @@ import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/common/Header/BackHeader";
+import { useToast } from "@/hooks/useToast";
+import { type DueDate, toDueDateTime } from "@/lib/dueDate";
+import { getErrorMessage } from "@/lib/errorMessage";
 
 import {
   createReference,
   deleteReference,
   taskKeys,
   updateReference,
+  updateSubTaskDeadline,
 } from "../api/taskApi";
 import type { ResourceDraft } from "../api/taskForm.types";
 import {
@@ -61,8 +65,21 @@ function PersonalTaskDetailContent({
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const resourceModals = useResourceModals();
+  const { showToast } = useToast();
   const refreshDetail = () =>
     queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+
+  const changeSubTaskDeadline = async (id: string, value: DueDate | null) => {
+    try {
+      await updateSubTaskDeadline(
+        Number(id),
+        value ? toDueDateTime(value).toISOString() : null
+      );
+      await refreshDetail();
+    } catch (error) {
+      showToast("fail", getErrorMessage(error, "마감일을 바꾸지 못했어요."));
+    }
+  };
 
   const saveReference = async (draft: ResourceDraft, referenceId?: string) => {
     if (referenceId) {
@@ -147,6 +164,10 @@ function PersonalTaskDetailContent({
           collapsedCount={SUB_TASK_COLLAPSED_COUNT}
           onToggle={(id) => doneToggle.toggle(subTasks, id)}
           onAlarmPress={(id) => alarmToggle.toggle(subTasks, id)}
+          onDueDateChange={changeSubTaskDeadline}
+          maxDate={
+            detail.deadline ? { date: detail.deadline, hasTime: true } : null
+          }
           onAddPress={addForm.open}
           addForm={addForm.form}
         />

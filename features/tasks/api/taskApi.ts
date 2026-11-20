@@ -64,6 +64,17 @@ export function updateSubTaskStatus(subTaskId: number, status: SubTaskStatus) {
   });
 }
 
+/** `endDate`: ISO 시각, `null` 이면 날짜 미지정으로 되돌린다 */
+export function updateSubTaskDeadline(
+  subTaskId: number,
+  endDate: string | null
+) {
+  return apiClient.patch<unknown>(
+    `/api/v1/task/subtask/${subTaskId}/deadline`,
+    { endDate }
+  );
+}
+
 export function updateSubTaskAlarm(
   taskId: number,
   subTaskId: number,
