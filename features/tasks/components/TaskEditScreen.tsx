@@ -91,6 +91,13 @@ export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
             );
           }
           router.back();
+          // 팀 과제로 바꿨으면 뒤에 있던 개인 과제 상세를 팀 과제 상세로 바꾼다
+          if (!task.isTeam && value.isTeam) {
+            router.replace({
+              pathname: "/tasks/team/[taskId]",
+              params: { taskId },
+            });
+          }
         },
         onError: (error) =>
           showToast(

@@ -144,6 +144,11 @@ export function updateTask(taskId: number, body: UpdateTaskRequest) {
 }
 
 /** 팀장이면 과제 삭제, 팀원이면 본인만 탈퇴한다 (서버가 역할로 판단) */
+/** 개인 과제를 팀 과제로 바꾼다. 개인 과제 소유자만 할 수 있고, 팀 → 개인은 서버가 지원하지 않는다 */
+export function convertTaskToTeam(taskId: number) {
+  return apiClient.patch<unknown>(`/api/v1/task/${taskId}/convert-to-team`);
+}
+
 export function deleteTask(taskId: number) {
   return apiClient.delete<unknown>(`/api/v1/task/${taskId}`);
 }
