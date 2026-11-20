@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
-import { Add, Pencil } from "@/components/icons";
+import { Add } from "@/components/icons";
 import { CARD_SHADOW } from "@/constants/shadows";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +15,6 @@ export type SubTaskListProps = {
   onToggle?: (id: string) => void;
   /** 알림 아이콘을 눌렀을 때 */
   onAlarmPress?: (id: string) => void;
-  /** 제목 옆 연필 아이콘을 눌렀을 때 */
-  onEditPress?: () => void;
   /** `세부과제 추가`를 눌렀을 때 */
   onAddPress?: () => void;
   /** 넘기면 `세부과제 추가` 줄 대신 이 입력 폼을 보여 준다. */
@@ -39,7 +37,6 @@ export function SubTaskList({
   items,
   onToggle,
   onAlarmPress,
-  onEditPress,
   onAddPress,
   addForm,
   collapsedCount,
@@ -62,17 +59,7 @@ export function SubTaskList({
 
   return (
     <View className={cn("gap-4", className)}>
-      <View className="flex-row items-center gap-1">
-        <Text className="text-gray-900 text-b-02-m">세부 TASK</Text>
-        <Pressable
-          accessibilityRole={onEditPress ? "button" : undefined}
-          accessibilityLabel="세부 TASK 수정"
-          hitSlop={8}
-          onPress={onEditPress}
-        >
-          <Pencil className="text-gray-900" />
-        </Pressable>
-      </View>
+      <Text className="text-gray-900 text-b-02-m">세부 TASK</Text>
 
       <View style={cardShadow} className="gap-4 rounded-xl bg-bg px-3 py-4">
         {/* 비어 있을 때 빈 목록 View 가 gap 을 한 번 더 먹어 `세부과제 추가`가 내려가므로, 목록 대신 안내 문구를 둔다 */}
