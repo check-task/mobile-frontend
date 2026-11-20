@@ -18,11 +18,14 @@ import {
 } from "@/components/icons";
 import { useSignOut } from "@/hooks/useSignOut";
 
+import { useJoinTeamTaskModal } from "../hooks/useJoinTeamTaskModal";
+
 export function MenuScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [tasksOpen, setTasksOpen] = useState(false);
   const signOut = useSignOut();
+  const openJoinModal = useJoinTeamTaskModal();
 
   const items = [
     {
@@ -113,8 +116,8 @@ export function MenuScreen() {
       </ScrollView>
       <View className="gap-3 px-4">
         <Pressable
-          disabled
-          accessibilityState={{ disabled: true }}
+          accessibilityRole="button"
+          onPress={openJoinModal}
           className="h-12 items-center justify-center rounded-lg bg-gray-100"
         >
           <Text className="text-gray-600 text-btn">팀 과제 참여</Text>

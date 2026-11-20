@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import {
@@ -9,12 +10,17 @@ import {
   ClockClose,
   Top,
 } from "@/components/icons";
+import type { DueDate } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
+
+import { DueDatePickerModal } from "./DueDateField";
 
 export type SubTask = {
   id: string;
   title: string;
   dueDate: string;
+  /** 날짜 수정 피커의 초깃값. `null`이면 미지정 */
+  deadline?: DueDate | null;
   done: boolean;
   alarm: boolean;
 };
@@ -32,6 +38,12 @@ export type SubTaskRowProps = {
   onToggle?: () => void;
   /** 알림 아이콘을 눌렀을 때 */
   onAlarmPress?: () => void;
+  /** 날짜 피커에서 `저장`을 눌렀을 때. 넘기면 달력 아이콘과 날짜를 눌러 피커를 열 수 있다. */
+  onDueDateChange?: (value: DueDate | null) => void;
+  /** 피커를 열 때 채워 둘 마감일 */
+  deadline?: DueDate | null;
+  /** 피커에서 이 마감일보다 늦게 고를 수 없다 (과제 마감일) */
+  maxDate?: DueDate | null;
   /** 펼침 화살표를 눌렀을 때. 넘기면 행 오른쪽 끝에 화살표를 그린다. */
   onExpandPress?: () => void;
   /** 펼쳐진 상태 여부. 화살표 방향이 바뀐다. */
@@ -47,11 +59,15 @@ export function SubTaskRow({
   alarm,
   onToggle,
   onAlarmPress,
+  onDueDateChange,
+  deadline = null,
+  maxDate,
   onExpandPress,
   expanded = false,
   className,
 }: SubTaskRowProps) {
   const metaColorClass = done ? "text-gray-400" : "text-gray-600";
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   return (
     <View className={cn("flex-row items-center gap-2", className)}>
@@ -83,13 +99,19 @@ export function SubTaskRow({
       </View>
 
       <View className="flex-row items-center gap-1">
-        <View className="w-20 flex-row items-center gap-1">
+        <Pressable
+          accessibilityRole={onDueDateChange ? "button" : undefined}
+          accessibilityLabel="마감일 선택"
+          disabled={!onDueDateChange}
+          onPress={() => setIsDatePickerOpen(true)}
+          className="w-20 flex-row items-center gap-1"
+        >
           <Calendar variant="lg" className={metaColorClass} />
           {/* 달력 아이콘은 상자가 아래쪽(y 6~20)에 있어, 가운데 둔 글자가 위로 떠 보인다. 상자 가운데에 맞춰 1px 내린다. */}
           <Text className={cn(metaColorClass, "translate-y-px text-b-04-r")}>
             {dueDate}
           </Text>
-        </View>
+        </Pressable>
         <Pressable
           accessibilityRole={onAlarmPress ? "button" : undefined}
           accessibilityLabel={alarm ? "알림 끄기" : "알림 켜기"}
@@ -124,6 +146,17 @@ export function SubTaskRow({
           </Pressable>
         ) : null}
       </View>
+
+      {onDueDateChange ? (
+        <DueDatePickerModal
+          visible={isDatePickerOpen}
+          value={deadline}
+          onClose={() => setIsDatePickerOpen(false)}
+          onChange={onDueDateChange}
+          allowNoDate
+          maxDate={maxDate}
+        />
+      ) : null}
     </View>
   );
 }

@@ -2,8 +2,9 @@ import { type ReactNode, useState } from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { ExpandButton } from "@/components/common/ExpandButton/ExpandButton";
-import { Add, Pencil } from "@/components/icons";
+import { Add } from "@/components/icons";
 import { CARD_SHADOW } from "@/constants/shadows";
+import type { DueDate } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
 
 import { type SubTask, SubTaskRow } from "./SubTaskRow";
@@ -15,8 +16,10 @@ export type SubTaskListProps = {
   onToggle?: (id: string) => void;
   /** 알림 아이콘을 눌렀을 때 */
   onAlarmPress?: (id: string) => void;
-  /** 제목 옆 연필 아이콘을 눌렀을 때 */
-  onEditPress?: () => void;
+  /** 날짜 피커에서 `저장`을 눌렀을 때. 넘기면 달력 아이콘과 날짜를 눌러 마감일을 바꿀 수 있다. */
+  onDueDateChange?: (id: string, value: DueDate | null) => void;
+  /** 날짜 피커에서 이 마감일보다 늦게 고를 수 없다 (과제 마감일) */
+  maxDate?: DueDate | null;
   /** `세부과제 추가`를 눌렀을 때 */
   onAddPress?: () => void;
   /** 넘기면 `세부과제 추가` 줄 대신 이 입력 폼을 보여 준다. */
@@ -39,7 +42,8 @@ export function SubTaskList({
   items,
   onToggle,
   onAlarmPress,
-  onEditPress,
+  onDueDateChange,
+  maxDate,
   onAddPress,
   addForm,
   collapsedCount,
@@ -62,17 +66,7 @@ export function SubTaskList({
 
   return (
     <View className={cn("gap-4", className)}>
-      <View className="flex-row items-center gap-1">
-        <Text className="text-gray-900 text-b-02-m">세부 TASK</Text>
-        <Pressable
-          accessibilityRole={onEditPress ? "button" : undefined}
-          accessibilityLabel="세부 TASK 수정"
-          hitSlop={8}
-          onPress={onEditPress}
-        >
-          <Pencil className="text-gray-900" />
-        </Pressable>
-      </View>
+      <Text className="text-gray-900 text-b-02-m">세부 TASK</Text>
 
       <View style={cardShadow} className="gap-4 rounded-xl bg-bg px-3 py-4">
         {/* 비어 있을 때 빈 목록 View 가 gap 을 한 번 더 먹어 `세부과제 추가`가 내려가므로, 목록 대신 안내 문구를 둔다 */}
@@ -96,6 +90,13 @@ export function SubTaskList({
                     onAlarmPress={
                       onAlarmPress ? () => onAlarmPress(item.id) : undefined
                     }
+                    onDueDateChange={
+                      onDueDateChange
+                        ? (value) => onDueDateChange(item.id, value)
+                        : undefined
+                    }
+                    deadline={item.deadline}
+                    maxDate={maxDate}
                     expanded={isExpanded}
                     onExpandPress={
                       onExpandPress ? () => onExpandPress(item.id) : undefined

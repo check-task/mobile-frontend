@@ -4,6 +4,7 @@ import { toDueDateTime } from "@/lib/dueDate";
 
 import {
   addSubTask,
+  convertTaskToTeam,
   createReference,
   deleteReference,
   deleteSubTasks,
@@ -25,7 +26,7 @@ export type UpdateTaskInput = {
 const toServerId = (id: string) => (/^\d+$/.test(id) ? Number(id) : null);
 
 /**
- * 폼 값을 초기값과 비교해 한꺼번에 저장한다: 지운 세부 과제 삭제 → 과제 PATCH → 자료 추가·수정·삭제.
+ * 폼 값을 초기값과 비교해 한꺼번에 저장한다: (개인 → 팀 전환) → 지운 세부 과제 삭제 → 과제 PATCH → 자료 추가·수정·삭제.
  * 자료 실패는 과제 저장을 되돌리지 않고 개수만 돌려준다.
  */
 export function useUpdateTaskMutation() {
@@ -33,6 +34,10 @@ export function useUpdateTaskMutation() {
   return useMutation({
     mutationFn: async ({ taskId, initial, value }: UpdateTaskInput) => {
       if (!value.deadline) throw new Error("마감일이 없습니다.");
+      // 소유자가 아니면 서버가 거부하므로, 다른 내용을 바꾸기 전에 먼저 전환한다
+      if (!initial.isTeam && value.isTeam) {
+        await convertTaskToTeam(taskId);
+      }
       const deadlineTime = toDueDateTime(value.deadline);
       // 제목을 비운 세부 과제는 지운 것으로 본다
       const subTasks = value.subTasks.filter(

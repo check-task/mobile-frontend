@@ -84,6 +84,7 @@ export function toTaskDetail(data: TaskDetailResponse): TaskDetail {
       dueDate: subTask.deadline
         ? formatShortDate(parseServerDate(subTask.deadline))
         : "지정안함",
+      deadline: subTask.deadline ? toDueDate(subTask.deadline) : null,
       done: subTask.status === "COMPLETED",
       alarm: subTask.isAlarm,
     })),

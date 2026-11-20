@@ -12,6 +12,7 @@ import { Tabs } from "@/components/common/Tabs/Tabs";
 import { STRONG_CARD_SHADOW } from "@/constants/shadows";
 import { useModal } from "@/hooks/useModal";
 import { useToast } from "@/hooks/useToast";
+import { type DueDate, toDueDateTime } from "@/lib/dueDate";
 import { getErrorMessage } from "@/lib/errorMessage";
 import { emitWithAck } from "@/lib/socket/socketClient";
 
@@ -165,6 +166,17 @@ function TeamTaskDetailContent({
     failMessage: "알림 설정을 바꾸지 못했어요.",
   });
   const subTasks = alarmToggle.apply(doneToggle.apply(detail.subTasks));
+  const changeSubTaskDeadline = async (id: string, value: DueDate | null) => {
+    try {
+      await emitAndRefresh("updateDeadline", {
+        taskId,
+        subTaskId: Number(id),
+        endDate: value ? toDueDateTime(value).toISOString() : null,
+      });
+    } catch (error) {
+      showToast("fail", getErrorMessage(error, "마감일을 바꾸지 못했어요."));
+    }
+  };
 
   const doneCount = subTasks.filter((subTask) => subTask.done).length;
   const percent =
@@ -491,6 +503,10 @@ function TeamTaskDetailContent({
           cardShadow={STRONG_CARD_SHADOW}
           onToggle={(id) => doneToggle.toggle(subTasks, id)}
           onAlarmPress={(id) => alarmToggle.toggle(subTasks, id)}
+          onDueDateChange={changeSubTaskDeadline}
+          maxDate={
+            detail.deadline ? { date: detail.deadline, hasTime: true } : null
+          }
           onAddPress={addForm.open}
           addForm={addForm.form}
           expandedIds={expandedIds}

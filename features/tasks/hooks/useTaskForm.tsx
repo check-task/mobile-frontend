@@ -19,6 +19,10 @@ export function useTaskForm(initialValue: TaskFormValue, isEdit: boolean) {
   const nextId = useRef(0);
 
   const [isTeam, setIsTeam] = useState(initialValue.isTeam);
+  // 팀 → 개인은 되돌릴 수 없다. 저장 도중 팀으로 전환돼 다시 불러온 값이 팀이면 폼도 팀으로 맞춘다
+  if (initialValue.isTeam && !isTeam) {
+    setIsTeam(true);
+  }
   // shortcut: 사양에 없는 Figma 옵션이라 상태만 둔다, 웬투밋 범위 정해지면 연결
   const [withWhen2meet, setWithWhen2meet] = useState(false);
   const [title, setTitle] = useState(initialValue.title);

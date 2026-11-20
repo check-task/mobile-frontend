@@ -17,7 +17,9 @@ export function NoticeItem({ notice }: NoticeItemProps) {
         ))}
       </View>
       <View className="gap-2">
-        <Text className="text-gray-600 text-b-03-r">{notice.closing}</Text>
+        {notice.closing ? (
+          <Text className="text-gray-600 text-b-03-r">{notice.closing}</Text>
+        ) : null}
         <Text className="text-gray-400 text-b-04-m">{notice.date}</Text>
       </View>
     </View>
@@ -33,12 +35,13 @@ function NoticeSectionView({ section }: { section: NoticeSection }) {
     <View>
       <Text className="text-gray-800 text-b-02-m">{section.heading}</Text>
       {section.type === "list" ? (
-        section.items.map((item) => (
-          <View key={item} className="flex-row">
-            <Text className="w-[21px] text-center text-gray-600 text-b-02-r">
-              •
-            </Text>
-            <Text className="flex-1 text-gray-600 text-b-02-r">{item}</Text>
+        <BulletList items={section.items} />
+      ) : section.type === "groups" ? (
+        // 웹과 같이 소제목마다 위로 8px 띄우고, 소제목과 목록 사이는 4px
+        section.groups.map((group) => (
+          <View key={group.heading} className="mt-2 gap-1">
+            <Text className="text-gray-800 text-b-02-m">{group.heading}</Text>
+            <BulletList items={group.items} />
           </View>
         ))
       ) : (
@@ -46,4 +49,13 @@ function NoticeSectionView({ section }: { section: NoticeSection }) {
       )}
     </View>
   );
+}
+
+function BulletList({ items }: { items: readonly string[] }) {
+  return items.map((item) => (
+    <View key={item} className="flex-row">
+      <Text className="w-[21px] text-center text-gray-600 text-b-02-r">•</Text>
+      <Text className="flex-1 text-gray-600 text-b-02-r">{item}</Text>
+    </View>
+  ));
 }
