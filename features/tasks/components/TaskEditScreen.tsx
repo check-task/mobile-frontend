@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -35,6 +36,12 @@ export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
   const { data: myUserId } = useMyUserIdQuery();
   const { data: members = [] } = useTaskMembersQuery(id);
   const task = taskQuery.data;
+  // 저장하면 과제를 다시 불러와 task.isTeam 이 바뀐다. 전환 후 나머지 저장이 실패해 다시 저장해도
+  // 팀 과제 상세로 이동하도록, 수정 화면에 들어왔을 때의 유형을 따로 기억한다.
+  const [openedAsTeam, setOpenedAsTeam] = useState<boolean | null>(null);
+  if (task && openedAsTeam === null) {
+    setOpenedAsTeam(task.isTeam);
+  }
 
   if (!task) {
     return (
@@ -92,7 +99,7 @@ export function TaskEditScreen({ taskId }: TaskEditScreenProps) {
           }
           router.back();
           // 팀 과제로 바꿨으면 뒤에 있던 개인 과제 상세를 팀 과제 상세로 바꾼다
-          if (!task.isTeam && value.isTeam) {
+          if (openedAsTeam === false && value.isTeam) {
             router.replace({
               pathname: "/tasks/team/[taskId]",
               params: { taskId },
