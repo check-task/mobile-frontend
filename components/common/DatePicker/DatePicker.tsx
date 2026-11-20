@@ -340,10 +340,12 @@ export function DatePicker({
                     value={time.hour}
                     label="시"
                     // 00~11 로 표기하므로 12 는 00 으로 받는다.
+                    // 13 이상은 24시간제로 보고 오후로 바꾼다 (오전 13:00 → 오후 01:00).
                     onChange={(hour) =>
                       setTime(
-                        (hour === 12 ? 0 : Math.min(hour, 11)) +
-                          (isPm ? 12 : 0),
+                        hour >= 13
+                          ? Math.min(hour, 23)
+                          : (hour === 12 ? 0 : hour) + (isPm ? 12 : 0),
                         value.getMinutes()
                       )
                     }
