@@ -31,7 +31,8 @@ export const taskKeys = {
 
 export function getTasks(type: TaskType) {
   return apiClient.get<TaskListResponse>("/api/v1/task", {
-    params: { type },
+    // 마감이 지난 과제는 완료 과제로 가므로 진행 중인 과제만 받는다
+    params: { type, status: "PROGRESS" },
   });
 }
 
