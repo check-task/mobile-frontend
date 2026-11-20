@@ -95,11 +95,13 @@ export function TaskForm({
             // shortcut: 수정 화면은 유형 변경을 임시로 막는다, convert-to-team 연동이 정해지면 연다
             onPress={isEdit ? undefined : form.toggleTeam}
           />
+          {/* 웬투밋 연동 전까지 잠시 숨긴다
           <LabeledCheckbox
             label="웬투밋 추가"
             checked={form.withWhen2meet}
             onPress={form.toggleWhen2meet}
           />
+          */}
         </View>
 
         <View className="h-px bg-gray-200" />
