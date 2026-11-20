@@ -164,7 +164,15 @@ export function DueDatePickerModal({
           onTimeEnabledChange={(hasTime) => setDraft({ ...draft, hasTime })}
           maxDate={maxDate?.date}
           noDate={draftNoDate}
-          onNoDateChange={allowNoDate ? setDraftNoDate : undefined}
+          onNoDateChange={
+            allowNoDate
+              ? (noDate) => {
+                  setDraftNoDate(noDate);
+                  // 날짜 지정 안함을 고르면 시간 추가도 끈다
+                  if (noDate) setDraft({ ...draft, hasTime: false });
+                }
+              : undefined
+          }
           onSave={save}
           // DatePicker 기본값 self-start 를 덮어 가운데 정렬
           className="self-center"

@@ -28,6 +28,11 @@ export const On: Story = {
   args: { value: true },
 };
 
+/** 비활성 상태. 눌러도 바뀌지 않는다. */
+export const Disabled: Story = {
+  args: { disabled: true },
+};
+
 /** 눌러서 켜고 끌 수 있다. */
 export const Interactive: Story = {
   render: function Render(args) {

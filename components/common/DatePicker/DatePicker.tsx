@@ -297,7 +297,8 @@ export function DatePicker({
           <Pressable
             accessibilityRole="checkbox"
             accessibilityState={{ checked: noDate }}
-            onPress={() => onNoDateChange(!noDate)}
+            // 웹과 같이 다시 눌러도 해제되지 않는다. 해제는 날짜를 고를 때만 한다
+            onPress={() => onNoDateChange(true)}
             className="flex-row items-center justify-between"
           >
             <Text className="text-gray-900 text-b-04-r">날짜 지정 안함</Text>
@@ -309,15 +310,24 @@ export function DatePicker({
 
         <View className="gap-1">
           <View className="flex-row items-center justify-between">
-            <Text className="text-gray-900 text-b-04-r">시간 추가</Text>
+            <Text
+              className={cn(
+                noDate ? "text-gray-400" : "text-gray-900",
+                "text-b-04-r"
+              )}
+            >
+              시간 추가
+            </Text>
+            {/* 날짜가 없으면 시간도 없으므로 끄고 막는다 (웹과 같음) */}
             <Toggle
-              value={timeEnabled}
+              value={timeEnabled && !noDate}
               onValueChange={onTimeEnabledChange}
               accessibilityLabel="시간 추가"
+              disabled={noDate}
             />
           </View>
 
-          {timeEnabled ? (
+          {timeEnabled && !noDate ? (
             <View className="flex-row items-center justify-between">
               <Text className="text-gray-600 text-caption">
                 {`${value.getFullYear()}년 ${value.getMonth() + 1}월 ${value.getDate()}일`}

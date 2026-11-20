@@ -9,6 +9,8 @@ export type ToggleProps = {
   onValueChange: (value: boolean) => void;
   /** 스크린 리더용 설명. 옆에 보이는 라벨 텍스트가 없을 때만 넘긴다. */
   accessibilityLabel?: string;
+  /** 누르지 못하게 막을지 */
+  disabled?: boolean;
   /** 바깥 여백 등 레이아웃 보정용. */
   className?: string;
 };
@@ -18,18 +20,22 @@ export function Toggle({
   value,
   onValueChange,
   accessibilityLabel,
+  disabled = false,
   className,
 }: ToggleProps) {
   return (
     <Pressable
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
       accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
       hitSlop={8}
       onPress={() => onValueChange(!value)}
       className={cn(
         "h-4 w-8 flex-row items-center rounded-full px-0.5",
         value ? "justify-end bg-primary" : "justify-start bg-gray-300",
+        // 웹 TimeToggle 과 같이 비활성이면 트랙을 연한 회색으로 그린다
+        disabled ? "bg-gray-100" : null,
         className
       )}
     >
