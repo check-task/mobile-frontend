@@ -126,9 +126,10 @@ export function DueDatePickerModal({
   const save = () => {
     if (draftNoDate) {
       onChange(null);
-    } else if (maxDate && draft.date > toDueDateTime(maxDate)) {
-      // 상한보다 늦은 날짜이거나, 같은 날 더 늦은 시각이면 상한 시각으로 맞춘다.
-      onChange({ ...draft, date: toDueDateTime(maxDate) });
+    } else if (maxDate && toDueDateTime(draft) > toDueDateTime(maxDate)) {
+      // 실제 저장될 시각으로 비교한다. 날짜만 고른 초안은 그날 23:59 로 저장되어,
+      // 같은 날 더 이른 시각인 상한을 넘을 수 있다. 넘으면 상한(날짜·시간 추가 여부)으로 맞춘다.
+      onChange(maxDate);
     } else {
       onChange(draft);
     }
