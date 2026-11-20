@@ -59,7 +59,7 @@ export type TaskFormProps = {
   heading: string;
   /** 수정 화면에서 채워 둘 기존 값 */
   initialValue?: TaskFormValue;
-  /** 수정 화면: 과제 유형 변경 막기, TASK `전체삭제`, TASK·자료 개별 삭제 `되돌리기` 스낵바 */
+  /** 수정 화면: 과제 유형 변경 막기, TASK `전체삭제`, TASK 개별 삭제 `되돌리기` 스낵바, 자료 영역 숨김 */
   isEdit?: boolean;
   /** 하단 버튼 영역. 현재 입력값을 받아 제출한다. */
   footer: (value: TaskFormValue) => ReactNode;
@@ -158,11 +158,14 @@ export function TaskForm({
               onAdd={form.addSubTask}
               onRemoveAll={isEdit ? form.confirmRemoveAllSubTasks : undefined}
             />
-            <TaskResourceSection
-              resources={resources}
-              onOpenModal={form.openResourceModal}
-              onRemove={form.removeResource}
-            />
+            {/* 자료는 상세 화면에서 추가·수정한다 (Figma 과제 수정 화면에 자료 영역 없음) */}
+            {isEdit ? null : (
+              <TaskResourceSection
+                resources={resources}
+                onOpenModal={form.openResourceModal}
+                onRemove={form.removeResource}
+              />
+            )}
           </View>
         </View>
       </ScrollView>
