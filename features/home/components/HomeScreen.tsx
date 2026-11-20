@@ -7,21 +7,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Fab } from "@/components/common/Fab/Fab";
 import { LogoHeader } from "@/components/common/Header/LogoHeader";
 import { useModal } from "@/hooks/useModal";
-import { useToast } from "@/hooks/useToast";
 import { formatDayTitle, toDateKey } from "@/lib/calendarDate";
-import { getErrorMessage } from "@/lib/errorMessage";
 
 import type { HomeTask } from "../api/home.types";
 import { useCalendarDrag } from "../hooks/useCalendarDrag";
 import { useHomeFoldersQuery } from "../hooks/useHomeFoldersQuery";
 import { useHomeTasks } from "../hooks/useHomeTasks";
-import { useJoinTeamTaskMutation } from "../hooks/useJoinTeamTaskMutation";
+import { useJoinTeamTaskModal } from "../hooks/useJoinTeamTaskModal";
 
 import { CalendarDragOverlay } from "./CalendarDragOverlay";
 import { CalendarHeader } from "./CalendarHeader";
 import { DayTasksModalContent } from "./DayTasksModalContent";
 import { HomeTaskList } from "./HomeTaskList";
-import { JoinTeamTaskModalForm } from "./JoinTeamTaskModalForm";
 import { MonthCalendar } from "./MonthCalendar";
 import { MonthPickerModal } from "./MonthPickerModal";
 import { UnscheduledTasks } from "./UnscheduledTasks";
@@ -35,7 +32,6 @@ export function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { openModal, closeModal } = useModal();
-  const { showToast } = useToast();
 
   const today = new Date();
   const todayKey = toDateKey(today);
@@ -47,7 +43,7 @@ export function HomeScreen() {
   const [isFabOpen, setIsFabOpen] = useState(false);
 
   const folders = useHomeFoldersQuery().data ?? [];
-  const { mutateAsync: joinTeamTask } = useJoinTeamTaskMutation();
+  const openJoinModal = useJoinTeamTaskModal();
   const {
     isError,
     selectedFolderIds,
@@ -89,32 +85,6 @@ export function HomeScreen() {
               openTaskDetail(task);
             },
           }))}
-        />
-      ),
-    });
-  };
-
-  const openJoinModal = () => {
-    openModal({
-      title: "과제 참여",
-      headerIcon: "cancel",
-      children: (
-        <JoinTeamTaskModalForm
-          onSubmit={async (inviteCode, folderId) => {
-            try {
-              const { task_id } = await joinTeamTask({
-                inviteCode,
-                folderId: folderId ?? undefined,
-              });
-              closeModal();
-              router.push(`/tasks/team/${task_id}`);
-            } catch (error) {
-              showToast(
-                "fail",
-                getErrorMessage(error, "팀 과제에 참여하지 못했습니다.")
-              );
-            }
-          }}
         />
       ),
     });
