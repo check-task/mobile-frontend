@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api/client";
 import type {
   CheckEmailResponse,
   ConfirmPasswordResetRequest,
+  KakaoSignInResponse,
   SignInRequest,
   SignInResponse,
   SignUpRequest,
@@ -12,6 +13,13 @@ import type {
 
 export function signIn(body: SignInRequest) {
   return apiClient.post<SignInResponse>("/api/v1/auth/app/signin", body);
+}
+
+// 카카오 SDK로 받은 카카오 access token 을 보내면 서버가 로그인·가입을 처리한다
+export function signInWithKakao(kakaoAccessToken: string) {
+  return apiClient.post<KakaoSignInResponse>("/api/v1/auth/app/signin/kakao", {
+    kakaoAccessToken,
+  });
 }
 
 export function checkEmail(email: string) {

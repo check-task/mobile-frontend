@@ -18,6 +18,25 @@ export type SignInResponse = {
   };
 };
 
+/** POST /api/v1/auth/app/signin/kakao 응답 */
+export type KakaoSignInResponse =
+  | {
+      accessToken: string;
+      refreshToken: string;
+      /** 이번 로그인으로 처음 가입했는지 */
+      isNewUser: boolean;
+      user: {
+        id: number;
+        email: string;
+        nickname: string;
+      };
+    }
+  | {
+      /** 탈퇴 처리된 계정이면 토큰 대신 복구 토큰을 준다 */
+      withdrawnUser: true;
+      restoreToken: string;
+    };
+
 /** GET /api/v1/auth/check-email 응답 */
 export type CheckEmailResponse = {
   isDuplicate: boolean;

@@ -9,6 +9,7 @@ import { Input } from "@/components/common/Input/Input";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
 
+import { useKakaoSignInMutation } from "../hooks/useKakaoSignInMutation";
 import { useSignInMutation } from "../hooks/useSignInMutation";
 
 import { LegalDocumentModal } from "./LegalDocumentModal";
@@ -40,6 +41,7 @@ export function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const signInMutation = useSignInMutation();
+  const kakaoSignInMutation = useKakaoSignInMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [openedDocument, setOpenedDocument] = useState<LegalDocumentKey | null>(
@@ -60,6 +62,24 @@ export function LoginScreen() {
         onError: (error) => showToast("fail", getSignInErrorMessage(error)),
       }
     );
+  };
+
+  const signInWithKakao = () => {
+    if (kakaoSignInMutation.isPending) return;
+    kakaoSignInMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.status === "signedIn") router.replace("/");
+        // 복구 흐름(디자인·앱용 복구 API)이 정해지기 전까지는 안내만 한다
+        if (result.status === "withdrawn") {
+          showToast("fail", "탈퇴 처리된 계정이에요.");
+        }
+      },
+      onError: () =>
+        showToast(
+          "fail",
+          "카카오 로그인을 하지 못했어요. 잠시 후 다시 시도해 주세요."
+        ),
+    });
   };
 
   return (
@@ -139,7 +159,7 @@ export function LoginScreen() {
         </View>
 
         <View className="mt-5 gap-3">
-          <SocialLoginButton provider="kakao" />
+          <SocialLoginButton provider="kakao" onPress={signInWithKakao} />
           <SocialLoginButton provider="apple" />
         </View>
 
