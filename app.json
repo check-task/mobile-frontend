@@ -58,6 +58,11 @@
         {
           "ios": {
             "useFrameworks": "dynamic"
+          },
+          "android": {
+            "extraMavenRepos": [
+              "https://devrepo.kakao.com/nexus/content/groups/public/"
+            ]
           }
         }
       ],
