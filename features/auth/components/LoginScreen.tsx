@@ -48,8 +48,11 @@ export function LoginScreen() {
     null
   );
 
+  // 두 로그인이 겹치면 늦게 끝난 쪽 토큰으로 세션이 바뀌어서, 하나가 끝날 때까지 다른 로그인은 막는다
+  const isSigningIn = signInMutation.isPending || kakaoSignInMutation.isPending;
+
   const submit = () => {
-    if (signInMutation.isPending) return;
+    if (isSigningIn) return;
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {
       showToast("fail", "이메일과 비밀번호를 입력해 주세요.");
@@ -65,7 +68,7 @@ export function LoginScreen() {
   };
 
   const signInWithKakao = () => {
-    if (kakaoSignInMutation.isPending) return;
+    if (isSigningIn) return;
     kakaoSignInMutation.mutate(undefined, {
       onSuccess: (result) => {
         if (result.status === "signedIn") router.replace("/");
