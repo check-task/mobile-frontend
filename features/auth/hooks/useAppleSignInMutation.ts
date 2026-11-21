@@ -3,9 +3,28 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { useEffect, useState } from "react";
 
 import { saveTokens } from "@/lib/api/tokenStorage";
+import { keyValueStorage } from "@/lib/keyValueStorage";
 import { registerPushToken } from "@/lib/push/pushNotifications";
 
 import { signInWithApple } from "../api/authApi";
+import type { AppleSignInRequest } from "../api/auth.types";
+
+type AppleUser = NonNullable<AppleSignInRequest["user"]>;
+
+// 애플은 이름·이메일을 첫 인증 때만 준다. 서버 로그인이 실패하면 다시 받을 수 없어서,
+// 애플 사용자 ID 별로 보관했다가 재시도할 때 보내고, 서버가 처리한 뒤에 지운다
+const pendingUserKey = (appleUserId: string) =>
+  `applePendingUser.${appleUserId}`;
+
+async function readPendingUser(appleUserId: string) {
+  try {
+    const stored = await keyValueStorage.get(pendingUserKey(appleUserId));
+    return stored ? (JSON.parse(stored) as AppleUser) : null;
+  } catch (error) {
+    console.warn("보관한 애플 사용자 정보를 읽지 못함", error);
+    return null;
+  }
+}
 
 export type AppleSignInResult =
   | { status: "signedIn"; isNewUser: boolean }
@@ -59,23 +78,36 @@ export function useAppleSignInMutation() {
         throw error;
       }
 
-      const { identityToken, fullName, email } = credential;
+      const { user: appleUserId, identityToken, fullName, email } = credential;
       if (!identityToken) throw new Error("Apple identityToken 이 없습니다.");
 
       const hasName = Boolean(fullName?.givenName || fullName?.familyName);
-      const result = await signInWithApple({
-        identityToken,
-        user:
-          hasName || email
-            ? {
-                name: {
-                  firstName: fullName?.givenName ?? null,
-                  lastName: fullName?.familyName ?? null,
-                },
-                email,
-              }
-            : null,
-      });
+      let user: AppleUser | null = null;
+      if (hasName || email) {
+        user = {
+          name: {
+            firstName: fullName?.givenName ?? null,
+            lastName: fullName?.familyName ?? null,
+          },
+          email,
+        };
+        await keyValueStorage
+          .set(pendingUserKey(appleUserId), JSON.stringify(user))
+          .catch((error: unknown) =>
+            console.warn("애플 사용자 정보를 보관하지 못함", error)
+          );
+      } else {
+        user = await readPendingUser(appleUserId);
+      }
+
+      const result = await signInWithApple({ identityToken, user });
+      if (user) {
+        await keyValueStorage
+          .remove(pendingUserKey(appleUserId))
+          .catch((error: unknown) =>
+            console.warn("보관한 애플 사용자 정보를 지우지 못함", error)
+          );
+      }
       if ("withdrawnUser" in result) {
         return { status: "withdrawn", restoreToken: result.restoreToken };
       }
