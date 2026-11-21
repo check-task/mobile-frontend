@@ -9,6 +9,7 @@ import { Input } from "@/components/common/Input/Input";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
 
+import { useKakaoSignInMutation } from "../hooks/useKakaoSignInMutation";
 import { useSignInMutation } from "../hooks/useSignInMutation";
 
 import { LegalDocumentModal } from "./LegalDocumentModal";
@@ -40,14 +41,18 @@ export function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const signInMutation = useSignInMutation();
+  const kakaoSignInMutation = useKakaoSignInMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [openedDocument, setOpenedDocument] = useState<LegalDocumentKey | null>(
     null
   );
 
+  // 두 로그인이 겹치면 늦게 끝난 쪽 토큰으로 세션이 바뀌어서, 하나가 끝날 때까지 다른 로그인은 막는다
+  const isSigningIn = signInMutation.isPending || kakaoSignInMutation.isPending;
+
   const submit = () => {
-    if (signInMutation.isPending) return;
+    if (isSigningIn) return;
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {
       showToast("fail", "이메일과 비밀번호를 입력해 주세요.");
@@ -60,6 +65,24 @@ export function LoginScreen() {
         onError: (error) => showToast("fail", getSignInErrorMessage(error)),
       }
     );
+  };
+
+  const signInWithKakao = () => {
+    if (isSigningIn) return;
+    kakaoSignInMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.status === "signedIn") router.replace("/");
+        // 복구 흐름(디자인·앱용 복구 API)이 정해지기 전까지는 안내만 한다
+        if (result.status === "withdrawn") {
+          showToast("fail", "탈퇴 처리된 계정이에요.");
+        }
+      },
+      onError: () =>
+        showToast(
+          "fail",
+          "카카오 로그인을 하지 못했어요. 잠시 후 다시 시도해 주세요."
+        ),
+    });
   };
 
   return (
@@ -139,7 +162,7 @@ export function LoginScreen() {
         </View>
 
         <View className="mt-5 gap-3">
-          <SocialLoginButton provider="kakao" />
+          <SocialLoginButton provider="kakao" onPress={signInWithKakao} />
           <SocialLoginButton provider="apple" />
         </View>
 
