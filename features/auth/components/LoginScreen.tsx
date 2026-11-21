@@ -9,6 +9,10 @@ import { Input } from "@/components/common/Input/Input";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/apiError";
 
+import {
+  useAppleSignInAvailable,
+  useAppleSignInMutation,
+} from "../hooks/useAppleSignInMutation";
 import { useKakaoSignInMutation } from "../hooks/useKakaoSignInMutation";
 import { useSignInMutation } from "../hooks/useSignInMutation";
 
@@ -42,6 +46,8 @@ export function LoginScreen() {
   const { showToast } = useToast();
   const signInMutation = useSignInMutation();
   const kakaoSignInMutation = useKakaoSignInMutation();
+  const appleSignInMutation = useAppleSignInMutation();
+  const isAppleSignInAvailable = useAppleSignInAvailable();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [openedDocument, setOpenedDocument] = useState<LegalDocumentKey | null>(
@@ -49,7 +55,10 @@ export function LoginScreen() {
   );
 
   // 두 로그인이 겹치면 늦게 끝난 쪽 토큰으로 세션이 바뀌어서, 하나가 끝날 때까지 다른 로그인은 막는다
-  const isSigningIn = signInMutation.isPending || kakaoSignInMutation.isPending;
+  const isSigningIn =
+    signInMutation.isPending ||
+    kakaoSignInMutation.isPending ||
+    appleSignInMutation.isPending;
 
   const submit = () => {
     if (isSigningIn) return;
@@ -81,6 +90,23 @@ export function LoginScreen() {
         showToast(
           "fail",
           "카카오 로그인을 하지 못했어요. 잠시 후 다시 시도해 주세요."
+        ),
+    });
+  };
+
+  const signInWithApple = () => {
+    if (isSigningIn) return;
+    appleSignInMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.status === "signedIn") router.replace("/");
+        if (result.status === "withdrawn") {
+          showToast("fail", "탈퇴 처리된 계정이에요.");
+        }
+      },
+      onError: () =>
+        showToast(
+          "fail",
+          "Apple 로그인을 하지 못했어요. 잠시 후 다시 시도해 주세요."
         ),
     });
   };
@@ -163,7 +189,9 @@ export function LoginScreen() {
 
         <View className="mt-5 gap-3">
           <SocialLoginButton provider="kakao" onPress={signInWithKakao} />
-          <SocialLoginButton provider="apple" />
+          {isAppleSignInAvailable && (
+            <SocialLoginButton provider="apple" onPress={signInWithApple} />
+          )}
         </View>
 
         <Text className="mt-[60px] text-center text-gray-500 text-b-04-r">

@@ -37,6 +37,19 @@ export type KakaoSignInResponse =
       restoreToken: string;
     };
 
+/** POST /api/v1/auth/app/signin/apple 요청. 서버는 user 의 이름으로 닉네임을 만든다 */
+export type AppleSignInRequest = {
+  identityToken: string;
+  /** 애플은 이름·이메일을 첫 로그인 때만 준다. 그 외에는 null */
+  user: {
+    name: { firstName: string | null; lastName: string | null };
+    email: string | null;
+  } | null;
+};
+
+/** POST /api/v1/auth/app/signin/apple 응답. 카카오와 같은 형식이다 */
+export type AppleSignInResponse = KakaoSignInResponse;
+
 /** GET /api/v1/auth/check-email 응답 */
 export type CheckEmailResponse = {
   isDuplicate: boolean;
