@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/api/client";
 
 import type {
+  AppleSignInRequest,
+  AppleSignInResponse,
   CheckEmailResponse,
   ConfirmPasswordResetRequest,
   KakaoSignInResponse,
@@ -20,6 +22,14 @@ export function signInWithKakao(kakaoAccessToken: string) {
   return apiClient.post<KakaoSignInResponse>("/api/v1/auth/app/signin/kakao", {
     kakaoAccessToken,
   });
+}
+
+// 애플 로그인으로 받은 identityToken 을 보내면 서버가 로그인·가입을 처리한다
+export function signInWithApple(body: AppleSignInRequest) {
+  return apiClient.post<AppleSignInResponse>(
+    "/api/v1/auth/app/signin/apple",
+    body
+  );
 }
 
 export function checkEmail(email: string) {
