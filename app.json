@@ -8,7 +8,7 @@
     "scheme": "checktask",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "checktask.com.ios",
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist"
