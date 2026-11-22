@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile-frontend",
+    "name": "CHECKTASK",
     "slug": "mobile-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobilefrontend",
+    "scheme": "checktask",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
