@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>kr.checktask.app</string>
+	<string>checktask.com.ios</string>
 	<key>PROJECT_ID</key>
 	<string>checktask-c2864</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:152299560096:ios:5f6ef3ca0c9683191cfdc5</string>
+	<string>1:152299560096:ios:892c031b2fa9a67c1cfdc5</string>
 </dict>
 </plist>

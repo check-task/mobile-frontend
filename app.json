@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "kr.checktask.app",
+      "bundleIdentifier": "checktask.com.ios",
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist"
     },
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "kr.checktask.app",
+      "package": "checktask.com.android",
       "googleServicesFile": "./google-services.json"
     },
     "web": {

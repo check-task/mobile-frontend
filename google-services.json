@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:152299560096:android:dcd78d61e6b0ad841cfdc5",
+        "android_client_info": {
+          "package_name": "checktask.com.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA33LrOibwfVBauNWotKtcFbdgVe6Ipj3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:152299560096:android:27bc5f0eebc4e13e1cfdc5",
         "android_client_info": {
           "package_name": "kr.checktask.app"
