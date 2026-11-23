@@ -17,6 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             string,
             object,
           ],
+          "./plugins/withKakaoSceneDelegate",
         ]
       : []),
   ],
